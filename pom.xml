@@ -73,6 +73,16 @@
             <artifactId>rdf4j-repository-sparql</artifactId>
             <version>${rdf4j.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-sail-memory</artifactId>
+            <version>${rdf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-repository-event</artifactId>
+            <version>${rdf4j.version}</version>
+        </dependency>
         <!-- RDF4J Query Result IO -->
         <dependency>
             <groupId>org.eclipse.rdf4j</groupId>
