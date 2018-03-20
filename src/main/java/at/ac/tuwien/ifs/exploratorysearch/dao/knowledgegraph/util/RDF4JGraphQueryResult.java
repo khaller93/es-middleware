@@ -1,14 +1,16 @@
 package at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.util;
 
 import at.ac.tuwien.ifs.exploratorysearch.dto.exception.QueryResultFormatException;
-import at.ac.tuwien.ifs.exploratorysearch.dto.sparql.AskQueryResult;
 import at.ac.tuwien.ifs.exploratorysearch.dto.sparql.GraphQueryResult;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.query.QueryResults;
+import org.eclipse.rdf4j.query.impl.IteratingGraphQueryResult;
 import org.eclipse.rdf4j.query.resultio.QueryResultFormat;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
@@ -36,10 +38,12 @@ public class RDF4JGraphQueryResult implements GraphQueryResult {
                 .reduce((a, b) -> a + "," + b).orElse(""));
   }
 
-  private org.eclipse.rdf4j.query.GraphQueryResult graphQueryResult;
+  private Map<String, String> namespaces;
+  private List<Statement> statements;
 
-  public RDF4JGraphQueryResult(org.eclipse.rdf4j.query.GraphQueryResult graphQueryResult) {
-    this.graphQueryResult = graphQueryResult;
+  public RDF4JGraphQueryResult(Map<String, String> namespaces, List<Statement> statements) {
+    this.namespaces = namespaces;
+    this.statements = statements;
   }
 
   @Override
@@ -48,7 +52,8 @@ public class RDF4JGraphQueryResult implements GraphQueryResult {
         .matchMIMEType(format, GRAPH_QUERY_RESULT_FORMATS);
     if (formatOptional.isPresent()) {
       try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-        QueryResults.report(graphQueryResult, Rio.createWriter(formatOptional.get(), out));
+        QueryResults.report(new IteratingGraphQueryResult(namespaces, statements),
+            Rio.createWriter(formatOptional.get(), out));
         return out.toByteArray();
       } catch (IOException e) {
         throw new QueryResultFormatException(e);
@@ -58,6 +63,14 @@ public class RDF4JGraphQueryResult implements GraphQueryResult {
           String.format("The given format '%s' is not part of the supported ones %s.",
               format, GRAPH_QUERY_RESULT_FORMATS_STRING));
     }
+  }
+
+  @Override
+  public String toString() {
+    return "RDF4JGraphQueryResult{" +
+        "namespaces=" + namespaces +
+        ", statements=" + statements +
+        '}';
   }
 
 }

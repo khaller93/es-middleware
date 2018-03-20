@@ -6,7 +6,9 @@ import org.eclipse.rdf4j.repository.sparql.SPARQLRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 /**
  * An implementation of {@link KnowledgeGraphDAO} for the Ontotext GraphDB triplestore.
@@ -15,8 +17,8 @@ import org.springframework.context.annotation.Scope;
  * @version 1.0
  * @since 1.0
  */
-@org.springframework.stereotype.Repository("GraphDB")
-@Scope("singleton")
+@Component("GraphDB")
+@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class GraphDbDAO extends AbstractKnowledgeGraphDAO {
 
   private static final Logger logger = LoggerFactory.getLogger(GraphDbDAO.class);
@@ -24,8 +26,9 @@ public class GraphDbDAO extends AbstractKnowledgeGraphDAO {
   /**
    * Creates a {@link GraphDbDAO} with the given location configuration.
    */
-  public GraphDbDAO(@Value("${triplestore.queryEndpointURL}") String queryEndpointURL,
-      @Value("${triplestore.updateEndpointURL}") String updateEndpointURL)
+  public GraphDbDAO(
+      @Value("${graphdb.queryEndpointURL}") String queryEndpointURL,
+      @Value("${graphdb.updateEndpointURL}") String updateEndpointURL)
       throws KnowledgeGraphSetupException {
     super(new SPARQLRepository(queryEndpointURL,
         updateEndpointURL != null ? updateEndpointURL : queryEndpointURL));

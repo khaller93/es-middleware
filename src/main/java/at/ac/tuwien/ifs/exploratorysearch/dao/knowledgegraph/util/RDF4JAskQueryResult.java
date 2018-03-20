@@ -67,4 +67,9 @@ public class RDF4JAskQueryResult implements AskQueryResult {
               format, ASK_QUERY_RESULT_FORMATS_STRING));
     }
   }
+
+  @Override
+  public String toString() {
+    return "RDF4JAskQueryResult{" + value + "}";
+  }
 }

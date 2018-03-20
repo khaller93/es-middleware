@@ -8,9 +8,12 @@ import at.ac.tuwien.ifs.exploratorysearch.dto.sparql.QueryResult;
 import org.eclipse.rdf4j.RDF4JException;
 import org.eclipse.rdf4j.query.BooleanQuery;
 import org.eclipse.rdf4j.query.GraphQuery;
+import org.eclipse.rdf4j.query.GraphQueryResult;
 import org.eclipse.rdf4j.query.Query;
 import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.QueryResults;
 import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.slf4j.Logger;
@@ -33,6 +36,16 @@ public abstract class AbstractKnowledgeGraphDAO implements KnowledgeGraphDAO {
     assert repository != null;
     this.repository = repository;
     this.repository.initialize();
+    afterInitialized(this.repository);
+  }
+
+  /**
+   * This method will be called directly after the knowledgegraph repository has been initialized.
+   *
+   * @param repository the initialized {@link Repository}.
+   */
+  protected void afterInitialized(Repository repository) {
+
   }
 
   @Override
@@ -43,11 +56,13 @@ public abstract class AbstractKnowledgeGraphDAO implements KnowledgeGraphDAO {
       query.setIncludeInferred(includeInferred);
       try {
         if (query instanceof TupleQuery) {
-          return new RDF4JSelectQueryResult(((TupleQuery) query).evaluate());
+          TupleQueryResult result = ((TupleQuery) query).evaluate();
+          return new RDF4JSelectQueryResult(result.getBindingNames(), QueryResults.asList(result));
         } else if (query instanceof BooleanQuery) {
           return new RDF4JAskQueryResult(((BooleanQuery) query).evaluate());
         } else if (query instanceof GraphQuery) {
-          return new RDF4JGraphQueryResult(((GraphQuery) query).evaluate());
+          GraphQueryResult graphQueryResult = ((GraphQuery) query).evaluate();
+          return new RDF4JGraphQueryResult(graphQueryResult.getNamespaces(), QueryResults.asList(graphQueryResult));
         } else {
           throw new IllegalArgumentException(String
               .format("Given query must be a SELECT, ASK or CONSTRUCT query, but was '%s'.",
@@ -65,4 +80,7 @@ public abstract class AbstractKnowledgeGraphDAO implements KnowledgeGraphDAO {
     return null;
   }
 
+  public Repository getRepository() {
+    return repository;
+  }
 }

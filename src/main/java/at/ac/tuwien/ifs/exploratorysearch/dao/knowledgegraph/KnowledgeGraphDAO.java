@@ -3,6 +3,7 @@ package at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph;
 import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.exception.SPARQLExecutionException;
 import at.ac.tuwien.ifs.exploratorysearch.dto.sparql.QueryResult;
 import java.util.List;
+import org.eclipse.rdf4j.repository.Repository;
 
 /**
  * An instance of this interface represents a DAO to a certain knowledge graph. This DAO provides
@@ -27,6 +28,14 @@ public interface KnowledgeGraphDAO {
   QueryResult query(String query, boolean includeInferred) throws SPARQLExecutionException;
 
   Object update(String query);
+
+  /**
+   * Returns the RDF4J {@link Repository} that can be used to interact with the triplestore in which
+   * the knowledge graph is managed.
+   *
+   * @return {@link Repository}, and must not be null.
+   */
+  Repository getRepository();
 
   /**
    * Applies a full text search on the managed knowledge graph using the given {@code keyword}.
