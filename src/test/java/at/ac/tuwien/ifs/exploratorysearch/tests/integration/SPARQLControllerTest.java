@@ -1,19 +1,27 @@
 package at.ac.tuwien.ifs.exploratorysearch.tests.integration;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertTrue;
 
 import at.ac.tuwien.ifs.exploratorysearch.ExploratorySearchApplication;
 import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.KnowledgeGraphDAO;
-import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.RDF4JMemoryKnowledgeGraph;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.eclipse.rdf4j.model.Model;
-import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.query.QueryResults;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.query.resultio.QueryResultIO;
@@ -110,23 +118,90 @@ public class SPARQLControllerTest {
   }
 
   @Test
-  public void test_selectResourceQuery_ok_mustReturn100MusicInstruments() throws Exception {
+  public void test_selectResourceQuery_ok_mustReturnMusicInstruments() throws Exception {
     ResponseEntity<String> selectQueryResponse = restTemplate
         .getForEntity("/sparql?query={query}&format={format}", String.class,
-            "SELECT DISTINCT ?s WHERE { ?s ?p ?o } LIMIT 100",
+            "SELECT DISTINCT ?s WHERE { ?s a <http://purl.org/ontology/mo/Instrument> }",
             "application/sparql-results+json");
-    System.out.println(selectQueryResponse.getBody());
     assertThat("The request must signal to have failed.",
         selectQueryResponse.getStatusCode().value(), is(200));
 
     try (ByteArrayInputStream resultIn = new ByteArrayInputStream(
         selectQueryResponse.getBody().getBytes())) {
       // parse response
-      List<BindingSet> bindingSets = QueryResults.asList(QueryResultIO
-          .parseTuple(resultIn, TupleQueryResultFormat.JSON));
+      List<String> instruments = QueryResults.asList(QueryResultIO
+          .parseTuple(resultIn, TupleQueryResultFormat.JSON)).stream()
+          .map(bs -> bs.getValue("s").stringValue())
+          .collect(Collectors.toList());
       // check response
-      assertThat("Must return exactly 100 results, due to 'LIMIT'.", bindingSets, hasSize(100));
+      assertThat("Must return exactly 877 results.", instruments, hasSize(877));
+      assertThat("Must have the given instrument resource IRIs in the result set", instruments,
+          hasItems("http://dbpedia.org/resource/Huluhu", "http://dbpedia.org/resource/Kus",
+              "http://dbpedia.org/resource/Daf", "http://dbpedia.org/resource/Clavinet",
+              "http://dbpedia.org/resource/Concertina"));
     }
+  }
+
+  @Test
+  public void test_describeQuery_ok() throws Exception {
+    ResponseEntity<String> selectQueryResponse = restTemplate
+        .getForEntity("/sparql?query={query}&format={format}", String.class,
+            "DESCRIBE <http://dbpedia.org/resource/Huluhu>", "text/turtle");
+    assertThat("The request must signal to have failed.",
+        selectQueryResponse.getStatusCode().value(), is(200));
+
+    try (ByteArrayInputStream resultIn = new ByteArrayInputStream(
+        selectQueryResponse.getBody().getBytes())) {
+      Model resultModel = Rio.parse(resultIn, "test:", RDFFormat.TURTLE);
+      ValueFactory valueFactory = SimpleValueFactory.getInstance();
+      List<String> labels = resultModel
+          .filter(valueFactory.createIRI("http://dbpedia.org/resource/Huluhu"), RDFS.LABEL, null)
+          .objects().stream().map(Value::stringValue).collect(Collectors.toList());
+      assertThat("There is only one label for 'Huluhu' in the test data", labels, hasSize(1));
+      assertThat("The label must be 'Huluhu'.", labels, hasItem("Huluhu"));
+      List<String> descriptions = resultModel
+          .filter(valueFactory.createIRI("http://dbpedia.org/resource/Huluhu"), RDFS.COMMENT, null)
+          .objects().stream().map(Value::stringValue).collect(
+              Collectors.toList());
+      assertThat("There is only one description for 'Huluhu' in the test data", descriptions,
+          hasSize(1));
+      assertThat("The label must be 'Huluhu'.", descriptions.get(0), containsString(
+          "The huluhu is a Chinese bowed string instrument in the huqin family of instruments."));
+      List<String> subjects = resultModel
+          .filter(valueFactory.createIRI("http://dbpedia.org/resource/Huluhu"), DCTERMS.SUBJECT,
+              null)
+          .objects().stream().map(Value::stringValue).collect(
+              Collectors.toList());
+      assertThat("'Huluhu' has four subjects according to the test data.", subjects,
+          containsInAnyOrder("http://dbpedia.org/resource/Category:Necked_bowl_lutes",
+              "http://dbpedia.org/resource/Category:Huqin_family_instruments",
+              "http://dbpedia.org/resource/Category:Chinese_musical_instruments",
+              "http://dbpedia.org/resource/Category:Bowed_instruments"));
+    }
+  }
+
+  @Test
+  public void test_askForUnknownInstrument_mustReturnFalse() throws Exception {
+    ResponseEntity<String> selectQueryResponse = restTemplate
+        .getForEntity("/sparql?query={query}&format={format}", String.class,
+            "ASK WHERE { ?s a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"Jaguar\"@en .}",
+            "text/boolean");
+    assertThat("The request must signal to have failed.",
+        selectQueryResponse.getStatusCode().value(), is(200));
+    assertThat("The response must be false, because there is no instrument for 'Jaguar'.",
+        selectQueryResponse.getBody(), is("false"));
+  }
+
+  @Test
+  public void test_askForWellKnownInstrument_mustReturnTrue() throws Exception {
+    ResponseEntity<String> selectQueryResponse = restTemplate
+        .getForEntity("/sparql?query={query}&format={format}", String.class,
+            "ASK WHERE { ?s a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"Harp\"@en .}",
+            "text/boolean");
+    assertThat("The request must signal to have failed.",
+        selectQueryResponse.getStatusCode().value(), is(200));
+    assertThat("The response must be true, because there is a harp resource in the test data.",
+        selectQueryResponse.getBody(), is("true"));
   }
 
   @After
