@@ -6,7 +6,9 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import at.ac.tuwien.ifs.exploratorysearch.ExploratorySearchApplication;
@@ -21,6 +23,7 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.query.QueryResults;
 import org.eclipse.rdf4j.query.TupleQueryResult;
@@ -202,6 +205,48 @@ public class SPARQLControllerTest {
         selectQueryResponse.getStatusCode().value(), is(200));
     assertThat("The response must be true, because there is a harp resource in the test data.",
         selectQueryResponse.getBody(), is("true"));
+  }
+
+  @Test
+  public void test_updateInsertData_mustBeSuccessful() throws Exception {
+    ValueFactory valueFactory = SimpleValueFactory.getInstance();
+    ResponseEntity<Void> updateDataResponse = restTemplate
+        .postForEntity("/sparql/update?query={query}", null, Void.class,
+            "INSERT DATA { <test:a> a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"A\" ; rdfs:comment \"A test instance.\" . }");
+    assertThat("Insert-Update must be successful.",
+        updateDataResponse.getStatusCode().value(), is(200));
+    try (RepositoryConnection con = knowledgeGraphDAO.getRepository().getConnection()) {
+      assertTrue(con.hasStatement(valueFactory.createIRI("test:a"), RDF.TYPE,
+          valueFactory.createIRI("http://purl.org/ontology/mo/Instrument"), false));
+      assertTrue(con.hasStatement(valueFactory.createIRI("test:a"), RDFS.LABEL,
+          valueFactory.createLiteral("A"), false));
+      assertTrue(con.hasStatement(valueFactory.createIRI("test:a"), RDFS.COMMENT,
+          valueFactory.createLiteral("A test instance."), false));
+    }
+  }
+
+  @Test
+  public void test_updateInsertDataWithInvalidIRI_mustRespondWithFailure() throws Exception {
+    ResponseEntity<Void> updateDataResponse = restTemplate
+        .postForEntity("/sparql/update?query={query}", null, Void.class,
+            "INSERT DATA { <:a/\\path> a <http://purl.org/ontology/mo/Instrument>. }");
+    assertThat("Insert-Update must fail with 500, due to invalid IRI.",
+        updateDataResponse.getStatusCode().value(), is(500));
+  }
+
+  @Test
+  public void test_updateDeleteData_mustBeSuccessful() throws Exception {
+    ValueFactory valueFactory = SimpleValueFactory.getInstance();
+    ResponseEntity<Void> updateDataResponse = restTemplate
+        .postForEntity("/sparql/update?query={query}", null, Void.class,
+            "DELETE WHERE { <http://dbpedia.org/resource/Huluhu> ?p1 ?o .}");
+    assertThat("Delete-Update must be successful.",
+        updateDataResponse.getStatusCode().value(), is(200));
+    try (RepositoryConnection con = knowledgeGraphDAO.getRepository().getConnection()) {
+      assertFalse(
+          con.hasStatement(valueFactory.createIRI("http://dbpedia.org/resource/Huluhu"), null, null,
+              false));
+    }
   }
 
   @After

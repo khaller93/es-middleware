@@ -46,7 +46,7 @@ public class SPARQLController {
   }
 
   @RequestMapping(value = "", method = {RequestMethod.GET})
-  @ApiOperation(value = "Query the managed knowledge graph using SPARQL, i.e. SELECT/ASK/CONSTRUCT")
+  @ApiOperation(value = "Query the managed knowledge graph using SPARQL, i.e. SELECT/ASK/DESCRIBE/CONSTRUCT")
   public ResponseEntity<byte[]> query(
       @ApiParam(value = "Select, Ask or Construct SPARQL query.", required = true) @RequestParam String query,
       @ApiParam(value = "MIME type of the returned query result.", required = true) @RequestParam String format,
@@ -61,10 +61,12 @@ public class SPARQLController {
     return new ResponseEntity<>(response, headers, HttpStatus.OK);
   }
 
-  @RequestMapping(value = "/alter", method = {RequestMethod.POST})
+  @RequestMapping(value = "/update", method = {RequestMethod.POST, RequestMethod.PUT})
   @ApiOperation(value = "Alter the managed knowledge graph using SPARQL i.e. INSERT/DELETE")
-  public String update(@RequestParam String query) {
-    //TODO: Implement
-    return null;
+  public void update(
+      @ApiParam(value = "Insert/Delete SPARQL query.", required = true) @RequestParam String query)
+      throws SPARQLExecutionException {
+    logger.info("SPARQL Update request with query '{}'.", query);
+    sparqlService.update(query);
   }
 }

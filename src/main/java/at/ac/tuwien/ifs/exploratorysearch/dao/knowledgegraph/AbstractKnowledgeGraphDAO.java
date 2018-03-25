@@ -62,7 +62,8 @@ public abstract class AbstractKnowledgeGraphDAO implements KnowledgeGraphDAO {
           return new RDF4JAskQueryResult(((BooleanQuery) query).evaluate());
         } else if (query instanceof GraphQuery) {
           GraphQueryResult graphQueryResult = ((GraphQuery) query).evaluate();
-          return new RDF4JGraphQueryResult(graphQueryResult.getNamespaces(), QueryResults.asList(graphQueryResult));
+          return new RDF4JGraphQueryResult(graphQueryResult.getNamespaces(),
+              QueryResults.asList(graphQueryResult));
         } else {
           throw new IllegalArgumentException(String
               .format("Given query must be a SELECT, ASK or CONSTRUCT query, but was '%s'.",
@@ -75,9 +76,12 @@ public abstract class AbstractKnowledgeGraphDAO implements KnowledgeGraphDAO {
   }
 
   @Override
-  public Object update(String query) {
-    //TODO: Implement
-    return null;
+  public void update(String query) throws SPARQLExecutionException {
+    try (RepositoryConnection con = repository.getConnection()) {
+      con.prepareUpdate(query).execute();
+    } catch (RDF4JException e) {
+      throw new SPARQLExecutionException(e);
+    }
   }
 
   public Repository getRepository() {

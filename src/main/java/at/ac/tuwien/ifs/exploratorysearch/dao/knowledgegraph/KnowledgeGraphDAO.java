@@ -27,7 +27,13 @@ public interface KnowledgeGraphDAO {
    */
   QueryResult query(String query, boolean includeInferred) throws SPARQLExecutionException;
 
-  Object update(String query);
+  /**
+   * Updates the knowledge graph using given SPARQL {@code query}.
+   *
+   * @param query which shall be executed.
+   * @throws SPARQLExecutionException if the given SPARQL query could not be executed.
+   */
+  void update(String query) throws SPARQLExecutionException;
 
   /**
    * Returns the RDF4J {@link Repository} that can be used to interact with the triplestore in which

@@ -30,8 +30,11 @@ public class SimpleSPARQLService implements SPARQLService {
 
   @Override
   public QueryResult query(String query, boolean includeInference) throws SPARQLExecutionException {
-    QueryResult queryResult = knowledgeGraphDAO.query(query, includeInference);
-    logger.info("SPARQL Query '{}' execution returned result: {}", query, queryResult);
-    return queryResult;
+    return knowledgeGraphDAO.query(query, includeInference);
+  }
+
+  @Override
+  public void update(String query) throws SPARQLExecutionException {
+    knowledgeGraphDAO.update(query);
   }
 }
