@@ -1,6 +1,7 @@
 package at.ac.tuwien.ifs.exploratorysearch.service;
 
 import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.KnowledgeGraphDAO;
+import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.exception.MalformedSPARQLQueryException;
 import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.exception.SPARQLExecutionException;
 import at.ac.tuwien.ifs.exploratorysearch.dto.sparql.QueryResult;
 import org.slf4j.Logger;
@@ -29,12 +30,14 @@ public class SimpleSPARQLService implements SPARQLService {
   }
 
   @Override
-  public QueryResult query(String query, boolean includeInference) throws SPARQLExecutionException {
+  public QueryResult query(String query, boolean includeInference) throws SPARQLExecutionException,
+      MalformedSPARQLQueryException {
     return knowledgeGraphDAO.query(query, includeInference);
   }
 
   @Override
-  public void update(String query) throws SPARQLExecutionException {
+  public void update(String query) throws SPARQLExecutionException,
+      MalformedSPARQLQueryException {
     knowledgeGraphDAO.update(query);
   }
 }

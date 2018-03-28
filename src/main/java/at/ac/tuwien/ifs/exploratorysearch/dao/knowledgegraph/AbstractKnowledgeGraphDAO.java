@@ -1,5 +1,7 @@
 package at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph;
 
+import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.exception.KnowledgeGraphSPARQLException;
+import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.exception.MalformedSPARQLQueryException;
 import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.exception.SPARQLExecutionException;
 import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.util.RDF4JGraphQueryResult;
 import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.util.RDF4JSelectQueryResult;
@@ -9,6 +11,7 @@ import org.eclipse.rdf4j.RDF4JException;
 import org.eclipse.rdf4j.query.BooleanQuery;
 import org.eclipse.rdf4j.query.GraphQuery;
 import org.eclipse.rdf4j.query.GraphQueryResult;
+import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.eclipse.rdf4j.query.Query;
 import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.query.QueryResults;
@@ -50,33 +53,34 @@ public abstract class AbstractKnowledgeGraphDAO implements KnowledgeGraphDAO {
 
   @Override
   public QueryResult query(String queryString, boolean includeInferred)
-      throws SPARQLExecutionException {
+      throws KnowledgeGraphSPARQLException {
     try (RepositoryConnection con = repository.getConnection()) {
       Query query = con.prepareQuery(QueryLanguage.SPARQL, queryString);
       query.setIncludeInferred(includeInferred);
-      try {
-        if (query instanceof TupleQuery) {
-          TupleQueryResult result = ((TupleQuery) query).evaluate();
-          return new RDF4JSelectQueryResult(result.getBindingNames(), QueryResults.asList(result));
-        } else if (query instanceof BooleanQuery) {
-          return new RDF4JAskQueryResult(((BooleanQuery) query).evaluate());
-        } else if (query instanceof GraphQuery) {
-          GraphQueryResult graphQueryResult = ((GraphQuery) query).evaluate();
-          return new RDF4JGraphQueryResult(graphQueryResult.getNamespaces(),
-              QueryResults.asList(graphQueryResult));
-        } else {
-          throw new IllegalArgumentException(String
-              .format("Given query must be a SELECT, ASK or CONSTRUCT query, but was '%s'.",
-                  query));
-        }
-      } catch (RDF4JException e) {
-        throw new SPARQLExecutionException(e);
+      if (query instanceof TupleQuery) {
+        TupleQueryResult result = ((TupleQuery) query).evaluate();
+        return new RDF4JSelectQueryResult(result.getBindingNames(), QueryResults.asList(result));
+      } else if (query instanceof BooleanQuery) {
+        return new RDF4JAskQueryResult(((BooleanQuery) query).evaluate());
+      } else if (query instanceof GraphQuery) {
+        GraphQueryResult graphQueryResult = ((GraphQuery) query).evaluate();
+        return new RDF4JGraphQueryResult(graphQueryResult.getNamespaces(),
+            QueryResults.asList(graphQueryResult));
+      } else {
+        throw new MalformedSPARQLQueryException(String
+            .format(
+                "Given query must be a SELECT, ASK or CONSTRUCT query, but was '%s'. For update queries use the corresponding endpoint.",
+                query));
       }
+    } catch (MalformedQueryException e) {
+      throw new MalformedSPARQLQueryException(e);
+    } catch (RDF4JException e) {
+      throw new SPARQLExecutionException(e);
     }
   }
 
   @Override
-  public void update(String query) throws SPARQLExecutionException {
+  public void update(String query) throws KnowledgeGraphSPARQLException {
     try (RepositoryConnection con = repository.getConnection()) {
       con.prepareUpdate(query).execute();
     } catch (RDF4JException e) {
@@ -84,6 +88,7 @@ public abstract class AbstractKnowledgeGraphDAO implements KnowledgeGraphDAO {
     }
   }
 
+  @Override
   public Repository getRepository() {
     return repository;
   }

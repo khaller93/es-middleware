@@ -16,6 +16,8 @@ import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.KnowledgeGraphDAO;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.eclipse.rdf4j.model.Model;
@@ -41,8 +43,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 
 @RunWith(SpringRunner.class)
@@ -89,11 +97,13 @@ public class SPARQLControllerTest {
 
   @Test
   public void test_countQuery_ok_mustReturnValue() throws Exception {
+    HttpHeaders headers = new HttpHeaders();
+    headers
+        .setAccept(Collections.singletonList(MediaType.valueOf("application/sparql-results+json")));
     // request SPARQL count query.
     ResponseEntity<String> countQueryResponse = restTemplate
-        .getForEntity("/sparql?query={query}&format={format}", String.class,
-            "SELECT (COUNT(DISTINCT ?s) as ?cnt) WHERE { ?s ?p ?o }",
-            "application/sparql-results+json");
+        .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(headers), String.class,
+            "SELECT (COUNT(DISTINCT ?s) as ?cnt) WHERE { ?s ?p ?o }");
     assertThat("The request must be successful.",
         countQueryResponse.getStatusCode().value(), is(200));
 
@@ -112,20 +122,23 @@ public class SPARQLControllerTest {
 
   @Test
   public void test_countQuery_wrongFormat_throwsException() throws Exception {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAccept(Collections.singletonList(MediaType.valueOf("text/turtle")));
     ResponseEntity<String> countQueryResponse = restTemplate
-        .getForEntity("/sparql?query={query}&format={format}", String.class,
-            "SELECT (COUNT(?s) as ?cnt) WHERE { ?s ?p ?o }",
-            "text/turtle");
+        .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(headers), String.class,
+            "SELECT (COUNT(?s) as ?cnt) WHERE { ?s ?p ?o }");
     assertThat("The request must signal to have failed.",
-        countQueryResponse.getStatusCode().value(), is(500));
+        countQueryResponse.getStatusCode().value(), is(406));
   }
 
   @Test
   public void test_selectResourceQuery_ok_mustReturnMusicInstruments() throws Exception {
+    HttpHeaders headers = new HttpHeaders();
+    headers
+        .setAccept(Collections.singletonList(MediaType.valueOf("application/sparql-results+json")));
     ResponseEntity<String> selectQueryResponse = restTemplate
-        .getForEntity("/sparql?query={query}&format={format}", String.class,
-            "SELECT DISTINCT ?s WHERE { ?s a <http://purl.org/ontology/mo/Instrument> }",
-            "application/sparql-results+json");
+        .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(headers), String.class,
+            "SELECT DISTINCT ?s WHERE { ?s a <http://purl.org/ontology/mo/Instrument> }");
     assertThat("The request must signal to have failed.",
         selectQueryResponse.getStatusCode().value(), is(200));
 
@@ -147,9 +160,11 @@ public class SPARQLControllerTest {
 
   @Test
   public void test_describeQuery_ok() throws Exception {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAccept(Collections.singletonList(MediaType.valueOf("text/turtle")));
     ResponseEntity<String> selectQueryResponse = restTemplate
-        .getForEntity("/sparql?query={query}&format={format}", String.class,
-            "DESCRIBE <http://dbpedia.org/resource/Huluhu>", "text/turtle");
+        .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(headers), String.class,
+            "DESCRIBE <http://dbpedia.org/resource/Huluhu>");
     assertThat("The request must signal to have failed.",
         selectQueryResponse.getStatusCode().value(), is(200));
 
@@ -185,10 +200,11 @@ public class SPARQLControllerTest {
 
   @Test
   public void test_askForUnknownInstrument_mustReturnFalse() throws Exception {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAccept(Collections.singletonList(MediaType.valueOf("text/boolean")));
     ResponseEntity<String> selectQueryResponse = restTemplate
-        .getForEntity("/sparql?query={query}&format={format}", String.class,
-            "ASK WHERE { ?s a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"Jaguar\"@en .}",
-            "text/boolean");
+        .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(headers), String.class,
+            "ASK WHERE { ?s a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"Jaguar\"@en .}");
     assertThat("The request must signal to have failed.",
         selectQueryResponse.getStatusCode().value(), is(200));
     assertThat("The response must be false, because there is no instrument for 'Jaguar'.",
@@ -197,10 +213,12 @@ public class SPARQLControllerTest {
 
   @Test
   public void test_askForWellKnownInstrument_mustReturnTrue() throws Exception {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAccept(Collections.singletonList(MediaType.valueOf("text/boolean")));
     ResponseEntity<String> selectQueryResponse = restTemplate
-        .getForEntity("/sparql?query={query}&format={format}", String.class,
-            "ASK WHERE { ?s a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"Harp\"@en .}",
-            "text/boolean");
+        .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(headers),
+            String.class,
+            "ASK WHERE { ?s a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"Harp\"@en .}");
     assertThat("The request must signal to have failed.",
         selectQueryResponse.getStatusCode().value(), is(200));
     assertThat("The response must be true, because there is a harp resource in the test data.",
@@ -209,10 +227,16 @@ public class SPARQLControllerTest {
 
   @Test
   public void test_updateInsertData_mustBeSuccessful() throws Exception {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+    MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+    map.add("update",
+        "INSERT DATA { <test:a> a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"A\" ; rdfs:comment \"A test instance.\" . }");
+    HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(map, headers);
+
     ValueFactory valueFactory = SimpleValueFactory.getInstance();
     ResponseEntity<Void> updateDataResponse = restTemplate
-        .postForEntity("/sparql/update?query={query}", null, Void.class,
-            "INSERT DATA { <test:a> a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"A\" ; rdfs:comment \"A test instance.\" . }");
+        .exchange("/sparql/update", HttpMethod.POST, entity, Void.class);
     assertThat("Insert-Update must be successful.",
         updateDataResponse.getStatusCode().value(), is(200));
     try (RepositoryConnection con = knowledgeGraphDAO.getRepository().getConnection()) {
@@ -227,19 +251,29 @@ public class SPARQLControllerTest {
 
   @Test
   public void test_updateInsertDataWithInvalidIRI_mustRespondWithFailure() throws Exception {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+    MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+    map.add("update", "INSERT DATA { <:a/\\path> a <http://purl.org/ontology/mo/Instrument>. }");
+    HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(map, headers);
+
     ResponseEntity<Void> updateDataResponse = restTemplate
-        .postForEntity("/sparql/update?query={query}", null, Void.class,
-            "INSERT DATA { <:a/\\path> a <http://purl.org/ontology/mo/Instrument>. }");
+        .exchange("/sparql/update", HttpMethod.POST, entity, Void.class);
     assertThat("Insert-Update must fail with 500, due to invalid IRI.",
         updateDataResponse.getStatusCode().value(), is(500));
   }
 
   @Test
   public void test_updateDeleteData_mustBeSuccessful() throws Exception {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+    MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+    map.add("update", "DELETE WHERE { <http://dbpedia.org/resource/Huluhu> ?p1 ?o .}");
+    HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(map, headers);
+
     ValueFactory valueFactory = SimpleValueFactory.getInstance();
     ResponseEntity<Void> updateDataResponse = restTemplate
-        .postForEntity("/sparql/update?query={query}", null, Void.class,
-            "DELETE WHERE { <http://dbpedia.org/resource/Huluhu> ?p1 ?o .}");
+        .exchange("/sparql/update", HttpMethod.POST, entity, Void.class);
     assertThat("Delete-Update must be successful.",
         updateDataResponse.getStatusCode().value(), is(200));
     try (RepositoryConnection con = knowledgeGraphDAO.getRepository().getConnection()) {
@@ -247,6 +281,18 @@ public class SPARQLControllerTest {
           con.hasStatement(valueFactory.createIRI("http://dbpedia.org/resource/Huluhu"), null, null,
               false));
     }
+  }
+
+  @Test
+  public void test_updateOperationOnWrongEndpoint_mustFailWithCode400() throws Exception {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAccept(Collections.singletonList(MediaType.valueOf("text/boolean")));
+    ResponseEntity<String> selectQueryResponse = restTemplate
+        .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(headers),
+            String.class,
+            "DELETE WHERE { <http://dbpedia.org/resource/Huluhu> ?p1 ?o .}");
+    assertThat("The request must signal to have failed with 400 (Bad Request).",
+        selectQueryResponse.getStatusCode().value(), is(400));
   }
 
   @After

@@ -1,5 +1,7 @@
 package at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph;
 
+import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.exception.KnowledgeGraphDAOException;
+import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.exception.KnowledgeGraphSPARQLException;
 import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.exception.SPARQLExecutionException;
 import at.ac.tuwien.ifs.exploratorysearch.dto.sparql.QueryResult;
 import java.util.List;
@@ -23,17 +25,19 @@ public interface KnowledgeGraphDAO {
    * @param includeInferred {@code true}, if entailed statements should be considered, otherwise
    * {@code false}.
    * @return {@link QueryResult} of the SPARQL query.
-   * @throws SPARQLExecutionException if the given SPARQL query could not be executed.
+   * @throws KnowledgeGraphSPARQLException if the given SPARQL query could not be executed
+   * successfully.
    */
-  QueryResult query(String query, boolean includeInferred) throws SPARQLExecutionException;
+  QueryResult query(String query, boolean includeInferred) throws KnowledgeGraphSPARQLException;
 
   /**
    * Updates the knowledge graph using given SPARQL {@code query}.
    *
    * @param query which shall be executed.
-   * @throws SPARQLExecutionException if the given SPARQL query could not be executed.
+   * @throws KnowledgeGraphSPARQLException if the given SPARQL query could not be executed
+   * successfully.
    */
-  void update(String query) throws SPARQLExecutionException;
+  void update(String query) throws KnowledgeGraphSPARQLException;
 
   /**
    * Returns the RDF4J {@link Repository} that can be used to interact with the triplestore in which
@@ -74,5 +78,6 @@ public interface KnowledgeGraphDAO {
    * @param offset a offset to moving the window of returned resources.
    * @return a ranked list of distinct resource IRIs.
    */
-  List<String> searchFullText(String selectionQuery, String keyword, Long limit, Long offset);
+  List<String> searchFullText(String selectionQuery, String keyword, Long limit, Long offset)
+      throws KnowledgeGraphDAOException;
 }

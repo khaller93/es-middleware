@@ -1,5 +1,7 @@
 package at.ac.tuwien.ifs.exploratorysearch.service;
 
+import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.exception.KnowledgeGraphSPARQLException;
+import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.exception.MalformedSPARQLQueryException;
 import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.exception.SPARQLExecutionException;
 import at.ac.tuwien.ifs.exploratorysearch.dto.sparql.QueryResult;
 
@@ -21,16 +23,20 @@ public interface SPARQLService {
    * @param includeInference {@code true}, if entailed statements should be considered, otherwise
    * {@code false}.
    * @return {@link QueryResult} of the SPARQL query.
-   * @throws SPARQLExecutionException, if the execution of the SPARQL query failed.
+   * @throws SPARQLExecutionException will be thrown, if servicing the SPARQL query failed (because
+   * of server).
+   * @throws MalformedSPARQLQueryException will be thrown, if the given {@code query} is malformed.
    */
-  QueryResult query(String query, boolean includeInference) throws SPARQLExecutionException;
+  QueryResult query(String query, boolean includeInference) throws KnowledgeGraphSPARQLException;
 
   /**
    * Executes the given SPARQL {@code query}.
    *
    * @param query which shall be executed.
-   * @throws SPARQLExecutionException if the execution of the SPARQL query failed.
+   * @throws SPARQLExecutionException will be thrown, if servicing the SPARQL query failed (because
+   * of server).
+   * @throws MalformedSPARQLQueryException will be thrown, if the given {@code query} is malformed.
    */
-  void update(String query) throws SPARQLExecutionException;
+  void update(String query) throws KnowledgeGraphSPARQLException;
 
 }

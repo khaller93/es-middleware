@@ -7,7 +7,7 @@ package at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.exception;
  * @version 1.0
  * @since 1.0
  */
-public class KnowledgeGraphSetupException extends Exception {
+public class KnowledgeGraphSetupException extends KnowledgeGraphDAOException {
 
   public KnowledgeGraphSetupException() {
   }

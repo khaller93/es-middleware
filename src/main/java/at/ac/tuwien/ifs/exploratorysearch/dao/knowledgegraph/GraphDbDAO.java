@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
  *
  * @author Kevin Haller
  * @version 1.0
+ * @see <a href="https://ontotext.com/products/graphdb/">Ontotext GraphDB</a>
  * @since 1.0
  */
 @Component("GraphDB")

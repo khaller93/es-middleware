@@ -7,20 +7,20 @@ package at.ac.tuwien.ifs.exploratorysearch.dto.exception;
  * @version 1.0
  * @since 1.0
  */
-public class QueryResultFormatException extends Exception {
+public class SPARQLResultFormatException extends Exception {
 
-  public QueryResultFormatException() {
+  public SPARQLResultFormatException() {
   }
 
-  public QueryResultFormatException(String message) {
+  public SPARQLResultFormatException(String message) {
     super(message);
   }
 
-  public QueryResultFormatException(String message, Throwable cause) {
+  public SPARQLResultFormatException(String message, Throwable cause) {
     super(message, cause);
   }
 
-  public QueryResultFormatException(Throwable cause) {
+  public SPARQLResultFormatException(Throwable cause) {
     super(cause);
   }
 }

@@ -1,13 +1,14 @@
 package at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.exception;
 
 /**
- * This exception shall be thrown, if a SPARQL query could not be executed.
+ * This exception shall be thrown, if a SPARQL query could not be executed due to some internal
+ * reason like lost connection to the triplestore.
  *
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
  */
-public class SPARQLExecutionException extends Exception {
+public class SPARQLExecutionException extends KnowledgeGraphSPARQLException {
 
   public SPARQLExecutionException() {
   }
