@@ -5,7 +5,7 @@ import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.exception.Malformed
 import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.exception.SPARQLExecutionException;
 import at.ac.tuwien.ifs.exploratorysearch.dto.exception.SPARQLResultFormatException;
 import at.ac.tuwien.ifs.exploratorysearch.dto.exception.SPARQLResultSerializationException;
-import at.ac.tuwien.ifs.exploratorysearch.service.SPARQLService;
+import at.ac.tuwien.ifs.exploratorysearch.service.sparql.SPARQLService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -22,6 +22,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -78,7 +80,7 @@ public class SPARQLController {
     return new ResponseEntity<>(response, headers, HttpStatus.OK);
   }
 
-  @RequestMapping(value = "", method = {RequestMethod.GET})
+  @GetMapping(value = "")
   @ApiOperation(value = "Query the managed knowledge graph using corresponding SPARQL operations (SELECT/ASK/DESCRIBE/CONSTRUCT).")
   @ApiResponses({
       @ApiResponse(code = 200, message = "Query was executed successfully. The result can be found in the response body."),
@@ -98,8 +100,7 @@ public class SPARQLController {
         inference);
   }
 
-  @RequestMapping(value = "", method = {RequestMethod.POST},
-      consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+  @PostMapping(value = "", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
   @ApiOperation(value = "Query the managed knowledge graph using corresponding SPARQL operations (SELECT/ASK/DESCRIBE/CONSTRUCT).")
   @ApiResponses({
       @ApiResponse(code = 200, message = "Query was executed successfully. The result can be found in the response body."),
@@ -119,8 +120,7 @@ public class SPARQLController {
         inference);
   }
 
-  @RequestMapping(value = "/update", method = {RequestMethod.POST},
-      consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+  @PostMapping(value = "/update", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
   @ApiOperation(value = "Alter the managed knowledge graph using corresponding SPARQL operations (INSERT/DELETE).")
   @ApiResponses({
       @ApiResponse(code = 200, message = "Update was executed successfully."),

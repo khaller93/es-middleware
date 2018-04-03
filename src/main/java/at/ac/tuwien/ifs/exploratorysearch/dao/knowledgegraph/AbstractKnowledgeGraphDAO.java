@@ -19,6 +19,9 @@ import org.eclipse.rdf4j.query.TupleQuery;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.event.base.NotifyingRepositoryWrapper;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.sail.Sail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,20 +38,14 @@ public abstract class AbstractKnowledgeGraphDAO implements KnowledgeGraphDAO {
 
   private Repository repository;
 
-  public AbstractKnowledgeGraphDAO(Repository repository) {
+  protected void init(Repository repository) {
     assert repository != null;
     this.repository = repository;
     this.repository.initialize();
-    afterInitialized(this.repository);
   }
 
-  /**
-   * This method will be called directly after the knowledgegraph repository has been initialized.
-   *
-   * @param repository the initialized {@link Repository}.
-   */
-  protected void afterInitialized(Repository repository) {
-
+  protected void init(Sail sail){
+    this.init(new SailRepository(sail));
   }
 
   @Override

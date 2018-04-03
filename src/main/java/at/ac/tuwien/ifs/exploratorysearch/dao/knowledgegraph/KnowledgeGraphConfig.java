@@ -11,30 +11,25 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
 /**
- * This configuration prepares the {@link KnowledgeGraphDAO} that is specified in the application
- * properties for usage. The relevant property is {@code es.middleware.knowledgegraph.vendor}.
+ * This configuration prepares the certain {@link KnowledgeGraphDAO} that is specified in the
+ * application properties. The relevant property is {@code esm.knowledgegraph.choice}.
  *
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
  */
 @Configuration
-public class KnowledgeGraphDAOConfig {
+public class KnowledgeGraphConfig {
 
   private static final Logger logger = LoggerFactory.getLogger(KnowledgeGraphDAO.class);
 
-  @Value("${es.middleware.knowledgegraph.vendor}")
-  private String vendor;
+  @Value("${esm.knowledgegraph.choice}")
+  private String choice;
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
   public KnowledgeGraphDAO SpecifiedKnowledgeGraphDAO(@Autowired ApplicationContext context) {
-    if (vendor == null) {
-      logger.warn(
-          "No vendor was given in the application properties for KnowledgegraphDAO. Fallback to RDF4J in-memory triplestore.");
-      vendor = "MemoryDB";
-    }
-    return (KnowledgeGraphDAO) context.getBean(vendor);
+    return context.getBean(choice, KnowledgeGraphDAO.class);
   }
 
 }

@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.exploratorysearch.service;
+package at.ac.tuwien.ifs.exploratorysearch.service.sparql;
 
 import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.exception.KnowledgeGraphSPARQLException;
 import at.ac.tuwien.ifs.exploratorysearch.dao.knowledgegraph.exception.MalformedSPARQLQueryException;

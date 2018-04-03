@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
  * @see <a href="https://ontotext.com/products/graphdb/">Ontotext GraphDB</a>
  * @since 1.0
  */
+@Lazy
 @Component("GraphDB")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class GraphDbDAO extends AbstractKnowledgeGraphDAO {
@@ -31,15 +33,8 @@ public class GraphDbDAO extends AbstractKnowledgeGraphDAO {
       @Value("${graphdb.queryEndpointURL}") String queryEndpointURL,
       @Value("${graphdb.updateEndpointURL}") String updateEndpointURL)
       throws KnowledgeGraphSetupException {
-    super(new SPARQLRepository(queryEndpointURL,
+    init(new SPARQLRepository(queryEndpointURL,
         updateEndpointURL != null ? updateEndpointURL : queryEndpointURL));
-  }
-
-  @Override
-  public List<String> searchFullText(String selectionQuery, String keyword, Long limit,
-      Long offset) {
-    //TODO: implement.
-    return null;
   }
 
 }
