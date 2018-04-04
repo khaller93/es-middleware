@@ -29,7 +29,7 @@ public class SingleResource implements AcquisitionSource {
       if (singleResource.isValueNode()) {
         return new ExplorationResponse(
             new ResourceList(
-                Collections.singletonList(ResourceJsonUtil.resourceOf(singleResource.asText()))),
+                Collections.singletonList(ResourceJsonUtil.valueOf(singleResource.asText()))),
             JsonNodeFactory.instance.objectNode());
       } else {
         throw new ExplorationFlowSpecificationException(

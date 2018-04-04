@@ -8,37 +8,50 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import java.io.IOException;
-import org.eclipse.rdf4j.model.Resource;
-import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.apache.commons.rdf.api.BlankNode;
+import org.apache.commons.rdf.api.BlankNodeOrIRI;
+import org.apache.commons.rdf.api.IRI;
+import org.apache.commons.rdf.api.RDF;
+import org.apache.commons.rdf.simple.SimpleRDF;
 
 public class ResourceJsonUtil {
 
-  private static ValueFactory valueFactory = SimpleValueFactory.getInstance();
+  private static RDF valueFactory = new SimpleRDF();
 
-  public static class Deserializer extends JsonDeserializer<Resource> {
+  public static class Deserializer extends JsonDeserializer<BlankNodeOrIRI> {
 
     @Override
-    public Resource deserialize(JsonParser p, DeserializationContext ctxt)
+    public BlankNodeOrIRI deserialize(JsonParser p, DeserializationContext ctxt)
         throws IOException, JsonProcessingException {
-      return resourceOf(p.readValueAs(String.class));
+      return valueOf(p.readValueAs(String.class));
     }
   }
 
-  public static class Serializer extends JsonSerializer<Resource> {
+  public static class Serializer extends JsonSerializer<BlankNodeOrIRI> {
+
+    private RDF valueFactory = new SimpleRDF();
 
     @Override
-    public void serialize(Resource value, JsonGenerator gen, SerializerProvider serializers)
+    public void serialize(BlankNodeOrIRI value, JsonGenerator gen, SerializerProvider serializers)
         throws IOException, JsonProcessingException {
-      gen.writeString(value.toString());
+      gen.writeString(stringValue(value));
     }
   }
 
-  public static Resource resourceOf(String value) {
+  public static BlankNodeOrIRI valueOf(String value) {
     if (value.startsWith("_:")) {
-      return valueFactory.createBNode(value.replace("_:", ""));
+      return valueFactory.createBlankNode(value.replace("_:", ""));
     } else {
       return valueFactory.createIRI(value);
     }
   }
+
+  public static String stringValue(BlankNodeOrIRI resource) {
+    if (resource instanceof IRI) {
+      return ((IRI)resource).getIRIString();
+    } else {
+      return "_:" + ((BlankNode)resource).uniqueReference();
+    }
+  }
+
 }

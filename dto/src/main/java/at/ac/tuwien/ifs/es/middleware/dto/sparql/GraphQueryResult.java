@@ -1,5 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.dto.sparql;
 
+
+import org.apache.commons.rdf.api.Graph;
+
 /**
  * This interface represent a {@link QueryResult} that maintains the response of a CONSTRUCT or
  * DESCRIBE SPARQL query.
@@ -9,5 +12,12 @@ package at.ac.tuwien.ifs.es.middleware.dto.sparql;
  * @since 1.0
  */
 public interface GraphQueryResult extends QueryResult {
+
+  /**
+   * Returns the response of a graph query (Construct, Describe) in form of a {@link Graph}.
+   *
+   * @return the response of a graph query (Construct, Describe) in form of a {@link Graph}.
+   */
+  Graph value();
 
 }

@@ -18,7 +18,6 @@
   </properties>
 
   <dependencies>
-
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.dto</artifactId>

@@ -20,6 +20,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 })
 public interface IterableExplorationResult<T> extends ExplorationResult, Iterable<T> {
 
-  String getValueKey(T iterable);
+  String getValueKey(T value);
 
 }

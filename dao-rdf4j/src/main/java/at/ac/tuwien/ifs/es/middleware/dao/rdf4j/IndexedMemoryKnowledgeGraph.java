@@ -3,6 +3,8 @@ package at.ac.tuwien.ifs.es.middleware.dao.rdf4j;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.FullTextSearchDAO;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.commons.rdf.api.BlankNodeOrIRI;
+import org.apache.commons.rdf.rdf4j.RDF4J;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryResults;
@@ -45,6 +47,12 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
           + "  ]"
           + "} ORDER BY DESC(?score)";
 
+  private RDF4J valueFactory = new RDF4J();
+
+  /**
+   * Creates a new {@link at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO} in
+   * memory that is indexed.
+   */
   public IndexedMemoryKnowledgeGraph() {
     LuceneSail luceneSail = new LuceneSail();
     luceneSail.setParameter(LuceneSail.LUCENE_RAMDIR_KEY, "true");
@@ -53,14 +61,14 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
   }
 
   @Override
-  public List<Resource> searchFullText(String keyword, List<Resource> clazzes) {
+  public List<BlankNodeOrIRI> searchFullText(String keyword, List<BlankNodeOrIRI> clazzes) {
     Repository repository = getRepository();
     try (RepositoryConnection connection = repository.getConnection()) {
       TupleQuery ftsQuery = connection.prepareTupleQuery(FTS_QUERY);
       ftsQuery.setBinding("term", repository.getValueFactory().createLiteral(keyword));
       List<BindingSet> resultSets = QueryResults.asList(ftsQuery.evaluate());
       return resultSets.stream()
-          .map(bs -> (Resource) bs.getBinding("subj").getValue()).collect(
+          .map(bs -> valueFactory.asRDFTerm((Resource) bs.getBinding("subj").getValue())).collect(
               Collectors.toList());
     }
   }

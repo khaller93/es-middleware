@@ -2,7 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
 
 import java.util.Collections;
 import java.util.List;
-import org.eclipse.rdf4j.model.Resource;
+import org.apache.commons.rdf.api.BlankNodeOrIRI;
 
 /**
  * Instances of this interface provide a full-text-search ability to the managed knowledge graph.
@@ -20,7 +20,7 @@ public interface FullTextSearchDAO {
    * @param keyword which shall be used to explore resources.
    * @return a ranked list of distinct resource IRIs.
    */
-  default List<Resource> searchFullText(String keyword) {
+  default List<BlankNodeOrIRI> searchFullText(String keyword) {
     return searchFullText(keyword, Collections.emptyList());
   }
 
@@ -35,6 +35,6 @@ public interface FullTextSearchDAO {
    * one).
    * @return a ranked list of distinct resource IRIs.
    */
-  List<Resource> searchFullText(String keyword, List<Resource> clazzes);
+  List<BlankNodeOrIRI> searchFullText(String keyword, List<BlankNodeOrIRI> clazzes);
 
 }

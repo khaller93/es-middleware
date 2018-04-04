@@ -18,11 +18,10 @@
   </properties>
 
   <dependencies>
-    <!-- RDF framework -->
     <dependency>
-      <groupId>org.eclipse.rdf4j</groupId>
-      <artifactId>rdf4j-model</artifactId>
-      <version>${rdf4j.version}</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-rdf-api</artifactId>
+      <version>${commons-rdf.version}</version>
     </dependency>
     <!-- ES Middleware dependencies -->
     <dependency>

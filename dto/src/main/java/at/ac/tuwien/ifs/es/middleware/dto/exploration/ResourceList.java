@@ -8,8 +8,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import org.eclipse.rdf4j.model.Resource;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.apache.commons.rdf.api.BlankNodeOrIRI;
 
 /**
  * This is an implementation of {@link ExplorationResult} that contains a list of resources.
@@ -18,12 +17,12 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
  * @version 1.0
  * @since 1.0
  */
-public class ResourceList implements IterableExplorationResult<Resource> {
+public class ResourceList implements IterableExplorationResult<BlankNodeOrIRI> {
 
   @JsonProperty("list")
   @JsonSerialize(contentUsing = ResourceJsonUtil.Serializer.class)
   @JsonDeserialize(contentUsing = ResourceJsonUtil.Deserializer.class)
-  private List<Resource> list;
+  private List<BlankNodeOrIRI> list;
 
   /**
    * Creates a new empty list of resources.
@@ -38,9 +37,8 @@ public class ResourceList implements IterableExplorationResult<Resource> {
    * @param resourceList that shall be wrapped.
    */
   @JsonCreator
-  public ResourceList(@JsonProperty("list") List<Resource> resourceList) {
+  public ResourceList(@JsonProperty("list") List<BlankNodeOrIRI> resourceList) {
     this.list = resourceList;
-    this.list.add(SimpleValueFactory.getInstance().createBNode("a"));
   }
 
   /**
@@ -53,12 +51,12 @@ public class ResourceList implements IterableExplorationResult<Resource> {
   }
 
   @Override
-  public String getValueKey(Resource iterable) {
-    return iterable.toString();
+  public String getValueKey(BlankNodeOrIRI value) {
+    return value.toString();
   }
 
   @Override
-  public Iterator<Resource> iterator() {
+  public Iterator<BlankNodeOrIRI> iterator() {
     return this.list.iterator();
   }
 

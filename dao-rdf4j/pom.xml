@@ -95,6 +95,17 @@
       <artifactId>rdf4j-rio-binary</artifactId>
       <version>${rdf4j.version}</version>
     </dependency>
+    <!-- Abstraction for RDF4J -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-rdf-api</artifactId>
+      <version>${commons-rdf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-rdf-rdf4j</artifactId>
+      <version>${commons-rdf.version}</version>
+    </dependency>
     <!-- ES Middleware dependencies -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
