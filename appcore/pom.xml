@@ -43,13 +43,7 @@
     <!-- Testing for DAO -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.daocore</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.dao-rdf4j</artifactId>
+      <artifactId>middleware.testutil</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

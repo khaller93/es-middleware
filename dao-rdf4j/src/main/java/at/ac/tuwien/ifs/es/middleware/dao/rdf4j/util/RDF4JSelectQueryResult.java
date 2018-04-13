@@ -2,10 +2,14 @@ package at.ac.tuwien.ifs.es.middleware.dao.rdf4j.util;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exception.SPARQLResultFormatException;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import org.apache.commons.rdf.api.RDFTerm;
+import org.apache.commons.rdf.rdf4j.RDF4J;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryResults;
 import org.eclipse.rdf4j.query.TupleQueryResult;
@@ -24,7 +28,8 @@ import org.slf4j.LoggerFactory;
  * @version 1.0
  * @since 1.0
  */
-public class RDF4JSelectQueryResult extends RDF4JQueryResult<QueryResultFormat> {
+public class RDF4JSelectQueryResult extends RDF4JQueryResult<QueryResultFormat> implements
+    SelectQueryResult {
 
   private static final Logger logger = LoggerFactory.getLogger(
       RDF4JSelectQueryResult.class);
@@ -43,6 +48,19 @@ public class RDF4JSelectQueryResult extends RDF4JQueryResult<QueryResultFormat> 
     super(SELECT_QUERY_RESULT_FORMATS, SELECT_QUERY_RESULT_FORMATS_STRING);
     this.bindingNames = bindingNames;
     this.bindingSets = bindingSets;
+  }
+
+  @Override
+  public Table<Integer, String, RDFTerm> value() {
+    Table<Integer, String, RDFTerm> resultTable = HashBasedTable.create();
+    RDF4J valueFactory = new RDF4J();
+    for (int i = 0; i < bindingSets.size(); i++) {
+      for (String bindingName : bindingNames) {
+        resultTable.put(i, bindingName,
+            valueFactory.asRDFTerm(bindingSets.get(i).getBinding(bindingName).getValue()));
+      }
+    }
+    return resultTable;
   }
 
   @Override

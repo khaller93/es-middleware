@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
  * @version 1.0
  * @since 1.0
  */
-@Service
+@Service("SimpleSPARQLService")
 public class SimpleSPARQLService implements SPARQLService {
 
   private static final Logger logger = LoggerFactory.getLogger(SimpleSPARQLService.class);

@@ -7,17 +7,15 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import at.ac.tuwien.ifs.es.middleware.ExploratorySearchApplication;
-import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.IndexedMemoryKnowledgeGraph;
+import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -29,16 +27,12 @@ import org.eclipse.rdf4j.query.QueryResults;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.query.resultio.QueryResultIO;
 import org.eclipse.rdf4j.query.resultio.TupleQueryResultFormat;
-import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
@@ -57,41 +51,11 @@ import org.springframework.util.MultiValueMap;
     "esm.fts.choice=IndexedMemoryDB"})
 public class SPARQLControllerTest {
 
-  private static Model testModel;
-
   @Autowired
   private TestRestTemplate restTemplate;
-
+  @Rule
   @Autowired
-  @Qualifier("IndexedMemoryDB")
-  private IndexedMemoryKnowledgeGraph knowledgeGraphDAO;
-
-
-  @BeforeClass
-  public static void prepareTestDataset() throws IOException {
-    try (InputStream testDatasetIn = SPARQLControllerTest.class.getResourceAsStream(
-        "/datasets/musicpinta-instruments.ttl")) {
-      testModel = Rio.parse(testDatasetIn, "http://leeds.ac.uk/resource/", RDFFormat.TURTLE);
-    }
-  }
-
-  @Before
-  public void setUp() {
-    try (RepositoryConnection con = knowledgeGraphDAO.getRepository().getConnection()) {
-      con.add(testModel);
-    }
-  }
-
-  @Test
-  public void test_dataset_loaded() throws Exception {
-    try (RepositoryConnection con = knowledgeGraphDAO.getRepository().getConnection()) {
-      TupleQueryResult result = con
-          .prepareTupleQuery("SELECT (COUNT(DISTINCT ?s) AS ?cnt) WHERE { ?s ?p ?o }").evaluate();
-      assertThat("19575 distinct resources must have been loaded into the knowledgegraph.",
-          Integer.parseInt(result.next().getBinding("cnt").getValue().stringValue()),
-          is(19575));
-    }
-  }
+  public MusicPintaInstrumentsResource musicPintaResource;
 
   @Test
   public void test_countQuery_ok_mustReturnValue() throws Exception {
@@ -237,13 +201,24 @@ public class SPARQLControllerTest {
         .exchange("/sparql/update", HttpMethod.POST, entity, Void.class);
     assertThat("Insert-Update must be successful.",
         updateDataResponse.getStatusCode().value(), is(200));
-    try (RepositoryConnection con = knowledgeGraphDAO.getRepository().getConnection()) {
-      assertTrue(con.hasStatement(valueFactory.createIRI("test:a"), RDF.TYPE,
-          valueFactory.createIRI("http://purl.org/ontology/mo/Instrument"), false));
-      assertTrue(con.hasStatement(valueFactory.createIRI("test:a"), RDFS.LABEL,
-          valueFactory.createLiteral("A"), false));
-      assertTrue(con.hasStatement(valueFactory.createIRI("test:a"), RDFS.COMMENT,
-          valueFactory.createLiteral("A test instance."), false));
+
+    // Check if update was persisted.
+    HttpHeaders describeHeaders = new HttpHeaders();
+    describeHeaders.setAccept(Collections.singletonList(MediaType.valueOf("text/turtle")));
+    ResponseEntity<String> selectQueryResponse = restTemplate
+        .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(describeHeaders),
+            String.class, "DESCRIBE <test:a>");
+    assertThat("The request must signal to have failed.",
+        selectQueryResponse.getStatusCode().value(), is(200));
+    try (ByteArrayInputStream resultIn = new ByteArrayInputStream(
+        selectQueryResponse.getBody().getBytes())) {
+      Model testModel = Rio.parse(resultIn, "test:", RDFFormat.TURTLE);
+      IRI testIRI = valueFactory.createIRI("test:a");
+      assertTrue(testModel.contains(testIRI, RDF.TYPE,
+          valueFactory.createIRI("http://purl.org/ontology/mo/Instrument")));
+      assertTrue(testModel.contains(testIRI, RDFS.LABEL, valueFactory.createLiteral("A")));
+      assertTrue(testModel
+          .contains(testIRI, RDFS.COMMENT, valueFactory.createLiteral("A test instance.")));
     }
   }
 
@@ -269,16 +244,18 @@ public class SPARQLControllerTest {
     map.add("update", "DELETE WHERE { <http://dbpedia.org/resource/Huluhu> ?p1 ?o .}");
     HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(map, headers);
 
-    ValueFactory valueFactory = SimpleValueFactory.getInstance();
     ResponseEntity<Void> updateDataResponse = restTemplate
         .exchange("/sparql/update", HttpMethod.POST, entity, Void.class);
     assertThat("Delete-Update must be successful.",
         updateDataResponse.getStatusCode().value(), is(200));
-    try (RepositoryConnection con = knowledgeGraphDAO.getRepository().getConnection()) {
-      assertFalse(
-          con.hasStatement(valueFactory.createIRI("http://dbpedia.org/resource/Huluhu"), null, null,
-              false));
-    }
+
+    //Check if update was persisted.
+    HttpHeaders askHeaders = new HttpHeaders();
+    askHeaders.setAccept(Collections.singletonList(MediaType.valueOf("text/boolean")));
+    ResponseEntity<String> askResponse = restTemplate
+        .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(askHeaders),
+            String.class, "ASK WHERE { <http://dbpedia.org/resource/Huluhu> ?p ?o }");
+    assertThat("The 'Huluhu' resource must be removed.", askResponse.getBody(), is("false"));
   }
 
   @Test
@@ -291,13 +268,6 @@ public class SPARQLControllerTest {
             "DELETE WHERE { <http://dbpedia.org/resource/Huluhu> ?p1 ?o .}");
     assertThat("The request must signal to have failed with 400 (Bad Request).",
         selectQueryResponse.getStatusCode().value(), is(400));
-  }
-
-  @After
-  public void tearDown() {
-    try (RepositoryConnection con = knowledgeGraphDAO.getRepository().getConnection()) {
-      con.clear();
-    }
   }
 
 }

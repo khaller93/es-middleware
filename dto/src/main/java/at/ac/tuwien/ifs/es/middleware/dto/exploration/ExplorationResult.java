@@ -20,4 +20,11 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 })
 public interface ExplorationResult {
 
+  /**
+   * Returns a deep copy of this exploration result.
+   *
+   * @return a deep copy of this exploration result.
+   */
+  <T extends ExplorationResult> T deepCopy();
+
 }

@@ -7,7 +7,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 
 /**
@@ -38,16 +40,19 @@ public class ResourceList implements IterableExplorationResult<BlankNodeOrIRI> {
    */
   @JsonCreator
   public ResourceList(@JsonProperty("list") List<BlankNodeOrIRI> resourceList) {
-    this.list = resourceList;
+    this.list = new LinkedList<>(resourceList);
   }
 
   /**
-   * Creates a new {@link ResourceList} from the given {@code selectQueryResult}.
+   * Creates a new {@link ResourceList} from the given {@code selectQueryResult}. It iterates over
+   * the column that corresponds to the given {@code bindingName}.
    *
    * @param selectQueryResult that shall be wrapped.
+   * @param bindingName the name of the binding that represent the resource to consider.
    */
-  public ResourceList(SelectQueryResult selectQueryResult) {
-
+  public ResourceList(SelectQueryResult selectQueryResult, String bindingName) {
+    this.list = selectQueryResult.value().column(bindingName).values().stream()
+        .map(r -> (BlankNodeOrIRI) r).collect(Collectors.toList());
   }
 
   @Override
@@ -69,4 +74,8 @@ public class ResourceList implements IterableExplorationResult<BlankNodeOrIRI> {
     return this.list.size();
   }
 
+  @Override
+  public ResourceList deepCopy() {
+    return new ResourceList(this.list);
+  }
 }

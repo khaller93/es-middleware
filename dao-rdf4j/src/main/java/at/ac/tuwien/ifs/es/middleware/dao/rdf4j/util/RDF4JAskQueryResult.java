@@ -18,7 +18,8 @@ import org.eclipse.rdf4j.query.resultio.QueryResultIO;
  * @version 1.0
  * @since 1.0
  */
-public class RDF4JAskQueryResult extends RDF4JQueryResult<QueryResultFormat> {
+public class RDF4JAskQueryResult extends RDF4JQueryResult<QueryResultFormat> implements
+    AskQueryResult {
 
   private static final List<QueryResultFormat> ASK_QUERY_RESULT_FORMATS = Arrays
       .asList(BooleanQueryResultFormat.SPARQL, BooleanQueryResultFormat.JSON,

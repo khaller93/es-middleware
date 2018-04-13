@@ -6,7 +6,14 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.rdf.api.Graph;
+import org.apache.commons.rdf.rdf4j.RDF4J;
+import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.ModelFactory;
+import org.eclipse.rdf4j.model.Namespace;
 import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.impl.LinkedHashModel;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.GraphQueryResult;
 import org.eclipse.rdf4j.query.QueryResults;
 import org.eclipse.rdf4j.query.impl.IteratingGraphQueryResult;
@@ -21,7 +28,8 @@ import org.eclipse.rdf4j.rio.Rio;
  * @version 1.0
  * @since 1.0
  */
-public class RDF4JGraphQueryResult extends RDF4JQueryResult<RDFFormat> {
+public class RDF4JGraphQueryResult extends RDF4JQueryResult<RDFFormat> implements
+    at.ac.tuwien.ifs.es.middleware.dto.sparql.GraphQueryResult {
 
   private static final List<RDFFormat> GRAPH_QUERY_RESULT_FORMATS = Arrays
       .asList(RDFFormat.JSONLD, RDFFormat.TURTLE, RDFFormat.RDFXML, RDFFormat.NTRIPLES,
@@ -48,6 +56,11 @@ public class RDF4JGraphQueryResult extends RDF4JQueryResult<RDFFormat> {
     } catch (IOException e) {
       throw new SPARQLResultFormatException(e);
     }
+  }
+
+  @Override
+  public Graph value() {
+    return new RDF4J().asGraph(new LinkedHashModel(statements));
   }
 
   @Override

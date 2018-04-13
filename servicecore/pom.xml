@@ -28,6 +28,13 @@
       <artifactId>middleware.daocore</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <!-- Test util -->
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.testutil</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
 </project>
