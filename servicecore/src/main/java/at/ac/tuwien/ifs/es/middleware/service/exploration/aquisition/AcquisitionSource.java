@@ -1,7 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.ExplorationResponse;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlow;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.function.Function;
 
@@ -13,6 +14,19 @@ import java.util.function.Function;
  * @version 1.0
  * @since 1.0
  */
-public interface AcquisitionSource extends Function<JsonNode, ExplorationResponse> {
+public interface AcquisitionSource extends ExplorationFlowStep {
 
+  /**
+   * Applies this {@link AcquisitionSource} with the given {@code parameterMap}.
+   *
+   * @param parameterMap that specifies arguments for the {@link AcquisitionSource}.
+   * @return {@link ExplorationContext} resulting from the {@link AcquisitionSource}.
+   */
+  ExplorationContext apply(JsonNode parameterMap);
+
+  @Override
+  default ExplorationContext apply(ExplorationContext explorationContext,
+      JsonNode parameterMap) {
+    return this.apply(parameterMap);
+  }
 }

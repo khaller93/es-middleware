@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.ExplorationResponse;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.ExplorationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.function.BiFunction;
 
@@ -12,6 +12,13 @@ import java.util.function.BiFunction;
  * @since 1.0
  */
 public interface ExplorationFlowStep extends
-    BiFunction<ExplorationResponse, JsonNode, ExplorationResponse> {
+    BiFunction<ExplorationContext, JsonNode, ExplorationContext> {
+
+  /**
+   * This method returns a POJO that matches the expected parameters for this exploration step.
+   *
+   * @return a POJO for matching the parameters expected for this {@link ExplorationFlowStep}.
+   */
+  Class<?> getParameterClass();
 
 }

@@ -1,11 +1,10 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.ExplorationResponse;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.AcquisitionSource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.ExplorationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.LinkedList;
 import java.util.List;
-
+import org.javatuples.Pair;
 
 /**
  * This class represents an exploration flow that is composed of one or more {@link
@@ -17,25 +16,46 @@ import java.util.List;
  */
 public class ExplorationFlow {
 
-  private AcquisitionSource acquisitionSource;
-  private List<ExplorationFlowStep> explorationFlowSteps = new LinkedList<>();
+  private List<Pair<ExplorationFlowStep, JsonNode>> steps = new LinkedList<>();
 
-  public ExplorationFlow(AcquisitionSource acquisitionSource) {
-    this.acquisitionSource = acquisitionSource;
+  /**
+   * Appends the given {@code step} to the exploration flow and pack it together with the given
+   * {@code parameters} for this step.
+   *
+   * @param step {@link ExplorationFlowStep} that shall be appended to the flow.
+   * @param parameters for the given {@link ExplorationFlowStep} in this flow.
+   */
+  public void appendFlowStep(ExplorationFlowStep step, JsonNode parameters) {
+    this.steps.add(new Pair<>(step, parameters));
   }
 
   /**
+   * Gets a {@link List} of {@link ExplorationFlowStep} with their parameters.
    *
-   * @param parameterMap
-   * @return
+   * @return a {@link List} of {@link ExplorationFlowStep} with their parameters.
    */
-  public ExplorationResponse execute(JsonNode parameterMap) {
-    ExplorationResponse result = this.acquisitionSource.apply(parameterMap);
-    for (ExplorationFlowStep step : explorationFlowSteps) {
-      result = step.apply(result, parameterMap);
-    }
-    return result;
+  public List<Pair<ExplorationFlowStep, JsonNode>> asList() {
+    return new LinkedList<>(steps);
   }
 
+  /**
+   * Executes this workflow and returns the {@link ExplorationContext} of the execution, if it was
+   * successful.
+   *
+   * @return {@link ExplorationContext} that is the result of the execution of this workflow.
+   */
+  public ExplorationContext execute() {
+    ExplorationContext explorationContext = null;
+    for (Pair<ExplorationFlowStep, JsonNode> step : steps) {
+      explorationContext = step.getValue0().apply(explorationContext, step.getValue1());
+    }
+    return explorationContext;
+  }
 
+  @Override
+  public String toString() {
+    return "ExplorationFlow{" +
+        "steps=" + steps +
+        '}';
+  }
 }

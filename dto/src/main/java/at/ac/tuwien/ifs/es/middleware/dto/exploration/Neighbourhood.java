@@ -1,9 +1,10 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration;
 
-public class Neighbourhood implements ExplorationResult {
+/**
+ * @author Kevin Haller
+ * @version 1.0
+ * @since 1.0
+ */
+public class Neighbourhood {
 
-  @Override
-  public <T extends ExplorationResult> T deepCopy() {
-    return null;
-  }
 }

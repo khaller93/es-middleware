@@ -1,12 +1,14 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.ExplorationResponse;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.ResourceJsonUtil;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.ResourceList;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import java.util.Collections;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -19,25 +21,34 @@ import org.springframework.stereotype.Component;
  * @since 1.0
  */
 @Lazy
-@Component("SingleAcquisitionSource")
+@Component
+@RegisterForExplorationFlow("esm.source.single")
 public class SingleResource implements AcquisitionSource {
 
+  private static final Logger logger = LoggerFactory.getLogger(SingleResource.class);
+
+  private ObjectMapper objectMapper;
+
+  public SingleResource(@Autowired ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
+  }
+
   @Override
-  public ExplorationResponse apply(JsonNode parameterMap) {
-    if (parameterMap.has("iri")) {
-      JsonNode singleResource = parameterMap.get("iri");
-      if (singleResource.isValueNode()) {
-        return new ExplorationResponse(
-            new ResourceList(
-                Collections.singletonList(ResourceJsonUtil.valueOf(singleResource.asText()))),
-            JsonNodeFactory.instance.objectNode());
-      } else {
-        throw new ExplorationFlowSpecificationException(
-            "The specified single resource ('single') must be a simple string value");
-      }
-    } else {
+  public Class<String> getParameterClass() {
+    return String.class;
+  }
+
+  @Override
+  public ExplorationContext apply(JsonNode parameterMap) {
+    try {
+      String iri = objectMapper.treeToValue(parameterMap, getParameterClass());
+      logger.debug("A single resource with IRI '{}' was passed as source.", iri);
+      //TODO: Implement
+      return null;
+    } catch (JsonProcessingException e) {
       throw new ExplorationFlowSpecificationException(
-          "The single resource 'single' must be specified for this source.");
+          "A single resource must be specified as simple string for this source.", e);
     }
   }
+
 }

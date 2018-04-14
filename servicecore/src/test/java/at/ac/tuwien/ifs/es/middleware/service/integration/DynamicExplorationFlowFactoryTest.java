@@ -1,0 +1,124 @@
+package at.ac.tuwien.ifs.es.middleware.service.integration;
+
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.FullTextSearchConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.IndexedMemoryKnowledgeGraph;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.request.DynamicExplorationFlowRequest;
+import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlow;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.FullTextSearch;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.FullTextSearch.FullTextSearchParameterPayload;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.exploitation.ResourceDescriber;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.exploitation.ResourceDescriber.DescriberParameterPayload;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.factory.DynamicExplorationFlowFactory;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFlowRegistry;
+import at.ac.tuwien.ifs.es.middleware.service.sparql.SimpleSPARQLService;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.List;
+import org.javatuples.Pair;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = {KnowledgeGraphConfig.class, SimpleSPARQLService.class,
+    IndexedMemoryKnowledgeGraph.class, FullTextSearchConfig.class,
+    DynamicExplorationFlowFactory.class, ExplorationFlowRegistry.class, FullTextSearch.class,
+    ResourceDescriber.class, ObjectMapper.class})
+@TestPropertySource(properties = {
+    "esm.knowledgegraph.choice=IndexedMemoryDB",
+    "esm.fts.choice=IndexedMemoryDB",
+})
+public class DynamicExplorationFlowFactoryTest {
+
+  @Autowired
+  private ObjectMapper objectMapper;
+  @Autowired
+  private ExplorationFlowRegistry registry;
+  @Autowired
+  private DynamicExplorationFlowFactory factory;
+
+  @Before
+  public void setUp() {
+    registry.register("esm.source.fts", FullTextSearch.class);
+    registry.register("esm.exploit.describe", ResourceDescriber.class);
+  }
+
+  @Test
+  public void test_validFlowSpecification_mustReturnCorrespondingFlow() throws IOException {
+    DynamicExplorationFlowRequest request = objectMapper.readValue("{"
+        + "\"steps\": [{"
+        + "  \"name\": \"esm.source.fts\","
+        + "  \"param\": {"
+        + "    \"keyword\": \"guitar\","
+        + "    \"limit\": 5"
+        + "  }"
+        + "},"
+        + "{"
+        + "  \"name\": \"esm.exploit.describe\""
+        + "}]}", DynamicExplorationFlowRequest.class);
+    ExplorationFlow explorationFlow = factory.constructFlow(request);
+    assertNotNull(explorationFlow);
+    List<Pair<ExplorationFlowStep, JsonNode>> flowStepList = explorationFlow.asList();
+    assertThat("The returned flow must have two steps. A full-text-search and describe operation.",
+        flowStepList, hasSize(2));
+    // Check first fts step
+    Pair<ExplorationFlowStep, JsonNode> ftsPair = explorationFlow.asList().get(0);
+    assertThat(ftsPair.getValue0(), instanceOf(FullTextSearch.class));
+    FullTextSearchParameterPayload ftsPayload = objectMapper
+        .treeToValue(ftsPair.getValue1(), FullTextSearchParameterPayload.class);
+    assertThat(ftsPayload.getKeyword(), is("guitar"));
+    assertThat(ftsPayload.getLimit(), is(5));
+    assertNull(ftsPayload.getOffset());
+    // Check second describer step
+    Pair<ExplorationFlowStep, JsonNode> describerPair = explorationFlow.asList().get(1);
+    assertThat(describerPair.getValue0(), instanceOf(ResourceDescriber.class));
+    DescriberParameterPayload describerPayload = objectMapper
+        .treeToValue(describerPair.getValue1(), DescriberParameterPayload.class);
+    assertThat(describerPayload.getProperties(),
+        hasItems("http://www.w3.org/2000/01/rdf-schema#label",
+            "http://www.w3.org/2000/01/rdf-schema#comment"));
+  }
+
+  @Test(expected = JsonMappingException.class)
+  public void test_FlowSpecificationNoName_mustThrowException() throws IOException {
+    objectMapper.readValue("{"
+        + "\"steps\": [{"
+        + "  \"param\": {"
+        + "    \"keyword\": \"guitar\","
+        + "    \"limit\": 2"
+        + "  }"
+        + "}]}", DynamicExplorationFlowRequest.class);
+  }
+
+  @Test(expected = ExplorationFlowSpecificationException.class)
+  public void test_FlowSpecificationUnknownOperator_mustThrowException() throws IOException {
+    DynamicExplorationFlowRequest request = objectMapper.readValue("{"
+        + "\"steps\": [{"
+        + "  \"name\": \"esm.source.fts\","
+        + "  \"param\": {"
+        + "    \"keyword\": \"guitar\","
+        + "    \"limit\": 2"
+        + "  }"
+        + "},"
+        + "{\"name\": \"esm.invalid.operator\"}"
+        + "]}", DynamicExplorationFlowRequest.class);
+    factory.constructFlow(request);
+  }
+}

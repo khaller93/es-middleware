@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.ExplorationResponse;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.service.sparql.SPARQLService;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
  * @since 1.0
  */
 @Lazy
-@Component("AllAcquisitionSource")
+@Component
 public class AllResources implements AcquisitionSource {
 
   private final SPARQLService sparqlService;
@@ -27,7 +27,12 @@ public class AllResources implements AcquisitionSource {
   }
 
   @Override
-  public ExplorationResponse apply(JsonNode parameterMap) {
+  public Class<Void> getParameterClass() {
+    return Void.class;
+  }
+
+  @Override
+  public ExplorationContext apply(JsonNode parameterMap) {
     //TODO: Implement
     return null;
   }

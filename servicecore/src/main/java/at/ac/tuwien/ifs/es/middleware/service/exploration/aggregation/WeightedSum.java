@@ -1,15 +1,33 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation;
 
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+
 /**
- * This is an implementation of {@link AggregationOperator} that computes the weighted sum of given
- * numeric results (e.g. relevance and similarity metrics).
+ * This is an implementation of {@link AggregationOperator} that computes the weighted sum of
+ * specified values.
  *
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
  */
-public class WeightedSum {
+@Lazy
+@Component
+@RegisterForExplorationFlow("esm.aggregate.weighted-sum")
+public class WeightedSum implements AggregationOperator {
 
-  //TODO: Implement
+  @Override
+  public Class<?> getParameterClass() {
+    //TODO: Implement
+    return null;
+  }
 
+  @Override
+  public ExplorationContext apply(ExplorationContext explorationContext, JsonNode parameterMap) {
+    //TODO: Implement
+    return null;
+  }
 }
