@@ -35,12 +35,8 @@ public final class ExplorationFlowRegistry {
    * uid}.
    */
   public void register(String uid, Class<? extends ExplorationFlowStep> clazz) {
-    Class registeredClazz = registry.putIfAbsent(uid, clazz);
-    if (registeredClazz == clazz) {
-      logger.warn("The given class '%s' could not registered under the name '%s'.", clazz, uid);
-      //TODO: throw Runtime Exception.
-    }
-    logger.info("The exploration step '%s' has been registered under the name '%s'.", clazz, uid);
+    registry.put(uid, clazz);
+    logger.info("The exploration step '{}' has been registered under the name '{}'.", clazz, uid);
   }
 
   /**
@@ -62,7 +58,8 @@ public final class ExplorationFlowRegistry {
    * @param uid the unique name of the {@link ExplorationFlowStep} that shall be removed.
    */
   public void unregister(String uid) {
-    registry.remove(uid);
+    Class<? extends ExplorationFlowStep> clazz = registry.remove(uid);
+    logger.info("The exploration step '{}' has been unregistered. It refered to '{}'.", uid, clazz);
   }
 
 }
