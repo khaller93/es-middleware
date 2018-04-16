@@ -1,5 +1,6 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration;
+package at.ac.tuwien.ifs.es.middleware.dto.exploration.context;
 
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -24,8 +25,8 @@ public class ResourceList extends ExplorationContext implements
     IterableResourcesContext {
 
   @JsonProperty("list")
-  @JsonSerialize(contentUsing = ResourceJsonUtil.Serializer.class)
-  @JsonDeserialize(contentUsing = ResourceJsonUtil.Deserializer.class)
+  @JsonSerialize(contentUsing = BlankOrIRIJsonUtil.Serializer.class)
+  @JsonDeserialize(contentUsing = BlankOrIRIJsonUtil.Deserializer.class)
   private List<BlankNodeOrIRI> list;
 
   /**

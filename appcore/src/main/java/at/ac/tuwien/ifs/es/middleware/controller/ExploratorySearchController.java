@@ -1,21 +1,21 @@
 package at.ac.tuwien.ifs.es.middleware.controller;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.request.DynamicExplorationFlowRequest;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.factory.CommonExplorationFlowFactory;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.factory.DynamicExplorationFlowFactory;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import javax.validation.Valid;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -46,7 +46,7 @@ public class ExploratorySearchController {
     this.dynamicExplorationFlowFactory = dynamicExplorationFlowFactory;
   }
 
-  @GetMapping(value = "/with/custom/flow", produces = MediaType.APPLICATION_JSON_VALUE)
+  @PutMapping(value = "/with/custom/flow", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation(value = "Apply a custom exploration flow.")
   public ExplorationContext exploreWithFullTextSearch(
       @RequestBody DynamicExplorationFlowRequest request)
@@ -59,10 +59,11 @@ public class ExploratorySearchController {
   public ExplorationContext exploreWithFullTextSearch(
       @ApiParam(value = "Keyword for which corresponding resources shall be found.", required = true) @PathVariable String keyword,
       @ApiParam(value = "Specifies that the 'offsetNr' topmost resources shall be skipped.", required = false) @RequestParam(required = false) Integer offsetNr,
-      @ApiParam(value = "Specifies that only the 'limitNr' topmost resources shall be returned.") @RequestParam(required = false) Integer limitNr)
+      @ApiParam(value = "Specifies that only the 'limitNr' topmost resources shall be returned.") @RequestParam(required = false) Integer limitNr,
+      @ApiParam(value = "Only members of the specified classes shall be considered. If not given, all instances are considered.") @RequestParam(required = false) List<String> classes)
       throws ExplorationFlowSpecificationException {
     return commonExplorationFlowFactory
-        .constructFullTextSearchFlow(keyword, null, limitNr, offsetNr).execute();
+        .constructFullTextSearchFlow(keyword, classes, limitNr, offsetNr).execute();
   }
 
 }

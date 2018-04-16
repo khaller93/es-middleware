@@ -1,7 +1,6 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration;
+package at.ac.tuwien.ifs.es.middleware.dto.exploration.context;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
 /**
  * Instances of this interface represent an intermediate or final result of an exploration flow.

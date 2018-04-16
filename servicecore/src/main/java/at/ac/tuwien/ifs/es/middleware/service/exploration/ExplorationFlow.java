@@ -1,7 +1,9 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.ExplorationContext;
-import com.fasterxml.jackson.databind.JsonNode;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.AcquisitionSource;
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 import org.javatuples.Pair;
@@ -16,17 +18,21 @@ import org.javatuples.Pair;
  */
 public class ExplorationFlow {
 
-  private List<Pair<ExplorationFlowStep, JsonNode>> steps = new LinkedList<>();
+  private List<Pair<ExplorationFlowStep, Serializable>> steps = new LinkedList<>();
 
   /**
    * Appends the given {@code step} to the exploration flow and pack it together with the given
    * {@code parameters} for this step.
    *
    * @param step {@link ExplorationFlowStep} that shall be appended to the flow.
-   * @param parameters for the given {@link ExplorationFlowStep} in this flow.
+   * @param payload specifying parameters for the given {@link ExplorationFlowStep} in this flow.
    */
-  public void appendFlowStep(ExplorationFlowStep step, JsonNode parameters) {
-    this.steps.add(new Pair<>(step, parameters));
+  public void appendFlowStep(ExplorationFlowStep step, Serializable payload) {
+    if (steps.isEmpty() && !(step instanceof AcquisitionSource)) {
+      throw new ExplorationFlowSpecificationException(
+          "The first step of the flow must be an acquistion source.");
+    }
+    this.steps.add(new Pair<>(step, payload));
   }
 
   /**
@@ -34,7 +40,7 @@ public class ExplorationFlow {
    *
    * @return a {@link List} of {@link ExplorationFlowStep} with their parameters.
    */
-  public List<Pair<ExplorationFlowStep, JsonNode>> asList() {
+  public List<Pair<ExplorationFlowStep, Serializable>> asList() {
     return new LinkedList<>(steps);
   }
 
@@ -44,12 +50,18 @@ public class ExplorationFlow {
    *
    * @return {@link ExplorationContext} that is the result of the execution of this workflow.
    */
+  @SuppressWarnings("unchecked")
   public ExplorationContext execute() {
-    ExplorationContext explorationContext = null;
-    for (Pair<ExplorationFlowStep, JsonNode> step : steps) {
-      explorationContext = step.getValue0().apply(explorationContext, step.getValue1());
+    ExplorationContext context = null;
+    for (Pair<ExplorationFlowStep, Serializable> step : steps) {
+      try {
+        context = step.getValue0().apply(context, step.getValue1());
+      } catch (ClassCastException c) {
+        throw new ExplorationFlowSpecificationException(
+            String.format("The payload for a flow step is invalid. %s", c.getMessage()));
+      }
     }
-    return explorationContext;
+    return context;
   }
 
   @Override

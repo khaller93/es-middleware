@@ -16,16 +16,16 @@ import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecifica
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.FullTextSearch;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.FullTextSearch.FullTextSearchParameterPayload;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.acquisition.FullTextSearchPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.exploitation.ResourceDescriber;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.exploitation.ResourceDescriber.DescriberParameterPayload;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.exploitation.DescriberPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.factory.DynamicExplorationFlowFactory;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFlowRegistry;
 import at.ac.tuwien.ifs.es.middleware.service.sparql.SimpleSPARQLService;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.List;
 import org.javatuples.Pair;
 import org.junit.Before;
@@ -75,22 +75,23 @@ public class DynamicExplorationFlowFactoryTest {
         + "}]}", DynamicExplorationFlowRequest.class);
     ExplorationFlow explorationFlow = factory.constructFlow(request);
     assertNotNull(explorationFlow);
-    List<Pair<ExplorationFlowStep, JsonNode>> flowStepList = explorationFlow.asList();
+    List<Pair<ExplorationFlowStep, Serializable>> flowStepList = explorationFlow.asList();
     assertThat("The returned flow must have two steps. A full-text-search and describe operation.",
         flowStepList, hasSize(2));
     // Check first fts step
-    Pair<ExplorationFlowStep, JsonNode> ftsPair = explorationFlow.asList().get(0);
+    Pair<ExplorationFlowStep, Serializable> ftsPair = explorationFlow.asList().get(0);
     assertThat(ftsPair.getValue0(), instanceOf(FullTextSearch.class));
-    FullTextSearchParameterPayload ftsPayload = objectMapper
-        .treeToValue(ftsPair.getValue1(), FullTextSearchParameterPayload.class);
+    assertThat(ftsPair.getValue1(), instanceOf(FullTextSearchPayload.class));
+    FullTextSearchPayload ftsPayload = (FullTextSearchPayload) ftsPair.getValue1();
     assertThat(ftsPayload.getKeyword(), is("guitar"));
     assertThat(ftsPayload.getLimit(), is(5));
     assertNull(ftsPayload.getOffset());
     // Check second describer step
-    Pair<ExplorationFlowStep, JsonNode> describerPair = explorationFlow.asList().get(1);
+    Pair<ExplorationFlowStep, Serializable> describerPair = explorationFlow.asList().get(1);
+    System.out.println(flowStepList);
     assertThat(describerPair.getValue0(), instanceOf(ResourceDescriber.class));
-    DescriberParameterPayload describerPayload = objectMapper
-        .treeToValue(describerPair.getValue1(), DescriberParameterPayload.class);
+    assertThat(describerPair.getValue1(), instanceOf(DescriberPayload.class));
+    DescriberPayload describerPayload = (DescriberPayload) describerPair.getValue1();
     assertThat(describerPayload.getProperties(),
         hasItems("http://www.w3.org/2000/01/rdf-schema#label",
             "http://www.w3.org/2000/01/rdf-schema#comment"));

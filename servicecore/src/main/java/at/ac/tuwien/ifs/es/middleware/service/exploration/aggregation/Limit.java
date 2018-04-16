@@ -1,9 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.ExplorationContext;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.IterableExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.aggregation.LimitPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -19,38 +18,17 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component
 @RegisterForExplorationFlow("esm.aggregate.limit")
-public class Limit implements AggregationOperator {
+public class Limit implements AggregationOperator<LimitPayload> {
 
   @Override
-  public Class<?> getParameterClass() {
-    return Integer.class;
+  public Class<LimitPayload> getParameterClass() {
+    return LimitPayload.class;
   }
 
   @Override
-  public ExplorationContext apply(ExplorationContext explorationContext, JsonNode parameterMap) {
-    /*ExplorationResponse result = explorationResponse.getResult();
-    JsonNode oldValues = explorationResponse.getValues();
-    if (result instanceof IterableExplorationResponse) {
-      IterableExplorationResponse iterableResult = (IterableExplorationResponse) result;
-      if (parameterMap.has("number")) {
-        long limitNr = parameterMap.get("number").asLong();
-        if (limitNr > 0) {
-          ObjectNode newValues = JsonNodeFactory.instance.objectNode();
-          //TODO: Implement
-          return null;
-        } else {
-          throw new ExplorationFlowSpecificationException(String
-              .format("The specified number for 'Limit' must be greater than zero, but was %d.",
-                  limitNr));
-        }
-      } else {
-        throw new ExplorationFlowSpecificationException(
-            "'Limit' aggregation requires a 'number' to be specified in the parameter map.");
-      }
-    } else {
-      throw new ExplorationFlowSpecificationException(
-          "'Limit' aggregation can only be applied to iterable results.");
-    }*/
+  public ExplorationContext apply(ExplorationContext context, LimitPayload payload) {
+    //TODO: Implement.
     return null;
   }
+
 }

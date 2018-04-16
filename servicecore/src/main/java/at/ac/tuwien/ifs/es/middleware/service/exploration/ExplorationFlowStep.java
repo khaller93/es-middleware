@@ -1,24 +1,35 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.ExplorationContext;
-import com.fasterxml.jackson.databind.JsonNode;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
+import java.io.Serializable;
 import java.util.function.BiFunction;
 
 /**
- * Instances of this interface represent a step of an {@link ExplorationFlow}.
+ * An {@link ExplorationFlowStep} represents an operation in an {@link ExplorationFlow}.
  *
+ * @param <T> the POJO class holding expected parameters.
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
  */
-public interface ExplorationFlowStep extends
-    BiFunction<ExplorationContext, JsonNode, ExplorationContext> {
+public interface ExplorationFlowStep<T extends Serializable> extends
+    BiFunction<ExplorationContext, T, ExplorationContext> {
 
   /**
    * This method returns a POJO that matches the expected parameters for this exploration step.
    *
    * @return a POJO for matching the parameters expected for this {@link ExplorationFlowStep}.
    */
-  Class<?> getParameterClass();
+  Class<T> getParameterClass();
 
+  /**
+   * Applies this step based on the given {@code context} and {@code parameter}. The resulting
+   * {@link ExplorationContext} will be returned.
+   *
+   * @param context {@link ExplorationContext} for the application.
+   * @param payload specifying arguments for the application.
+   * @return {@link ExplorationContext} resulting from the application of this step.
+   */
+  @Override
+  ExplorationContext apply(ExplorationContext context, T payload);
 }

@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration;
+package at.ac.tuwien.ifs.es.middleware.dto.exploration.context;
 
 import java.util.List;
 

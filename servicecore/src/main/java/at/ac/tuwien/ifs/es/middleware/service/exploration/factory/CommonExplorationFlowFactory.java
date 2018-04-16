@@ -3,10 +3,10 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.factory;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowServiceException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.FullTextSearch;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.FullTextSearch.FullTextSearchParameterPayload;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.acquisition.FullTextSearchPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.exploitation.ResourceDescriber;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.exploitation.DescriberPayload;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -63,14 +63,14 @@ public class CommonExplorationFlowFactory {
       Integer limit, Integer offset) {
     ExplorationFlow flow = new ExplorationFlow();
     try {
-      FullTextSearchParameterPayload ftsParameterPayload = fullTextSearch
+      FullTextSearchPayload ftsParameterPayload = fullTextSearch
           .getParameterClass().newInstance();
       ftsParameterPayload.setKeyword(keyword);
       ftsParameterPayload.setClasses(clazzes);
       ftsParameterPayload.setLimit(limit);
       ftsParameterPayload.setOffset(offset);
-      flow.appendFlowStep(fullTextSearch, parameterMapper.valueToTree(ftsParameterPayload));
-      flow.appendFlowStep(resourceDescriber, JsonNodeFactory.instance.objectNode());
+      flow.appendFlowStep(fullTextSearch, ftsParameterPayload);
+      flow.appendFlowStep(resourceDescriber, new DescriberPayload());
       return flow;
     } catch (IllegalAccessException | InstantiationException e) {
       throw new ExplorationFlowServiceException(

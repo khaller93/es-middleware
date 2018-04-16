@@ -1,8 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.aggregation.OffsetPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -18,18 +18,17 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component
 @RegisterForExplorationFlow("esm.aggregate.offset")
-public class Offset implements AggregationOperator {
+public class Offset implements AggregationOperator<OffsetPayload> {
 
   @Override
-  public Class<Integer> getParameterClass() {
-    return Integer.class;
+  public Class<OffsetPayload> getParameterClass() {
+    return OffsetPayload.class;
   }
 
   @Override
-  public ExplorationContext apply(ExplorationContext explorationContext, JsonNode parameterMap) {
-    //TODO: Implement
+  public ExplorationContext apply(ExplorationContext context, OffsetPayload payload) {
+    //TODO: Implement.
     return null;
   }
-
 
 }

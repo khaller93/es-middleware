@@ -1,6 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation;
 
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
+import java.io.Serializable;
 
 /**
  * This is a marker interface for aggregation operator. These kind of operators aggregate the
@@ -10,6 +11,6 @@ import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
  * @version 1.0
  * @since 1.0
  */
-public interface AggregationOperator extends ExplorationFlowStep {
+public interface AggregationOperator<T extends Serializable> extends ExplorationFlowStep<T> {
 
 }

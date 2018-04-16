@@ -1,7 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration;
-
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+package at.ac.tuwien.ifs.es.middleware.dto.exploration.context;
 
 /**
  * Instances of this interface are an {@link ExplorationContext} for which it is possible to iterate

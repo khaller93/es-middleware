@@ -1,8 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.aggregation.WeightedSumPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -17,17 +17,15 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component
 @RegisterForExplorationFlow("esm.aggregate.weighted-sum")
-public class WeightedSum implements AggregationOperator {
+public class WeightedSum implements AggregationOperator<WeightedSumPayload> {
 
   @Override
-  public Class<?> getParameterClass() {
-    //TODO: Implement
+  public Class<WeightedSumPayload> getParameterClass() {
     return null;
   }
 
   @Override
-  public ExplorationContext apply(ExplorationContext explorationContext, JsonNode parameterMap) {
-    //TODO: Implement
+  public ExplorationContext apply(ExplorationContext context, WeightedSumPayload payload) {
     return null;
   }
 }
