@@ -1,5 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.request;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -10,6 +11,7 @@ public class ExplorationFlowStepRequest {
   private String name;
   private JsonNode param;
 
+  @JsonCreator
   public ExplorationFlowStepRequest(@JsonProperty(value = "name", required = true) String name,
       @JsonProperty(value = "param") ObjectNode param) {
     this.name = name;

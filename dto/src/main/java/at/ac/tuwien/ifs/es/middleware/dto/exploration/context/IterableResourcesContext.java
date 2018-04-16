@@ -1,5 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.context;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
@@ -11,7 +13,15 @@ import org.apache.commons.rdf.api.BlankNodeOrIRI;
  * @version 1.0
  * @since 1.0
  */
-public interface IterableResourcesContext extends Iterable<BlankNodeOrIRI> {
+public interface IterableResourcesContext {
+
+  /**
+   * Gets an iterator with which it is possible to iterate over all resources in the context.
+   *
+   * @return an iterator with which it is possible to iterate over all resources in the context.
+   */
+  @JsonIgnore
+  Iterator<BlankNodeOrIRI> getResourceIterator();
 
   /**
    * Gets the iterable resources as a {@link List} potentially with duplicates.

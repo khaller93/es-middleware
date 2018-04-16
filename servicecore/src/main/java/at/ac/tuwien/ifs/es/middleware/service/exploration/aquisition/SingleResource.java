@@ -9,6 +9,8 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.acquisition.Single
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.sparql.SPARQLService;
 import java.util.Collections;
+import java.util.Map;
+import org.apache.logging.log4j.core.lookup.StrSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +38,7 @@ public class SingleResource implements AcquisitionSource<SingleResourcePayload> 
 
   private static final Logger logger = LoggerFactory.getLogger(SingleResource.class);
 
-  private static final String ASK_EXIST_QUERY = "ASK WHERE { %s ?p ?o }";
+  private static final String ASK_EXIST_QUERY = "ASK WHERE { {${s} ?p ?o .} UNION {?t ${s} ?o} UNION {?t ?p ${s}} }";
 
   private SPARQLService sparqlService;
 
@@ -49,29 +51,13 @@ public class SingleResource implements AcquisitionSource<SingleResourcePayload> 
     return SingleResourcePayload.class;
   }
 
-  /*@Override
-  public ExplorationContext apply(JsonNode iriParameter) {
-    if (iriParameter.isValueNode()) {
-      String resourceIri = iriParameter.asText();
-      logger.debug("A single resource with IRI '{}' was passed as source.", resourceIri);
-      try {
-        BlankNodeOrIRI resource = BlankOrIRIJsonUtil.valueOf(resourceIri);
-
-      } catch (IllegalArgumentException i) {
-        throw new ExplorationFlowSpecificationException(
-            String.format("The given resource with IRI '%s' is not valid.", resourceIri));
-      }
-    } else {
-      throw new ExplorationFlowSpecificationException(
-          "The single resource must be given as simple IRI string.");
-    }
-  }*/
 
   @Override
   public ExplorationContext apply(SingleResourcePayload payload) {
-    AskQueryResult existResult = (AskQueryResult) sparqlService.query(String
-        .format(ASK_EXIST_QUERY,
-            BlankOrIRIJsonUtil.stringForSPARQLResourceOf(payload.getResource())), true);
+    Map<String, String> valueMap = Collections
+        .singletonMap("s", BlankOrIRIJsonUtil.stringForSPARQLResourceOf(payload.getResource()));
+    AskQueryResult existResult = (AskQueryResult) sparqlService
+        .query(new StrSubstitutor(valueMap).replace(ASK_EXIST_QUERY), true);
     if (existResult.value()) {
       return new ResourceList(Collections.singletonList(payload.getResource()));
     } else {

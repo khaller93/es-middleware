@@ -1,8 +1,10 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IdentifiableResult;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.aggregation.LimitPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
+import java.util.Iterator;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -25,10 +27,19 @@ public class Limit implements AggregationOperator<LimitPayload> {
     return LimitPayload.class;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public ExplorationContext apply(ExplorationContext context, LimitPayload payload) {
-    //TODO: Implement.
-    return null;
+    int limit = payload.getNumber();
+    Iterator<IdentifiableResult> iterator = context.getResultsCollection().iterator();
+    while (iterator.hasNext()) {
+      IdentifiableResult next = iterator.next();
+      if (limit > 0) {
+        limit--;
+      } else {
+        context.removeResult(next);
+      }
+    }
+    return context;
   }
-
 }

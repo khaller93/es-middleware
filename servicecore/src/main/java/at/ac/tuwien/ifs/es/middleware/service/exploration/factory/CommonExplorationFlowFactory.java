@@ -70,7 +70,7 @@ public class CommonExplorationFlowFactory {
       ftsParameterPayload.setLimit(limit);
       ftsParameterPayload.setOffset(offset);
       flow.appendFlowStep(fullTextSearch, ftsParameterPayload);
-      flow.appendFlowStep(resourceDescriber, new DescriberPayload());
+      flow.appendFlowStep(resourceDescriber, new DescriberPayload(null, null));
       return flow;
     } catch (IllegalAccessException | InstantiationException e) {
       throw new ExplorationFlowServiceException(

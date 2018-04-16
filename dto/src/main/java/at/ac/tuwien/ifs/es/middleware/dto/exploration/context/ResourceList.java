@@ -1,16 +1,21 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.context;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.ResourceJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 
 /**
@@ -20,20 +25,17 @@ import org.apache.commons.rdf.api.BlankNodeOrIRI;
  * @version 1.0
  * @since 1.0
  */
-public class ResourceList extends ExplorationContext implements
-    IterableExplorationContext<BlankNodeOrIRI>,
+public class ResourceList extends AbstractExplorationContext<Resource> implements
     IterableResourcesContext {
 
-  @JsonProperty("list")
-  @JsonSerialize(contentUsing = BlankOrIRIJsonUtil.Serializer.class)
-  @JsonDeserialize(contentUsing = BlankOrIRIJsonUtil.Deserializer.class)
-  private List<BlankNodeOrIRI> list;
+  @JsonProperty
+  private Set<Resource> list;
 
   /**
    * Creates a new empty list of resources.
    */
   public ResourceList() {
-    this.list = new LinkedList<>();
+    this.list = new HashSet<>();
   }
 
   /**
@@ -43,7 +45,7 @@ public class ResourceList extends ExplorationContext implements
    */
   @JsonCreator
   public ResourceList(@JsonProperty("list") List<BlankNodeOrIRI> resourceList) {
-    this.list = new LinkedList<>(resourceList);
+    this.list = resourceList.stream().map(Resource::new).collect(Collectors.toSet());
   }
 
   /**
@@ -55,35 +57,42 @@ public class ResourceList extends ExplorationContext implements
    */
   public ResourceList(SelectQueryResult selectQueryResult, String bindingName) {
     this.list = selectQueryResult.value().column(bindingName).values().stream()
-        .map(r -> (BlankNodeOrIRI) r).collect(Collectors.toList());
+        .map(r -> new Resource((BlankNodeOrIRI) r)).collect(Collectors.toSet());
   }
 
   @Override
-  public Iterator<BlankNodeOrIRI> iterator() {
+  public Iterator<Resource> iterator() {
     return this.list.iterator();
   }
 
-  /**
-   * Gets the number of resources in the list.
-   *
-   * @return the number of resources.
-   */
-  public int size() {
-    return this.list.size();
+  @Override
+  public Collection<Resource> getResultsCollection() {
+    return new ArrayList<>(list);
   }
 
   @Override
-  public <T extends ExplorationContext> T deepCopy() {
-    return (T) new ResourceList(this.list);
+  public void setResults(Collection<Resource> results) {
+    this.list = new HashSet<>(results);
+  }
+
+  @Override
+  public void removeResult(Resource result) {
+    this.list.remove(result);
+    this.removeValuesData(result.getId());
   }
 
   @Override
   public List<BlankNodeOrIRI> asResourceList() {
-    return null;
+    return this.list.stream().map(Resource::value).collect(Collectors.toList());
   }
 
   @Override
   public Set<BlankNodeOrIRI> asResourceSet() {
-    return null;
+    return this.list.stream().map(Resource::value).collect(Collectors.toSet());
+  }
+
+  @Override
+  public Iterator<BlankNodeOrIRI> getResourceIterator() {
+    return this.list.stream().map(Resource::value).iterator();
   }
 }

@@ -13,7 +13,6 @@ import java.util.List;
  */
 public final class FullTextSearchPayload implements Serializable {
 
-  @JsonProperty(required = true)
   private String keyword;
   private List<String> classes;
   private Integer offset;
@@ -23,6 +22,7 @@ public final class FullTextSearchPayload implements Serializable {
     return keyword;
   }
 
+  @JsonProperty(value = "keyword",required = true)
   public void setKeyword(String keyword) {
     this.keyword = keyword;
   }

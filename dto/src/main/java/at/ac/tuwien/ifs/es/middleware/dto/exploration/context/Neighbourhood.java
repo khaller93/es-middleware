@@ -7,4 +7,6 @@ package at.ac.tuwien.ifs.es.middleware.dto.exploration.context;
  */
 public class Neighbourhood {
 
+  //TODO: Implement
+
 }

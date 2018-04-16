@@ -44,7 +44,7 @@ public class MultipleResources implements AcquisitionSource<MultipleResourcesPay
       + "      %s \n"
       + "    }\n"
       + "    FILTER NOT EXISTS {\n"
-      + "    \t?s ?p ?o\n"
+      + "    \t{?s ?p ?o .} UNION {?t ?s ?o} UNION {?t ?p ?s}\n"
       + "\t}\n"
       + "}";
 

@@ -1,5 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.request;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
@@ -10,6 +11,7 @@ public class DynamicExplorationFlowRequest {
 
   private List<ExplorationFlowStepRequest> steps;
 
+  @JsonCreator
   public DynamicExplorationFlowRequest(
       @JsonProperty(value = "steps", required = true) List<ExplorationFlowStepRequest> steps) {
     this.steps = steps;

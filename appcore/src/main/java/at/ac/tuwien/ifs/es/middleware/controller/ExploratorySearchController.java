@@ -8,6 +8,7 @@ import at.ac.tuwien.ifs.es.middleware.service.exploration.factory.DynamicExplora
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import java.time.Instant;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +52,11 @@ public class ExploratorySearchController {
   public ExplorationContext exploreWithFullTextSearch(
       @RequestBody DynamicExplorationFlowRequest request)
       throws ExplorationFlowSpecificationException {
-    return dynamicExplorationFlowFactory.constructFlow(request).execute();
+    Instant timestampEntered = Instant.now();
+    ExplorationContext context = dynamicExplorationFlowFactory.constructFlow(request).execute();
+    context.setMetadata("timestamp.entered", timestampEntered);
+    context.setMetadata("timestamp.exited", Instant.now());
+    return context;
   }
 
   @GetMapping(value = "/with/fts/{keyword}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -62,8 +67,12 @@ public class ExploratorySearchController {
       @ApiParam(value = "Specifies that only the 'limitNr' topmost resources shall be returned.") @RequestParam(required = false) Integer limitNr,
       @ApiParam(value = "Only members of the specified classes shall be considered. If not given, all instances are considered.") @RequestParam(required = false) List<String> classes)
       throws ExplorationFlowSpecificationException {
-    return commonExplorationFlowFactory
+    Instant timestampEntered = Instant.now();
+    ExplorationContext context =  commonExplorationFlowFactory
         .constructFullTextSearchFlow(keyword, classes, limitNr, offsetNr).execute();
+    context.setMetadata("timestamp.entered", timestampEntered);
+    context.setMetadata("timestamp.exited", Instant.now());
+    return context;
   }
 
 }

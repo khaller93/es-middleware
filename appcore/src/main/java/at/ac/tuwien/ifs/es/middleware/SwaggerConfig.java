@@ -20,8 +20,7 @@ public class SwaggerConfig {
       "https://www.ifs.tuwien.ac.at/", "sek@ifs.tuwien.ac.at");
 
   private final ApiInfo API_INFO;
-  @Value("${application.version}")
-  private String version;
+  private final String version = "1.0.0";
 
   public SwaggerConfig() {
     API_INFO = new ApiInfo("Exploratory Search Middleware",

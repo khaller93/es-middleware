@@ -27,6 +27,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
+import java.util.stream.Collectors;
+import org.apache.commons.rdf.api.IRI;
 import org.javatuples.Pair;
 import org.junit.Before;
 import org.junit.Test;
@@ -92,7 +94,10 @@ public class DynamicExplorationFlowFactoryTest {
     assertThat(describerPair.getValue0(), instanceOf(ResourceDescriber.class));
     assertThat(describerPair.getValue1(), instanceOf(DescriberPayload.class));
     DescriberPayload describerPayload = (DescriberPayload) describerPair.getValue1();
-    assertThat(describerPayload.getProperties(),
+    assertThat(
+        describerPayload.getProperties().values().stream()
+            .map(r -> ((IRI) r.getProperty()).getIRIString())
+            .collect(Collectors.toList()),
         hasItems("http://www.w3.org/2000/01/rdf-schema#label",
             "http://www.w3.org/2000/01/rdf-schema#comment"));
   }

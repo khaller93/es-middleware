@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.List;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.rdf.rdf4j.RDF4J;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.Binding;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryResults;
 import org.eclipse.rdf4j.query.TupleQueryResult;
@@ -56,8 +58,10 @@ public class RDF4JSelectQueryResult extends RDF4JQueryResult<QueryResultFormat> 
     RDF4J valueFactory = new RDF4J();
     for (int i = 0; i < bindingSets.size(); i++) {
       for (String bindingName : bindingNames) {
-        resultTable.put(i, bindingName,
-            valueFactory.asRDFTerm(bindingSets.get(i).getBinding(bindingName).getValue()));
+        Binding b = bindingSets.get(i).getBinding(bindingName);
+        if(b != null) {
+          resultTable.put(i, bindingName, valueFactory.asRDFTerm(b.getValue()));
+        }
       }
     }
     return resultTable;

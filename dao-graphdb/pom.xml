@@ -11,12 +11,21 @@
 
   <artifactId>middleware.dao-graphdb</artifactId>
 
+  <properties>
+    <graphDb.version>8.5.0</graphDb.version>
+  </properties>
+
   <dependencies>
     <!-- ES Middleware dependencies -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.dao-rdf4j</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.ontotext.graphdb</groupId>
+      <artifactId>graphdb-free-runtime</artifactId>
+      <version>${graphDb.version}</version>
     </dependency>
   </dependencies>
 
