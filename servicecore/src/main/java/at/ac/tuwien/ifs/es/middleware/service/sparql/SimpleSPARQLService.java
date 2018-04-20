@@ -24,8 +24,7 @@ public class SimpleSPARQLService implements SPARQLService {
 
   private KnowledgeGraphDAO knowledgeGraphDAO;
 
-  public SimpleSPARQLService(
-      @Autowired @Qualifier("SpecifiedKnowledgeGraphDAO") KnowledgeGraphDAO knowledgeGraphDAO) {
+  public SimpleSPARQLService(@Autowired KnowledgeGraphDAO knowledgeGraphDAO) {
     this.knowledgeGraphDAO = knowledgeGraphDAO;
   }
 

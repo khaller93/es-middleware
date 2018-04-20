@@ -42,8 +42,7 @@ public class MusicPintaInstrumentsResource extends ExternalResource {
 
   private RDF4JKnowledgeGraphDAO knowledgeGraphDAO;
 
-  public MusicPintaInstrumentsResource(
-      @Autowired() @Qualifier("SpecifiedKnowledgeGraphDAO") KnowledgeGraphDAO knowledgeGraphDAO) {
+  public MusicPintaInstrumentsResource(@Autowired KnowledgeGraphDAO knowledgeGraphDAO) {
     this.knowledgeGraphDAO = (RDF4JKnowledgeGraphDAO) knowledgeGraphDAO;
   }
 

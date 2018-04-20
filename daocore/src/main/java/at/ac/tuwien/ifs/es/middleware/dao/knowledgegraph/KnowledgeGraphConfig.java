@@ -8,6 +8,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 
 /**
@@ -27,6 +28,7 @@ public class KnowledgeGraphConfig {
   private String choice;
 
   @Bean
+  @Primary
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
   public KnowledgeGraphDAO SpecifiedKnowledgeGraphDAO(@Autowired ApplicationContext context) {
     return context.getBean(choice, KnowledgeGraphDAO.class);
