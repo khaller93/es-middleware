@@ -39,7 +39,8 @@ public interface ExplorationContext<T extends IdentifiableResult> extends Iterab
    * @param name to which the given {@code data} shall be stored.
    * @param data which shall be stored under the given {@code name}.
    */
-  void setMetadata(String name, Serializable data);
+  @JsonIgnore
+  void setMetadata(String name, JsonNode data);
 
   /**
    * Removes metadata stored under the given name.
@@ -47,6 +48,13 @@ public interface ExplorationContext<T extends IdentifiableResult> extends Iterab
    * @param name of which the metadata shall be removed.
    */
   void removeMetadata(String name);
+
+  /**
+   * Gets the metadata stored under the given {@code name}.
+   *
+   * @param name under which the demanded metadata is stored.
+   */
+  Optional<JsonNode> getMetadata(String name);
 
   /**
    * Puts the given {@code data} to the value node with the given {@code id} on the given position.

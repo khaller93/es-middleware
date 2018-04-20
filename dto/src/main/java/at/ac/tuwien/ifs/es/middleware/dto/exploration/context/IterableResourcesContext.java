@@ -1,5 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.context;
 
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Iterator;
 import java.util.List;
@@ -21,20 +22,20 @@ public interface IterableResourcesContext {
    * @return an iterator with which it is possible to iterate over all resources in the context.
    */
   @JsonIgnore
-  Iterator<BlankNodeOrIRI> getResourceIterator();
+  Iterator<Resource> getResourceIterator();
 
   /**
    * Gets the iterable resources as a {@link List} potentially with duplicates.
    *
    * @return a list of {@link BlankNodeOrIRI}, which potentially has duplicates.
    */
-  List<BlankNodeOrIRI> asResourceList();
+  List<Resource> asResourceList();
 
   /**
    * Gets the iterable resources as a {@link Set} without duplicates.
    *
    * @return a set of {@link BlankNodeOrIRI} without duplicates.
    */
-  Set<BlankNodeOrIRI> asResourceSet();
+  Set<Resource> asResourceSet();
 
 }

@@ -1,0 +1,12 @@
+{
+  "steps": [
+    {
+      "name": "esm.source.all",
+      "param": {
+        "exclude": [
+          "http://purl.org/ontology/mo/Instrument"
+        ]
+      }
+    }
+  ]
+}

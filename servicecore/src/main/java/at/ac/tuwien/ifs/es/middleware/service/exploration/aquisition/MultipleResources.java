@@ -2,6 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
@@ -59,35 +60,9 @@ public class MultipleResources implements AcquisitionSource<MultipleResourcesPay
     return MultipleResourcesPayload.class;
   }
 
-  /*@Override
-  public ExplorationContext apply(JsonNode resourceArray) {
-    if (resourceArray.isArray()) {
-      List<BlankNodeOrIRI> resources = new LinkedList<>();
-      ArrayNode resourcesList = (ArrayNode) resourceArray;
-      for (JsonNode resourceNode : resourcesList) {
-        if (resourceNode.isValueNode()) {
-          String resourceIRI = resourceNode.asText();
-          try {
-            resources.add(BlankOrIRIJsonUtil.valueOf(resourceIRI));
-          } catch (IllegalArgumentException i) {
-            throw new ExplorationFlowSpecificationException(
-                String.format("The given resource with IRI '%s' is not valid.", resourceIRI));
-          }
-        } else {
-          throw new ExplorationFlowSpecificationException(
-              "The resources in the list must be specified as IRI string.");
-        }
-      }
-
-    } else {
-      throw new ExplorationFlowSpecificationException(
-          "The resources must be specified as a list of corresponding IRI strings.");
-    }
-  }*/
-
   @Override
   public ExplorationContext apply(MultipleResourcesPayload payload) {
-    List<BlankNodeOrIRI> resources = payload.getResources();
+    List<Resource> resources = payload.getResources();
     if (!resources.isEmpty()) {
       logger.debug("A list of resources with IRIs {} was passed as source.", resources);
       SelectQueryResult notExistResult = (SelectQueryResult) sparqlService

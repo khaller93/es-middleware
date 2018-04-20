@@ -55,7 +55,8 @@ public class SingleResource implements AcquisitionSource<SingleResourcePayload> 
   @Override
   public ExplorationContext apply(SingleResourcePayload payload) {
     Map<String, String> valueMap = Collections
-        .singletonMap("s", BlankOrIRIJsonUtil.stringForSPARQLResourceOf(payload.getResource()));
+        .singletonMap("s",
+            BlankOrIRIJsonUtil.stringForSPARQLResourceOf(payload.getResource().value()));
     AskQueryResult existResult = (AskQueryResult) sparqlService
         .query(new StrSubstitutor(valueMap).replace(ASK_EXIST_QUERY), true);
     if (existResult.value()) {

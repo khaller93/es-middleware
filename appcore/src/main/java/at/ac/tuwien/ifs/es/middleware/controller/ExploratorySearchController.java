@@ -5,6 +5,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.factory.CommonExplorationFlowFactory;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.factory.DynamicExplorationFlowFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,22 +42,26 @@ public class ExploratorySearchController {
   private CommonExplorationFlowFactory commonExplorationFlowFactory;
   private DynamicExplorationFlowFactory dynamicExplorationFlowFactory;
 
+  private ObjectMapper payloadMapper;
+
   public ExploratorySearchController(
       @Autowired CommonExplorationFlowFactory commonExplorationFlowFactory,
-      @Autowired DynamicExplorationFlowFactory dynamicExplorationFlowFactory) {
+      @Autowired DynamicExplorationFlowFactory dynamicExplorationFlowFactory,
+      @Autowired ObjectMapper payloadMapper) {
     this.commonExplorationFlowFactory = commonExplorationFlowFactory;
     this.dynamicExplorationFlowFactory = dynamicExplorationFlowFactory;
+    this.payloadMapper = payloadMapper;
   }
 
-  @PutMapping(value = "/with/custom/flow", produces = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(value = "/with/custom/flow", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation(value = "Apply a custom exploration flow.")
-  public ExplorationContext exploreWithFullTextSearch(
+  public ExplorationContext exploreWithCustomFlow(
       @RequestBody DynamicExplorationFlowRequest request)
       throws ExplorationFlowSpecificationException {
     Instant timestampEntered = Instant.now();
     ExplorationContext context = dynamicExplorationFlowFactory.constructFlow(request).execute();
-    context.setMetadata("timestamp.entered", timestampEntered);
-    context.setMetadata("timestamp.exited", Instant.now());
+    context.setMetadata("timestamp.entered", payloadMapper.valueToTree(timestampEntered));
+    context.setMetadata("timestamp.exited", payloadMapper.valueToTree(Instant.now()));
     return context;
   }
 
@@ -68,10 +74,10 @@ public class ExploratorySearchController {
       @ApiParam(value = "Only members of the specified classes shall be considered. If not given, all instances are considered.") @RequestParam(required = false) List<String> classes)
       throws ExplorationFlowSpecificationException {
     Instant timestampEntered = Instant.now();
-    ExplorationContext context =  commonExplorationFlowFactory
+    ExplorationContext context = commonExplorationFlowFactory
         .constructFullTextSearchFlow(keyword, classes, limitNr, offsetNr).execute();
-    context.setMetadata("timestamp.entered", timestampEntered);
-    context.setMetadata("timestamp.exited", Instant.now());
+    context.setMetadata("timestamp.entered", payloadMapper.valueToTree(timestampEntered));
+    context.setMetadata("timestamp.exited", payloadMapper.valueToTree(Instant.now()));
     return context;
   }
 

@@ -1,8 +1,10 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.acquisition;
 
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.List;
+import org.apache.commons.rdf.api.BlankNodeOrIRI;
 
 /**
  * This class is a POJO for the parameters expected by full-text-search operator.
@@ -14,7 +16,7 @@ import java.util.List;
 public final class FullTextSearchPayload implements Serializable {
 
   private String keyword;
-  private List<String> classes;
+  private List<Resource> classes;
   private Integer offset;
   private Integer limit;
 
@@ -27,11 +29,11 @@ public final class FullTextSearchPayload implements Serializable {
     this.keyword = keyword;
   }
 
-  public List<String> getClasses() {
+  public List<Resource> getClasses() {
     return classes;
   }
 
-  public void setClasses(List<String> classes) {
+  public void setClasses(List<Resource> classes) {
     this.classes = classes;
   }
 

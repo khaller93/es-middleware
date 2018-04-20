@@ -40,23 +40,9 @@ public class FullTextSearch implements AcquisitionSource<FullTextSearchPayload> 
     return FullTextSearchPayload.class;
   }
 
-/*  @Override
-  public ExplorationContext apply(JsonNode parameterMap) {
-    try {
-      FullTextSearchPayload ftsParameterPayload = parameterMapper
-          .treeToValue(parameterMap, getParameterClass());
-      return new ResourceList(fullTextSearchDAO.searchFullText(ftsParameterPayload.getKeyword()));
-    } catch (JsonProcessingException e) {
-      throw new ExplorationFlowSpecificationException(
-          String.format("Parameter payload given for the full-text search is invalid. %s",
-              e.getMessage()), e);
-    }
-  }
-*/
-
   @Override
   public ExplorationContext apply(FullTextSearchPayload payload) {
     //TODO: more sophisticated.
-    return new ResourceList(fullTextSearchDAO.searchFullText(payload.getKeyword()));
+    return ResourceList.of(fullTextSearchDAO.searchFullText(payload.getKeyword()));
   }
 }

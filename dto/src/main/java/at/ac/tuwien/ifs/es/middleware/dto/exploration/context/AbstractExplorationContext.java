@@ -2,6 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.dto.exploration.context;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.Serializable;
@@ -16,7 +17,7 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
   @JsonProperty
   private Map<String, ObjectNode> values = new HashMap<>();
   @JsonProperty
-  private Map<String, Serializable> metadata = new HashMap<>();
+  private Map<String, JsonNode> metadata = new HashMap<>();
 
   @Override
   public void putValuesData(String id, List<String> path, JsonNode data) {
@@ -83,14 +84,21 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
   }
 
   @Override
-  public void setMetadata(String name, Serializable data) {
+  public void setMetadata(String name, JsonNode data) {
     metadata.put(name, data);
   }
 
+  @Override
+  public Optional<JsonNode> getMetadata(String name) {
+    JsonNode jsonNode = metadata.get(name);
+    if (jsonNode != null) {
+      return Optional.of(jsonNode);
+    }
+    return Optional.empty();
+  }
 
   @Override
   public void removeMetadata(String name) {
     metadata.remove(name);
   }
-
 }

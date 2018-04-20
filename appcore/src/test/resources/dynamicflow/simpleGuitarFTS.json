@@ -1,0 +1,14 @@
+{
+  "steps": [
+    {
+      "name": "esm.source.fts",
+      "param": {
+        "keyword": "guitar"
+      }
+    },
+    {
+      "name": "esm.exploit.describe",
+      "param": {}
+    }
+  ]
+}

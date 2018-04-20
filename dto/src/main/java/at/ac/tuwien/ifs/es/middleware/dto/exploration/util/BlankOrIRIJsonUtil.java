@@ -69,6 +69,23 @@ public class BlankOrIRIJsonUtil {
     }
   }
 
+  /**
+   * This method takes a look at the given {@link Resource} and returns a valid string of this value
+   * for a subject, predicate or object in a SPARQL query.
+   *
+   * @param resource which shall be transformed in a valid string for a SPARQL query.
+   * @return a valid string representation of the given {@link BlankNodeOrIRI} for a SPARQL query
+   * (subject, predicate, or object).
+   */
+  public static String stringForSPARQLResourceOf(Resource resource) {
+    BlankNodeOrIRI value = resource.value();
+    if (value instanceof IRI) {
+      return "<" + ((IRI) value).getIRIString() + ">";
+    } else {
+      return "<_:" + ((BlankNode) value).uniqueReference() + ">";
+    }
+  }
+
   public static String stringValue(BlankNodeOrIRI resource) {
     if (resource instanceof IRI) {
       return ((IRI) resource).getIRIString();

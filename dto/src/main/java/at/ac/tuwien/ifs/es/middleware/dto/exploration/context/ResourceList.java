@@ -1,12 +1,9 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.context;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.ResourceJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -15,7 +12,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 
 /**
@@ -28,14 +24,14 @@ import org.apache.commons.rdf.api.BlankNodeOrIRI;
 public class ResourceList extends AbstractExplorationContext<Resource> implements
     IterableResourcesContext {
 
-  @JsonProperty
-  private Set<Resource> list;
+  @JsonProperty("list")
+  private Set<Resource> set;
 
   /**
    * Creates a new empty list of resources.
    */
   public ResourceList() {
-    this.list = new HashSet<>();
+    this.set = new HashSet<>();
   }
 
   /**
@@ -44,8 +40,16 @@ public class ResourceList extends AbstractExplorationContext<Resource> implement
    * @param resourceList that shall be wrapped.
    */
   @JsonCreator
-  public ResourceList(@JsonProperty("list") List<BlankNodeOrIRI> resourceList) {
-    this.list = resourceList.stream().map(Resource::new).collect(Collectors.toSet());
+  public ResourceList(@JsonProperty("list") List<Resource> resourceList) {
+    this.set = new HashSet<>(resourceList);
+  }
+
+  private ResourceList(Set<Resource> resourceSet) {
+    this.set = resourceSet;
+  }
+
+  public static ResourceList of(List<BlankNodeOrIRI> resourceList) {
+    return new ResourceList(resourceList.stream().map(Resource::new).collect(Collectors.toSet()));
   }
 
   /**
@@ -55,44 +59,44 @@ public class ResourceList extends AbstractExplorationContext<Resource> implement
    * @param selectQueryResult that shall be wrapped.
    * @param bindingName the name of the binding that represent the resource to consider.
    */
-  public ResourceList(SelectQueryResult selectQueryResult, String bindingName) {
-    this.list = selectQueryResult.value().column(bindingName).values().stream()
-        .map(r -> new Resource((BlankNodeOrIRI) r)).collect(Collectors.toSet());
+  public static ResourceList of(SelectQueryResult selectQueryResult, String bindingName) {
+    return new ResourceList(selectQueryResult.value().column(bindingName).values().stream()
+        .map(r -> new Resource((BlankNodeOrIRI) r)).collect(Collectors.toSet()));
   }
 
   @Override
   public Iterator<Resource> iterator() {
-    return this.list.iterator();
+    return this.set.iterator();
   }
 
   @Override
   public Collection<Resource> getResultsCollection() {
-    return new ArrayList<>(list);
+    return new ArrayList<>(set);
   }
 
   @Override
   public void setResults(Collection<Resource> results) {
-    this.list = new HashSet<>(results);
+    this.set = new HashSet<>(results);
   }
 
   @Override
   public void removeResult(Resource result) {
-    this.list.remove(result);
+    this.set.remove(result);
     this.removeValuesData(result.getId());
   }
 
   @Override
-  public List<BlankNodeOrIRI> asResourceList() {
-    return this.list.stream().map(Resource::value).collect(Collectors.toList());
+  public List<Resource> asResourceList() {
+    return new LinkedList<>(this.set);
   }
 
   @Override
-  public Set<BlankNodeOrIRI> asResourceSet() {
-    return this.list.stream().map(Resource::value).collect(Collectors.toSet());
+  public Set<Resource> asResourceSet() {
+    return new HashSet<>(this.set);
   }
 
   @Override
-  public Iterator<BlankNodeOrIRI> getResourceIterator() {
-    return this.list.stream().map(Resource::value).iterator();
+  public Iterator<Resource> getResourceIterator() {
+    return this.set.stream().iterator();
   }
 }

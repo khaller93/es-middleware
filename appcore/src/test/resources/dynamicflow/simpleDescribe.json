@@ -1,0 +1,16 @@
+{
+  "steps": [
+    {
+      "name": "esm.source.all",
+      "param": {
+        "include": [
+          "http://purl.org/ontology/mo/Instrument"
+        ]
+      }
+    },
+    {
+      "name": "esm.exploit.describe",
+      "param": {}
+    }
+  ]
+}

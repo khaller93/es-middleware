@@ -1,6 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.acquisition;
 
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -17,33 +19,28 @@ import org.apache.commons.rdf.api.BlankNodeOrIRI;
  */
 public final class AllResourcesPayload implements Serializable {
 
-  @JsonSerialize(contentUsing = BlankOrIRIJsonUtil.Serializer.class)
-  @JsonDeserialize(contentUsing = BlankOrIRIJsonUtil.Deserializer.class)
-  private List<BlankNodeOrIRI> include;
-  @JsonSerialize(contentUsing = BlankOrIRIJsonUtil.Serializer.class)
-  @JsonDeserialize(contentUsing = BlankOrIRIJsonUtil.Deserializer.class)
-  private List<BlankNodeOrIRI> exclude;
-  @JsonSerialize(contentUsing = BlankOrIRIJsonUtil.Serializer.class)
-  @JsonDeserialize(contentUsing = BlankOrIRIJsonUtil.Deserializer.class)
-  private List<BlankNodeOrIRI> namespaces;
+  private List<Resource> include;
+  private List<Resource> exclude;
+  private List<Resource> namespaces;
 
-  public AllResourcesPayload(@JsonProperty("include") List<BlankNodeOrIRI> include,
-      @JsonProperty("exclude") List<BlankNodeOrIRI> exclude,
-      @JsonProperty("namespaces") List<BlankNodeOrIRI> namespaces) {
+  @JsonCreator
+  public AllResourcesPayload(@JsonProperty("include") List<Resource> include,
+      @JsonProperty("exclude") List<Resource> exclude,
+      @JsonProperty("namespaces") List<Resource> namespaces) {
     this.include = include;
     this.exclude = exclude;
     this.namespaces = namespaces;
   }
 
-  public List<BlankNodeOrIRI> getIncludedClasses() {
+  public List<Resource> getIncludedClasses() {
     return include;
   }
 
-  public List<BlankNodeOrIRI> getExcludedClasses() {
+  public List<Resource> getExcludedClasses() {
     return exclude;
   }
 
-  public List<BlankNodeOrIRI> getNamespaces() {
+  public List<Resource> getNamespaces() {
     return namespaces;
   }
 

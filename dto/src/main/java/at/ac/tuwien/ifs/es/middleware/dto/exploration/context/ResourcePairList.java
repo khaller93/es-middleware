@@ -33,13 +33,18 @@ public class ResourcePairList implements ExplorationContext<ResourcePair> {
   }
 
   @Override
-  public void setMetadata(String name, Serializable data) {
+  public void setMetadata(String name, JsonNode data) {
 
   }
 
   @Override
   public void removeMetadata(String name) {
 
+  }
+
+  @Override
+  public Optional<JsonNode> getMetadata(String name) {
+    return null;
   }
 
   @Override

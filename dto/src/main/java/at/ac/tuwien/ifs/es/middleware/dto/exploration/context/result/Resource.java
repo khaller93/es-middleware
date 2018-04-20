@@ -25,8 +25,8 @@ public final class Resource implements IdentifiableResult {
     this.resource = resource;
   }
 
-  public Resource(String resourceIRI) {
-    this.resource = BlankOrIRIJsonUtil.valueOf(resourceIRI);
+  public Resource(String resourceString) {
+    this.resource = BlankOrIRIJsonUtil.valueOf(resourceString);
   }
 
   @Override

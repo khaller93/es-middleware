@@ -1,5 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.factory;
 
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowServiceException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.FullTextSearch;
@@ -8,6 +10,8 @@ import at.ac.tuwien.ifs.es.middleware.service.exploration.exploitation.ResourceD
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.exploitation.DescriberPayload;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.stream.Collectors;
+import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -66,7 +70,9 @@ public class CommonExplorationFlowFactory {
       FullTextSearchPayload ftsParameterPayload = fullTextSearch
           .getParameterClass().newInstance();
       ftsParameterPayload.setKeyword(keyword);
-      ftsParameterPayload.setClasses(clazzes);
+      ftsParameterPayload.setClasses(
+          clazzes != null ? clazzes.stream().map(c -> new Resource(BlankOrIRIJsonUtil.valueOf(c)))
+              .collect(Collectors.toList()) : null);
       ftsParameterPayload.setLimit(limit);
       ftsParameterPayload.setOffset(offset);
       flow.appendFlowStep(fullTextSearch, ftsParameterPayload);

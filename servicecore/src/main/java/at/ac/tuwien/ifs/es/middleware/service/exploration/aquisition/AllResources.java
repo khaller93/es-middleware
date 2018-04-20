@@ -2,6 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.acquisition.AllResourcesPayload;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
@@ -76,7 +77,7 @@ public class AllResources implements AcquisitionSource<AllResourcesPayload> {
   /**
    * Fills the filter templates for the "all" query.
    */
-  private String prepareFilterBlock(String[] filterTemplate, List<BlankNodeOrIRI> includedClasses) {
+  private String prepareFilterBlock(String[] filterTemplate, List<Resource> includedClasses) {
     if (includedClasses == null || includedClasses.isEmpty()) {
       return "";
     } else if (includedClasses.size() == 1) {
@@ -93,7 +94,7 @@ public class AllResources implements AcquisitionSource<AllResourcesPayload> {
   public ExplorationContext apply(AllResourcesPayload payload) {
     String allQueryTemplate = ALL_QUERY;
     Map<String, String> valuesMap = new HashMap<>();
-    List<BlankNodeOrIRI> namespaces = payload.getNamespaces();
+    List<Resource> namespaces = payload.getNamespaces();
     if (namespaces != null && !namespaces.isEmpty()) {
       allQueryTemplate = ALL_GRAPH_QUERY;
       valuesMap.put("namespace",
@@ -107,6 +108,6 @@ public class AllResources implements AcquisitionSource<AllResourcesPayload> {
     String query = new StrSubstitutor(valuesMap).replace(allQueryTemplate);
     logger.debug("Executing the query '{}' for all resources operator.", query);
     SelectQueryResult result = (SelectQueryResult) sparqlService.query(query, true);
-    return new ResourceList(result, "s");
+    return ResourceList.of(result, "s");
   }
 }
