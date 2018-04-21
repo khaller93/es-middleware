@@ -90,12 +90,11 @@ public class DynamicExplorationFlowFactoryTest {
     assertNull(ftsPayload.getOffset());
     // Check second describer step
     Pair<ExplorationFlowStep, Serializable> describerPair = explorationFlow.asList().get(1);
-    System.out.println(flowStepList);
     assertThat(describerPair.getValue0(), instanceOf(ResourceDescriber.class));
     assertThat(describerPair.getValue1(), instanceOf(DescriberPayload.class));
     DescriberPayload describerPayload = (DescriberPayload) describerPair.getValue1();
-    assertThat(describerPayload.getProperties().values().stream()
-            .map(r -> ((IRI) r.getProperty().value()).getIRIString())
+    assertThat(describerPayload.getContent().values().stream()
+            .map(r -> ((IRI) r.getProperties().get(0).value()).getIRIString())
             .collect(Collectors.toList()),
         hasItems("http://www.w3.org/2000/01/rdf-schema#label",
             "http://www.w3.org/2000/01/rdf-schema#comment"));

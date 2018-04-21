@@ -6,13 +6,16 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
+import org.apache.commons.rdf.api.RDFTerm;
 
 /**
  * This is an implementation of {@link ExplorationContext} that contains a list of resources.
@@ -25,13 +28,13 @@ public class ResourceList extends AbstractExplorationContext<Resource> implement
     IterableResourcesContext {
 
   @JsonProperty("list")
-  private Set<Resource> set;
+  private List<Resource> List;
 
   /**
    * Creates a new empty list of resources.
    */
   public ResourceList() {
-    this.set = new HashSet<>();
+    this(Collections.emptyList());
   }
 
   /**
@@ -41,15 +44,11 @@ public class ResourceList extends AbstractExplorationContext<Resource> implement
    */
   @JsonCreator
   public ResourceList(@JsonProperty("list") List<Resource> resourceList) {
-    this.set = new HashSet<>(resourceList);
-  }
-
-  private ResourceList(Set<Resource> resourceSet) {
-    this.set = resourceSet;
+    this.List = new LinkedList<>(resourceList);
   }
 
   public static ResourceList of(List<BlankNodeOrIRI> resourceList) {
-    return new ResourceList(resourceList.stream().map(Resource::new).collect(Collectors.toSet()));
+    return new ResourceList(resourceList.stream().map(Resource::new).collect(Collectors.toList()));
   }
 
   /**
@@ -60,43 +59,48 @@ public class ResourceList extends AbstractExplorationContext<Resource> implement
    * @param bindingName the name of the binding that represent the resource to consider.
    */
   public static ResourceList of(SelectQueryResult selectQueryResult, String bindingName) {
-    return new ResourceList(selectQueryResult.value().column(bindingName).values().stream()
-        .map(r -> new Resource((BlankNodeOrIRI) r)).collect(Collectors.toSet()));
+    List<Resource> list = new LinkedList<>();
+    for (Map<String, RDFTerm> row : selectQueryResult.value()) {
+      if (row.containsKey(bindingName)) {
+        list.add(new Resource((BlankNodeOrIRI) row.get(bindingName)));
+      }
+    }
+    return new ResourceList(list);
   }
 
   @Override
   public Iterator<Resource> iterator() {
-    return this.set.iterator();
+    return this.List.iterator();
   }
 
   @Override
   public Collection<Resource> getResultsCollection() {
-    return new ArrayList<>(set);
+    return new ArrayList<>(List);
   }
 
   @Override
   public void setResults(Collection<Resource> results) {
-    this.set = new HashSet<>(results);
+    this.List = new LinkedList<>(results);
   }
 
   @Override
   public void removeResult(Resource result) {
-    this.set.remove(result);
+    this.List.remove(result);
     this.removeValuesData(result.getId());
   }
 
   @Override
   public List<Resource> asResourceList() {
-    return new LinkedList<>(this.set);
+    return new LinkedList<>(this.List);
   }
 
   @Override
   public Set<Resource> asResourceSet() {
-    return new HashSet<>(this.set);
+    return new HashSet<>(this.List);
   }
 
   @Override
   public Iterator<Resource> getResourceIterator() {
-    return this.set.stream().iterator();
+    return this.List.stream().iterator();
   }
 }

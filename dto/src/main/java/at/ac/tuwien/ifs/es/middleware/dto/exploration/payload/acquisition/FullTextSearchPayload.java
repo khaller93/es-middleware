@@ -15,6 +15,7 @@ import org.apache.commons.rdf.api.BlankNodeOrIRI;
  */
 public final class FullTextSearchPayload implements Serializable {
 
+  @JsonProperty(value = "keyword",required = true)
   private String keyword;
   private List<Resource> classes;
   private Integer offset;
@@ -24,7 +25,6 @@ public final class FullTextSearchPayload implements Serializable {
     return keyword;
   }
 
-  @JsonProperty(value = "keyword",required = true)
   public void setKeyword(String keyword) {
     this.keyword = keyword;
   }

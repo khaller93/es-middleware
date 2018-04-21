@@ -1,6 +1,9 @@
 package at.ac.tuwien.ifs.es.middleware.dto.sparql;
 
 import com.google.common.collect.Table;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.rdf.api.RDFTerm;
 
 /**
@@ -19,6 +22,6 @@ public interface SelectQueryResult extends QueryResult {
    *
    * @return {@link Table} that represents the result of a SELECT query.
    */
-  Table<Integer, String, RDFTerm> value();
+  List<Map<String, RDFTerm>> value();
 
 }

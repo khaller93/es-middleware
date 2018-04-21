@@ -25,6 +25,7 @@ import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import com.google.common.collect.Table;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.Graph;
 import org.apache.commons.rdf.api.IRI;
@@ -63,9 +64,9 @@ public class SimpleSPARQLServiceTest {
         .query("SELECT (COUNT(DISTINCT ?s) as ?cnt) WHERE { ?s ?p ?o }", false);
     assertThat("The result must be of a 'select' query.", result,
         instanceOf(SelectQueryResult.class));
-    Table<Integer, String, RDFTerm> resultTable = ((SelectQueryResult) result).value();
+    List<Map<String, RDFTerm>> resultTable = ((SelectQueryResult) result).value();
     assertThat("The result table must have only one entry.", resultTable.size(), is(1));
-    RDFTerm countTerm = resultTable.get(0, "cnt");
+    RDFTerm countTerm = resultTable.get(0).get("cnt");
     assertNotNull(countTerm);
     assertThat("The given count value must be a literal.", countTerm, instanceOf(Literal.class));
     Literal countLiteral = (Literal) countTerm;
@@ -78,9 +79,10 @@ public class SimpleSPARQLServiceTest {
         .query("SELECT DISTINCT ?s WHERE { ?s a <http://purl.org/ontology/mo/Instrument> }", false);
     assertThat("The result must be of a 'select' query.", result,
         instanceOf(SelectQueryResult.class));
-    Table<Integer, String, RDFTerm> resultTable = ((SelectQueryResult) result).value();
-    assertTrue("The table must contain a column.", resultTable.containsColumn("s"));
-    List<RDFTerm> resources = new LinkedList<>(resultTable.column("s").values());
+    List<Map<String, RDFTerm>> resultTable = ((SelectQueryResult) result).value();
+    assertTrue("The table must contain a column.", resultTable.get(0).containsKey("s"));
+    List<RDFTerm> resources = resultTable.stream().map(r -> r.get("s"))
+        .collect(Collectors.toList());
     assertThat("The number of returned distinct resources must be 877.", resources, hasSize(877));
     List<String> resourceIRIs = resources.stream().filter(s -> s instanceof IRI)
         .map(s -> ((IRI) s).getIRIString()).collect(Collectors.toList());

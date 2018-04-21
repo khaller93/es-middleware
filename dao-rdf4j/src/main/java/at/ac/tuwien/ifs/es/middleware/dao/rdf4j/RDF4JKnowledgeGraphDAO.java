@@ -53,6 +53,8 @@ public abstract class RDF4JKnowledgeGraphDAO implements KnowledgeGraphDAO {
   @Override
   public QueryResult query(String queryString, boolean includeInferred)
       throws KnowledgeGraphSPARQLException {
+    logger
+        .debug("Query {} was requested to be executed. Inference={}", queryString, includeInferred);
     try (RepositoryConnection con = repository.getConnection()) {
       Query query = con.prepareQuery(QueryLanguage.SPARQL, queryString);
       query.setIncludeInferred(includeInferred);

@@ -9,9 +9,9 @@ import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecifica
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.acquisition.MultipleResourcesPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.sparql.SPARQLService;
-import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
-import org.apache.commons.rdf.api.BlankNodeOrIRI;
+import java.util.Map;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +69,12 @@ public class MultipleResources implements AcquisitionSource<MultipleResourcesPay
           .query(String.format(SELECT_NOT_EXIST_QUERY,
               resources.stream().map(BlankOrIRIJsonUtil::stringForSPARQLResourceOf)
                   .reduce("", (a, b) -> a + "\n" + b)), true);
-      Collection<RDFTerm> notExistingResources = notExistResult.value().column("s").values();
+      List<RDFTerm> notExistingResources = new LinkedList<>();
+      for (Map<String, RDFTerm> row : notExistResult.value()) {
+        if (row.containsKey("s")) {
+          notExistingResources.add(row.get("s"));
+        }
+      }
       if (notExistingResources.isEmpty()) {
         return new ResourceList(resources);
       } else {

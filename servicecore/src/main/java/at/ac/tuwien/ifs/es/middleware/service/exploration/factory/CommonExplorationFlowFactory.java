@@ -11,7 +11,6 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.exploitation.Descr
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -76,7 +75,7 @@ public class CommonExplorationFlowFactory {
       ftsParameterPayload.setLimit(limit);
       ftsParameterPayload.setOffset(offset);
       flow.appendFlowStep(fullTextSearch, ftsParameterPayload);
-      flow.appendFlowStep(resourceDescriber, new DescriberPayload(null, null));
+      flow.appendFlowStep(resourceDescriber, new DescriberPayload(null));
       return flow;
     } catch (IllegalAccessException | InstantiationException e) {
       throw new ExplorationFlowServiceException(

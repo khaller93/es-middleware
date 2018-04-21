@@ -139,16 +139,14 @@ public class DynamicExploratoryFlowTest {
     ResourceList resources = parameterMapper
         .readValue(descriptionResponse.getBody(), ResourceList.class);
     assertThat(resources
-        .get("http://dbpedia.org/resource/Santur", Arrays.asList("describe", "label", "value"))
-        .get()
-        .asText(), is("Santur"));
+        .get("http://dbpedia.org/resource/Santur", Arrays.asList("describe", "label", "values", "en"))
+        .get().get(0).asText(), is("Santur"));
     assertThat(resources
-        .get("http://dbpedia.org/resource/Santur", Arrays.asList("describe", "label", "value"))
-        .get()
-        .asText(), is("Santur"));
+        .get("http://dbpedia.org/resource/Santur", Arrays.asList("describe", "label", "values", "en"))
+        .get().get(0).asText(), is("Santur"));
     assertThat(resources
             .get("http://dbpedia.org/resource/Tembor",
-                Arrays.asList("describe", "description", "value")).get()
+                Arrays.asList("describe", "description", "values", "en")).get().get(0)
             .asText(),
         is("The Tembor is a stringed musical instrument from the Uyghur region, Western China. It has 5 strings in 3 courses and is tuned A A, D, G G. The strings are made of Steel."));
     assertFalse("The 'Tambura' resource has no description.",
