@@ -24,7 +24,7 @@ public class KnowledgeGraphConfig {
 
   private static final Logger logger = LoggerFactory.getLogger(KnowledgeGraphDAO.class);
 
-  @Value("${esm.knowledgegraph.choice}")
+  @Value("${esm.db.choice}")
   private String choice;
 
   @Bean

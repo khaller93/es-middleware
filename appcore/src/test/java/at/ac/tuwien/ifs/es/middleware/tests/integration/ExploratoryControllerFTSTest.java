@@ -30,7 +30,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ExploratorySearchApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-    "esm.knowledgegraph.choice=IndexedMemoryDB",
+    "esm.db.choice=IndexedMemoryDB",
     "esm.fts.choice=IndexedMemoryDB"})
 public class ExploratoryControllerFTSTest {
 
@@ -43,7 +43,6 @@ public class ExploratoryControllerFTSTest {
   @Autowired
   public MusicPintaInstrumentsResource musicPintaResource;
 
-  private static Map<String, String> jsonTestMap = new HashMap<>();
 
   @BeforeClass
   public static void setUp() throws Exception {

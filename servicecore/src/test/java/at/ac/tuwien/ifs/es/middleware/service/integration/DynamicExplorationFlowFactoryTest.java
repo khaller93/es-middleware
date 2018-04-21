@@ -44,7 +44,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     DynamicExplorationFlowFactory.class, ExplorationFlowRegistry.class, FullTextSearch.class,
     ResourceDescriber.class, ObjectMapper.class})
 @TestPropertySource(properties = {
-    "esm.knowledgegraph.choice=IndexedMemoryDB",
+    "esm.db.choice=IndexedMemoryDB",
     "esm.fts.choice=IndexedMemoryDB",
 })
 public class DynamicExplorationFlowFactoryTest {

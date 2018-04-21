@@ -39,7 +39,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ExploratorySearchApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-    "esm.knowledgegraph.choice=IndexedMemoryDB",
+    "esm.db.choice=IndexedMemoryDB",
     "esm.fts.choice=IndexedMemoryDB"})
 public class DynamicExploratoryFlowTest {
 
