@@ -7,6 +7,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
@@ -110,7 +111,7 @@ public class GraphDbLucene implements FullTextSearchDAO {
     } else {
       return String.format(FTS_CLASSES_FILTER[1],
           classes.stream().map(BlankOrIRIJsonUtil::stringForSPARQLResourceOf)
-              .reduce("", (a, b) -> a + " " + b));
+              .collect(Collectors.joining(",")));
     }
   }
 

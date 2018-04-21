@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.eclipse.rdf4j.common.lang.FileFormat;
 
 /**
@@ -76,7 +77,7 @@ public abstract class RDF4JQueryResult<T extends FileFormat> implements QueryRes
    */
   public static String transformResultFormatsToReadableString(List<? extends FileFormat> formats) {
     return String.format("[%s]", formats.stream().map(f -> String.join(",", f.getMIMETypes()))
-        .reduce((a, b) -> a + "," + b).orElse(""));
+        .collect(Collectors.joining(",")));
   }
 
 }

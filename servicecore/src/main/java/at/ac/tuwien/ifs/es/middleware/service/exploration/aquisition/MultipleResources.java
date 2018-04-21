@@ -12,6 +12,7 @@ import at.ac.tuwien.ifs.es.middleware.service.sparql.SPARQLService;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +69,7 @@ public class MultipleResources implements AcquisitionSource<MultipleResourcesPay
       SelectQueryResult notExistResult = (SelectQueryResult) sparqlService
           .query(String.format(SELECT_NOT_EXIST_QUERY,
               resources.stream().map(BlankOrIRIJsonUtil::stringForSPARQLResourceOf)
-                  .reduce("", (a, b) -> a + "\n" + b)), true);
+                  .collect(Collectors.joining("\n"))), true);
       List<RDFTerm> notExistingResources = new LinkedList<>();
       for (Map<String, RDFTerm> row : notExistResult.value()) {
         if (row.containsKey("s")) {

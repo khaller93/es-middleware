@@ -47,7 +47,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     "esm.db.choice=IndexedMemoryDB",
     "esm.fts.choice=IndexedMemoryDB",
 })
-public class DynamicExplorationFlowFactoryTest {
+public class DynamicExplorationFlowFactoryMusicPintaTest {
 
   @Autowired
   private ObjectMapper objectMapper;

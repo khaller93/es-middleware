@@ -6,6 +6,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.logging.log4j.core.lookup.StrSubstitutor;
@@ -85,7 +86,7 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
     } else {
       return String.format(FTS_CLASSES_FILTER[1],
           classes.stream().map(BlankOrIRIJsonUtil::stringForSPARQLResourceOf)
-              .reduce("", (a, b) -> a + " " + b));
+              .collect(Collectors.joining(", ")));
     }
   }
 

@@ -1,0 +1,19 @@
+{
+  "steps": [
+    {
+      "name": "esm.source.fts",
+      "param": {
+        "keyword": "guitar"
+      }
+    },
+    {
+      "name": "esm.exploit.describe",
+      "param": {
+        "content": {
+          "label": {"@type": "text", "properties": ["http://www.w3.org/2000/01/rdf-schema#label"]},
+          "thumb": {"@type": "iri", "properties": ["http://dbpedia.org/ontology/thumbnail"]}
+        }
+      }
+    }
+  ]
+}

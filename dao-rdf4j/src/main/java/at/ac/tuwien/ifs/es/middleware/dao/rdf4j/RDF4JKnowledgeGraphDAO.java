@@ -55,6 +55,7 @@ public abstract class RDF4JKnowledgeGraphDAO implements KnowledgeGraphDAO {
       throws KnowledgeGraphSPARQLException {
     logger
         .debug("Query {} was requested to be executed. Inference={}", queryString, includeInferred);
+    System.out.println(">>>" + queryString);
     try (RepositoryConnection con = repository.getConnection()) {
       Query query = con.prepareQuery(QueryLanguage.SPARQL, queryString);
       query.setIncludeInferred(includeInferred);

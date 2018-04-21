@@ -11,6 +11,7 @@ import at.ac.tuwien.ifs.es.middleware.service.sparql.SPARQLService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.logging.log4j.core.lookup.StrSubstitutor;
 import org.slf4j.Logger;
@@ -86,7 +87,7 @@ public class AllResources implements AcquisitionSource<AllResourcesPayload> {
     } else {
       return String.format(filterTemplate[1],
           includedClasses.stream().map(BlankOrIRIJsonUtil::stringForSPARQLResourceOf)
-              .reduce((a, b) -> a + "," + b).orElse(""));
+              .collect(Collectors.joining(",")));
     }
   }
 
