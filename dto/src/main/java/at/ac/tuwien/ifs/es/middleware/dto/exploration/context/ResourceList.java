@@ -4,7 +4,8 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -13,7 +14,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 
@@ -28,7 +35,7 @@ public class ResourceList extends AbstractExplorationContext<Resource> implement
     IterableResourcesContext {
 
   @JsonProperty("list")
-  private List<Resource> List;
+  private List<Resource> list;
 
   /**
    * Creates a new empty list of resources.
@@ -44,7 +51,13 @@ public class ResourceList extends AbstractExplorationContext<Resource> implement
    */
   @JsonCreator
   public ResourceList(@JsonProperty("list") List<Resource> resourceList) {
-    this.List = new LinkedList<>(resourceList);
+    this.list = new LinkedList<>(resourceList);
+  }
+
+  private ResourceList(java.util.List<Resource> list, Map<String, ObjectNode> values,
+      Map<String, JsonNode> metadata) {
+    super(values, metadata);
+    this.list = list;
   }
 
   public static ResourceList of(List<BlankNodeOrIRI> resourceList) {
@@ -69,38 +82,84 @@ public class ResourceList extends AbstractExplorationContext<Resource> implement
   }
 
   @Override
+  @Nonnull
   public Iterator<Resource> iterator() {
-    return this.List.iterator();
+    return getResourceIterator();
   }
 
   @Override
-  public Collection<Resource> getResultsCollection() {
-    return new ArrayList<>(List);
-  }
-
-  @Override
-  public void setResults(Collection<Resource> results) {
-    this.List = new LinkedList<>(results);
-  }
-
-  @Override
-  public void removeResult(Resource result) {
-    this.List.remove(result);
-    this.removeValuesData(result.getId());
+  public Stream<Resource> streamOfResults() {
+    return this.list.stream();
   }
 
   @Override
   public List<Resource> asResourceList() {
-    return new LinkedList<>(this.List);
+    return new LinkedList<>(this.list);
   }
 
   @Override
   public Set<Resource> asResourceSet() {
-    return new HashSet<>(this.List);
+    return new HashSet<>(this.list);
   }
 
   @Override
   public Iterator<Resource> getResourceIterator() {
-    return this.List.stream().iterator();
+    return this.list.stream().iterator();
   }
+
+  @Override
+  public Supplier<ExplorationContextContainer<Resource>> supplier() {
+    return () -> ResultListContainer.of(this);
+  }
+
+  @Override
+  public BiConsumer<ExplorationContextContainer<Resource>, Resource> accumulator() {
+    return ExplorationContextContainer::addResult;
+  }
+
+  @Override
+  public BinaryOperator<ExplorationContextContainer<Resource>> combiner() {
+    return null;
+  }
+
+  @Override
+  public Function<ExplorationContextContainer<Resource>, ExplorationContext<Resource>> finisher() {
+    return container -> new ResourceList((List<Resource>) container.getResultCollection(),
+        container.getValuesMap(), container.getMetadata());
+  }
+
+  @Override
+  public Set<Characteristics> characteristics() {
+    return Collections.unmodifiableSet(new HashSet<>());
+  }
+
+  /**
+   * This is an implementation of {@link ExplorationContextContainer} for {@link ResourceList}.
+   */
+  private static final class ResultListContainer extends ExplorationContextContainer<Resource> {
+
+    private ResultListContainer(
+        Map<String, ObjectNode> originalValuesMap,
+        Map<String, JsonNode> metadata,
+        Collection<Resource> resultCollection) {
+      super(originalValuesMap, metadata, resultCollection);
+    }
+
+    public static ResultListContainer of(ResourceList resultList) {
+      return new ResultListContainer(resultList.getAllValues(),
+          resultList.getMetadata(), new LinkedList<>());
+    }
+
+    @Override
+    protected Map<String, ObjectNode> getValuesOf(Resource result,
+        Map<String, ObjectNode> originalValuesMap) {
+      ObjectNode valueNode = originalValuesMap.get(result.getId());
+      if (valueNode != null) {
+        return Collections.singletonMap(result.getId(), valueNode);
+      } else {
+        return Collections.emptyMap();
+      }
+    }
+  }
+
 }

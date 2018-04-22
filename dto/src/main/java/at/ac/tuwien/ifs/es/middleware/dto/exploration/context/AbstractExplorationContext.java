@@ -2,22 +2,50 @@ package at.ac.tuwien.ifs.es.middleware.dto.exploration.context;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public abstract class AbstractExplorationContext<T extends IdentifiableResult> implements
     ExplorationContext<T> {
 
   @JsonProperty
-  private Map<String, ObjectNode> values = new HashMap<>();
+  private Map<String, ObjectNode> values;
   @JsonProperty
-  private Map<String, JsonNode> metadata = new HashMap<>();
+  private Map<String, JsonNode> metadata;
+
+  public AbstractExplorationContext() {
+    this.values = new HashMap<>();
+    this.metadata = new HashMap<>();
+  }
+
+  public AbstractExplorationContext(Map<String, ObjectNode> values,
+      Map<String, JsonNode> metadata) {
+    this.values = values;
+    this.metadata = metadata;
+  }
+
+  @Override
+  public Map<String, ObjectNode> getAllValues() {
+    Map<String, ObjectNode> copiedValues = new HashMap<>();
+    for (String id : values.keySet()) {
+      copiedValues.put(id, values.get(id).deepCopy());
+    }
+    return copiedValues;
+  }
+
+  @Override
+  public Map<String, JsonNode> getMetadata() {
+    Map<String, JsonNode> copiedMetadata = new HashMap<>();
+    for(String name : copiedMetadata.keySet()){
+      copiedMetadata.put(name, metadata.get(name).deepCopy());
+    }
+    return copiedMetadata;
+  }
 
   @Override
   public void putValuesData(String id, List<String> path, JsonNode data) {
@@ -59,10 +87,14 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
     values.remove(id);
   }
 
+  @Override
+  public Set<String> getResultIdsWithValues() {
+    return values.keySet();
+  }
 
   @Override
-  public Optional<JsonNode> get(String id, List<String> path) {
-    if (path == null || path.isEmpty()) {
+  public Optional<JsonNode> getValues(String id, List<String> path) {
+    if (path == null) {
       throw new IllegalArgumentException("The path must not be empty.");
     }
     if (values.containsKey(id)) {
@@ -84,12 +116,12 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
   }
 
   @Override
-  public void setMetadata(String name, JsonNode data) {
+  public void setMetadataFor(String name, JsonNode data) {
     metadata.put(name, data);
   }
 
   @Override
-  public Optional<JsonNode> getMetadata(String name) {
+  public Optional<JsonNode> getMetadataFor(String name) {
     JsonNode jsonNode = metadata.get(name);
     if (jsonNode != null) {
       return Optional.of(jsonNode);
@@ -98,7 +130,12 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
   }
 
   @Override
-  public void removeMetadata(String name) {
+  public Set<String> getMetadataEntryNames() {
+    return metadata.keySet();
+  }
+
+  @Override
+  public void removeMetadataFor(String name) {
     metadata.remove(name);
   }
 }

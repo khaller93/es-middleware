@@ -30,8 +30,8 @@ public class Limit implements AggregationOperator<LimitPayload> {
   @SuppressWarnings("unchecked")
   @Override
   public ExplorationContext apply(ExplorationContext context, LimitPayload payload) {
-    int limit = payload.getNumber();
-    Iterator<IdentifiableResult> iterator = context.getResultsCollection().iterator();
+    /*int limit = payload.getNumber();
+    Iterator<IdentifiableResult> iterator = context.streamOfResults().iterator();
     while (iterator.hasNext()) {
       IdentifiableResult next = iterator.next();
       if (limit > 0) {
@@ -39,7 +39,9 @@ public class Limit implements AggregationOperator<LimitPayload> {
       } else {
         context.removeResult(next);
       }
-    }
-    return context;
+    }*/
+    ExplorationContext<IdentifiableResult> identifiableResultsContext = (ExplorationContext<IdentifiableResult>) context;
+    return identifiableResultsContext.streamOfResults().limit(payload.getNumber())
+        .collect(identifiableResultsContext);
   }
 }

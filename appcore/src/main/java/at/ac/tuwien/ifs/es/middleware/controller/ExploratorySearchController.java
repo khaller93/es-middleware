@@ -11,14 +11,11 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import java.time.Instant;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -58,8 +55,8 @@ public class ExploratorySearchController {
       throws ExplorationFlowSpecificationException {
     Instant timestampEntered = Instant.now();
     ExplorationContext context = dynamicExplorationFlowFactory.constructFlow(request).execute();
-    context.setMetadata("timestamp.entered", payloadMapper.valueToTree(timestampEntered));
-    context.setMetadata("timestamp.exited", payloadMapper.valueToTree(Instant.now()));
+    context.setMetadataFor("timestamp.entered", payloadMapper.valueToTree(timestampEntered));
+    context.setMetadataFor("timestamp.exited", payloadMapper.valueToTree(Instant.now()));
     return context;
   }
 
@@ -75,8 +72,8 @@ public class ExploratorySearchController {
     Instant timestampEntered = Instant.now();
     ExplorationContext context = commonExplorationFlowFactory
         .constructFullTextSearchFlow(keyword, languages, classes, limit, offset).execute();
-    context.setMetadata("timestamp.entered", payloadMapper.valueToTree(timestampEntered));
-    context.setMetadata("timestamp.exited", payloadMapper.valueToTree(Instant.now()));
+    context.setMetadataFor("timestamp.entered", payloadMapper.valueToTree(timestampEntered));
+    context.setMetadataFor("timestamp.exited", payloadMapper.valueToTree(Instant.now()));
     return context;
   }
 

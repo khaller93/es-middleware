@@ -1,0 +1,16 @@
+{
+  "steps": [
+    {
+      "name": "esm.source.fts",
+      "param": {
+        "keyword": "guitar"
+      }
+    },
+    {
+      "name": "esm.aggregate.orderby",
+      "param": {
+        "path": ["fts", "score"]
+      }
+    }
+  ]
+}

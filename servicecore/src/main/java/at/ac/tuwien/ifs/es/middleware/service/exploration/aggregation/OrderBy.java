@@ -1,8 +1,18 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IdentifiableResult;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.aggregation.OrderByPayload;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.aggregation.OrderByPayload.ORDER_STRATEGY;
+import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowServiceException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +31,8 @@ import org.springframework.stereotype.Component;
 @RegisterForExplorationFlow("esm.aggregate.orderby")
 public class OrderBy implements AggregationOperator<OrderByPayload> {
 
+  private static final Logger logger = LoggerFactory.getLogger(OrderBy.class);
+
   @Override
   public Class<OrderByPayload> getParameterClass() {
     return OrderByPayload.class;
@@ -28,8 +40,32 @@ public class OrderBy implements AggregationOperator<OrderByPayload> {
 
   @Override
   public ExplorationContext apply(ExplorationContext context, OrderByPayload payload) {
-    //Todo: implement.
-    return null;
+    logger.debug("The context {} is requested to be ordered by {}.", context, payload);
+    ExplorationContext<IdentifiableResult> identifiableResults = (ExplorationContext<IdentifiableResult>) context;
+    final Map<String, Double> valuesMap = new HashMap<>();
+    for (IdentifiableResult identifiableResult : identifiableResults) {
+      String id = identifiableResult.getId();
+      Optional<JsonNode> optionalValueNode = identifiableResults.getValues(id, payload.getPath());
+      if (optionalValueNode.isPresent()) {
+        JsonNode valueNode = optionalValueNode.get();
+        if (valueNode.isValueNode()) {
+          valuesMap.put(id, valueNode.asDouble());
+        } else {
+          throw new ExplorationFlowServiceException(
+              String.format("The path '%s' must refer to a number.", payload.getPath()));
+        }
+      } else {
+        throw new ExplorationFlowServiceException(
+            String.format("There is no value associated with '%s'.", payload.getPath()));
+      }
+    }
+    final int strategy = payload.getStrategy() == ORDER_STRATEGY.ASC ? -1 : 1;
+    return identifiableResults.streamOfResults().sorted(new Comparator<IdentifiableResult>() {
+      @Override
+      public int compare(IdentifiableResult t1, IdentifiableResult t2) {
+        return strategy * Double.compare(valuesMap.get(t1.getId()), valuesMap.get(t2.getId()));
+      }
+    }).collect(identifiableResults);
   }
 
 }

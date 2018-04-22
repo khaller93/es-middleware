@@ -6,17 +6,17 @@ import java.io.Serializable;
 
 public final class LimitPayload implements Serializable {
 
-  private int number;
+  private long number;
 
   @JsonCreator
-  public LimitPayload(@JsonProperty(value = "number", required = true) Integer number) {
+  public LimitPayload(@JsonProperty(value = "number", required = true) Long number) {
     if (number < 0) {
       throw new IllegalArgumentException("The limit number must be positive.");
     }
     this.number = number;
   }
 
-  public Integer getNumber() {
+  public Long getNumber() {
     return number;
   }
 

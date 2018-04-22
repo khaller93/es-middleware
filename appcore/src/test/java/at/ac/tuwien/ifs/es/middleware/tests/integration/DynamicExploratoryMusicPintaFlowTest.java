@@ -2,6 +2,8 @@ package at.ac.tuwien.ifs.es.middleware.tests.integration;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.rdf.api.IRI;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,6 +70,7 @@ public class DynamicExploratoryMusicPintaFlowTest {
         .put("simpleDescribe", "/dynamicflow/simpleDescribe.json")
         .put("simpleGuitarFTS", "/dynamicflow/simpleGuitarFTS.json")
         .put("guitarFTSWithNiceDescription", "/dynamicflow/customGuitarFTSDescriber.json")
+        .put("orderByTest", "/dynamicflow/orderByTest.json")
         .build().entrySet()) {
       try (InputStream in = DynamicExploratoryMusicPintaFlowTest.class
           .getResourceAsStream(e.getValue())) {
@@ -86,7 +90,7 @@ public class DynamicExploratoryMusicPintaFlowTest {
     assertTrue(limit5Response.getStatusCode().is2xxSuccessful());
     ResourceList resources = parameterMapper
         .readValue(limit5Response.getBody(), ResourceList.class);
-    List<String> resourceIRIs = resources.getResultsCollection().stream()
+    List<String> resourceIRIs = resources.streamOfResults()
         .map(c -> ((IRI) c.value()).getIRIString())
         .collect(Collectors.toList());
     assertThat(resourceIRIs,
@@ -108,7 +112,7 @@ public class DynamicExploratoryMusicPintaFlowTest {
     assertTrue(limit5Response.getStatusCode().is2xxSuccessful());
     ResourceList resources = parameterMapper
         .readValue(limit5Response.getBody(), ResourceList.class);
-    List<String> resourceIRIs = resources.getResultsCollection().stream()
+    List<String> resourceIRIs = resources.streamOfResults()
         .map(c -> ((IRI) c.value()).getIRIString())
         .collect(Collectors.toList());
     assertThat(resourceIRIs,
@@ -128,10 +132,11 @@ public class DynamicExploratoryMusicPintaFlowTest {
     HttpEntity<String> entity = new HttpEntity<>(jsonTestMap.get("naiveLimit"), headers);
     ResponseEntity<String> limit5Response = restTemplate
         .exchange("/explore/with/custom/flow", HttpMethod.POST, entity, String.class);
-    assertTrue(limit5Response.getStatusCode().is2xxSuccessful());
+    System.out.println(">> " + limit5Response.getBody());
+    assertThat(limit5Response.getStatusCode().value(), is(equalTo(200)));
     ResourceList resources = parameterMapper
         .readValue(limit5Response.getBody(), ResourceList.class);
-    assertThat(resources.getResultsCollection(), hasSize(100));
+    assertThat(resources.streamOfResults().collect(Collectors.toList()), hasSize(100));
   }
 
   @Test
@@ -145,20 +150,20 @@ public class DynamicExploratoryMusicPintaFlowTest {
     ResourceList resources = parameterMapper
         .readValue(descriptionResponse.getBody(), ResourceList.class);
     assertThat(resources
-        .get("http://dbpedia.org/resource/Santur",
+        .getValues("http://dbpedia.org/resource/Santur",
             Arrays.asList("describe", "label", "values", "en"))
         .get().get(0).asText(), is("Santur"));
     assertThat(resources
-        .get("http://dbpedia.org/resource/Santur",
+        .getValues("http://dbpedia.org/resource/Santur",
             Arrays.asList("describe", "label", "values", "en"))
         .get().get(0).asText(), is("Santur"));
     assertThat(resources
-            .get("http://dbpedia.org/resource/Tembor",
+            .getValues("http://dbpedia.org/resource/Tembor",
                 Arrays.asList("describe", "description", "values", "en")).get().get(0)
             .asText(),
         is("The Tembor is a stringed musical instrument from the Uyghur region, Western China. It has 5 strings in 3 courses and is tuned A A, D, G G. The strings are made of Steel."));
     assertFalse("The 'Tambura' resource has no description.",
-        resources.get("http://dbtune.org/musicbrainz/resource/instrument/473",
+        resources.getValues("http://dbtune.org/musicbrainz/resource/instrument/473",
             Arrays.asList("describe", "description", "value")).isPresent());
   }
 
@@ -173,7 +178,7 @@ public class DynamicExploratoryMusicPintaFlowTest {
     assertTrue(limit5Response.getStatusCode().is2xxSuccessful());
     ResourceList resources = parameterMapper
         .readValue(limit5Response.getBody(), ResourceList.class);
-    List<String> resourceIRIs = resources.getResultsCollection().stream()
+    List<String> resourceIRIs = resources.streamOfResults()
         .map(c -> ((IRI) c.value()).getIRIString())
         .collect(Collectors.toList());
     assertThat(resourceIRIs, hasItems("http://dbpedia.org/resource/Classical_guitar",
@@ -194,7 +199,7 @@ public class DynamicExploratoryMusicPintaFlowTest {
 
     ResourceList resources = parameterMapper
         .readValue(limit5Response.getBody(), ResourceList.class);
-    List<String> resourceIRIs = resources.getResultsCollection().stream().map(Resource::getId)
+    List<String> resourceIRIs = resources.streamOfResults().map(Resource::getId)
         .collect(Collectors.toList());
     assertThat(resourceIRIs, hasItems("http://dbpedia.org/resource/Classical_guitar",
         "http://dbpedia.org/resource/Bass_guitar",
@@ -202,34 +207,56 @@ public class DynamicExploratoryMusicPintaFlowTest {
         "http://dbtune.org/musicbrainz/resource/instrument/377"));
 
     Optional<JsonNode> electricGuitarLabelOptional = resources
-        .get("http://dbtune.org/musicbrainz/resource/instrument/78",
+        .getValues("http://dbtune.org/musicbrainz/resource/instrument/78",
             Arrays.asList("describe", "label", "values", "en"));
     assertTrue(electricGuitarLabelOptional.isPresent());
     assertThat(electricGuitarLabelOptional.get().get(0).asText(), is(equalTo("Electric guitar")));
     Optional<JsonNode> electricGuitarDescriptionOptional = resources
-        .get("http://dbtune.org/musicbrainz/resource/instrument/78",
+        .getValues("http://dbtune.org/musicbrainz/resource/instrument/78",
             Arrays.asList("describe", "description"));
     assertFalse(
         "The description must not be given, because the custom describer did not specify this content.",
         electricGuitarDescriptionOptional.isPresent());
     Optional<JsonNode> electricGuitarThumbOptional = resources
-        .get("http://dbtune.org/musicbrainz/resource/instrument/78",
+        .getValues("http://dbtune.org/musicbrainz/resource/instrument/78",
             Arrays.asList("describe", "thumb", "values"));
     assertTrue(electricGuitarThumbOptional.isPresent());
     assertThat(electricGuitarThumbOptional.get().get(0).asText(), is(equalTo(
         "http://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Godin_LG-Squier_Strat.jpg/200px-Godin_LG-Squier_Strat.jpg")));
 
     Optional<JsonNode> guitaleleLabelOptional = resources
-        .get("http://dbpedia.org/resource/Guitalele",
+        .getValues("http://dbpedia.org/resource/Guitalele",
             Arrays.asList("describe", "label", "values", "en"));
     assertTrue(guitaleleLabelOptional.isPresent());
     assertThat("http://dbpedia.org/resource/Guitalele",
         guitaleleLabelOptional.get().get(0).asText(),
         is(equalTo("Guitalele")));
     Optional<JsonNode> guitaleleThumbOptional = resources
-        .get("http://dbpedia.org/resource/Guitalele", Arrays.asList("describe", "thumb", "values"));
+        .getValues("http://dbpedia.org/resource/Guitalele",
+            Arrays.asList("describe", "thumb", "values"));
     assertFalse("There is no thumbnail of a 'guitalele' in the data",
         guitaleleThumbOptional.isPresent());
+  }
+
+  @Test
+  public void test_orderBy() throws Exception {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.valueOf("application/json"));
+    HttpEntity<String> entity = new HttpEntity<>(jsonTestMap.get("orderByTest"),
+        headers);
+    ResponseEntity<String> orderByResponse = restTemplate
+        .exchange("/explore/with/custom/flow", HttpMethod.POST, entity, String.class);
+    assertThat(orderByResponse.getStatusCode().value(), is(equalTo(200)));
+    ResourceList resources = parameterMapper
+        .readValue(orderByResponse.getBody(), ResourceList.class);
+    List<String> top10List = resources.streamOfResults().limit(12).map(Resource::getId)
+        .collect(Collectors.toList());
+    assertThat(top10List, hasItems("http://dbtune.org/musicbrainz/resource/instrument/475",
+        "http://dbpedia.org/resource/Bordonua", "http://dbpedia.org/resource/Cavaquinho"));
+    /* it should not contain the resources with biggest score, because ordered by ASC */
+    assertThat(top10List, not(hasItem("http://dbtune.org/musicbrainz/resource/instrument/323")));
+    assertThat(top10List, not(hasItem("http://dbtune.org/musicbrainz/resource/instrument/399")));
+    assertThat(top10List, not(hasItem("http://dbtune.org/musicbrainz/resource/instrument/76")));
   }
 
 }

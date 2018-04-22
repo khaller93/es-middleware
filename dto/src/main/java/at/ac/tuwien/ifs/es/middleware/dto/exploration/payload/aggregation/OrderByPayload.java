@@ -15,7 +15,7 @@ import java.util.List;
  */
 public final class OrderByPayload implements Serializable {
 
-  private enum ORDER_STRATEGY {ASC, DESC}
+  public enum ORDER_STRATEGY {ASC, DESC}
 
   private ORDER_STRATEGY strategy = ORDER_STRATEGY.DESC;
   @JsonProperty(value = "path", required = true)

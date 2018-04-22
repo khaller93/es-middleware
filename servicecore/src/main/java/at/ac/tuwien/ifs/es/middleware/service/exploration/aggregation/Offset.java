@@ -30,8 +30,8 @@ public class Offset implements AggregationOperator<OffsetPayload> {
   @SuppressWarnings("unchecked")
   @Override
   public ExplorationContext apply(ExplorationContext context, OffsetPayload payload) {
-    int offset = payload.getNumber();
-    Iterator<IdentifiableResult> iterator = context.getResultsCollection().iterator();
+    /*int offset = payload.getNumber();
+    Iterator<IdentifiableResult> iterator = context.streamOfResults().iterator();
     while (iterator.hasNext()) {
       IdentifiableResult next = iterator.next();
       if (offset > 0) {
@@ -39,7 +39,10 @@ public class Offset implements AggregationOperator<OffsetPayload> {
         offset--;
       }
     }
-    return context;
+    return context;*/
+    ExplorationContext<IdentifiableResult> identifiableResultsContext = (ExplorationContext<IdentifiableResult>) context;
+    return identifiableResultsContext.streamOfResults().skip(payload.getNumber())
+        .collect(identifiableResultsContext);
   }
 
 }
