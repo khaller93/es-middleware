@@ -2,10 +2,10 @@ package at.ac.tuwien.ifs.es.middleware.dto.exploration.context;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -28,6 +28,9 @@ import java.util.stream.Stream;
     property = "@class")
 public interface ExplorationContext<T extends IdentifiableResult> extends Iterable<T>,
     Collector<T, ExplorationContextContainer<T>, ExplorationContext<T>> {
+
+  @JsonIgnore
+  JsonPointer ROOT_PTR = JsonPointer.compile("");
 
   /**
    * Gets a {@link Stream} of the results of this {@link ExplorationContext}.
@@ -79,7 +82,7 @@ public interface ExplorationContext<T extends IdentifiableResult> extends Iterab
 
   /**
    * Puts the given {@code data} to the value node with the given {@code id} on the given position.
-   * The data can then be accessed with {@link ExplorationContext#getValues(String, List)}.
+   * The data can then be accessed with {@link ExplorationContext#getValues(String, JsonPointer)}.
    *
    * @param id to which the data shall be stored.
    * @param path position to which the data shall be stored.
@@ -97,7 +100,7 @@ public interface ExplorationContext<T extends IdentifiableResult> extends Iterab
    * @return {@link JsonNode} on the given position in the value node stored under the given {@code
    * id}, or {@link Optional#EMPTY}, if there is no such data.
    */
-  Optional<JsonNode> getValues(String id, List<String> path);
+  Optional<JsonNode> getValues(String id, JsonPointer path);
 
   /**
    * Gets the root {@link JsonNode} storing values for the given {@code id}. If there is no data for
@@ -108,7 +111,7 @@ public interface ExplorationContext<T extends IdentifiableResult> extends Iterab
    * id}, or {@link Optional#EMPTY}, if there is no such data.
    */
   default Optional<JsonNode> getValues(String id) {
-    return getValues(id, Collections.emptyList());
+    return getValues(id, ROOT_PTR);
   }
 
   /**

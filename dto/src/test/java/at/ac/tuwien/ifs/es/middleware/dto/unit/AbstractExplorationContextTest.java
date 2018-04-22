@@ -11,6 +11,7 @@ import static org.junit.Assert.assertTrue;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IdentifiableResult;
+import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -108,11 +109,11 @@ public abstract class AbstractExplorationContextTest<T extends IdentifiableResul
 
     assertThat(explorationContext.getResultIdsWithValues(), containsInAnyOrder("a", "b"));
     Optional<JsonNode> aValues = explorationContext
-        .getValues("a", Arrays.asList("metrics", "relevance", "dom"));
+        .getValues("a", JsonPointer.compile("/metrics/relevance/dom"));
     assertTrue(aValues.isPresent());
     assertThat(aValues.get().asDouble(), is(1.4));
     Optional<JsonNode> bValues = explorationContext
-        .getValues("b", Arrays.asList("metrics", "relevance", "dom"));
+        .getValues("b", JsonPointer.compile("/metrics/relevance/dom"));
     assertTrue(bValues.isPresent());
     assertThat(bValues.get().asDouble(), is(2.2));
   }

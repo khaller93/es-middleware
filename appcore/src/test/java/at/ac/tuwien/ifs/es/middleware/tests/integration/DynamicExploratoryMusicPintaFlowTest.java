@@ -2,7 +2,6 @@ package at.ac.tuwien.ifs.es.middleware.tests.integration;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
@@ -15,6 +14,7 @@ import at.ac.tuwien.ifs.es.middleware.ExploratorySearchApplication;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
+import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -151,20 +151,20 @@ public class DynamicExploratoryMusicPintaFlowTest {
         .readValue(descriptionResponse.getBody(), ResourceList.class);
     assertThat(resources
         .getValues("http://dbpedia.org/resource/Santur",
-            Arrays.asList("describe", "label", "values", "en"))
+            JsonPointer.compile("/describe/label/values/en"))
         .get().get(0).asText(), is("Santur"));
     assertThat(resources
         .getValues("http://dbpedia.org/resource/Santur",
-            Arrays.asList("describe", "label", "values", "en"))
+            JsonPointer.compile("/describe/label/values/en"))
         .get().get(0).asText(), is("Santur"));
     assertThat(resources
             .getValues("http://dbpedia.org/resource/Tembor",
-                Arrays.asList("describe", "description", "values", "en")).get().get(0)
+                JsonPointer.compile("/describe/description/values/en")).get().get(0)
             .asText(),
         is("The Tembor is a stringed musical instrument from the Uyghur region, Western China. It has 5 strings in 3 courses and is tuned A A, D, G G. The strings are made of Steel."));
     assertFalse("The 'Tambura' resource has no description.",
         resources.getValues("http://dbtune.org/musicbrainz/resource/instrument/473",
-            Arrays.asList("describe", "description", "value")).isPresent());
+            JsonPointer.compile("/describe/description/value")).isPresent());
   }
 
   @Test
@@ -208,32 +208,32 @@ public class DynamicExploratoryMusicPintaFlowTest {
 
     Optional<JsonNode> electricGuitarLabelOptional = resources
         .getValues("http://dbtune.org/musicbrainz/resource/instrument/78",
-            Arrays.asList("describe", "label", "values", "en"));
+            JsonPointer.compile("/describe/label/values/en"));
     assertTrue(electricGuitarLabelOptional.isPresent());
     assertThat(electricGuitarLabelOptional.get().get(0).asText(), is(equalTo("Electric guitar")));
     Optional<JsonNode> electricGuitarDescriptionOptional = resources
         .getValues("http://dbtune.org/musicbrainz/resource/instrument/78",
-            Arrays.asList("describe", "description"));
+            JsonPointer.compile("/describe/description"));
     assertFalse(
         "The description must not be given, because the custom describer did not specify this content.",
         electricGuitarDescriptionOptional.isPresent());
     Optional<JsonNode> electricGuitarThumbOptional = resources
         .getValues("http://dbtune.org/musicbrainz/resource/instrument/78",
-            Arrays.asList("describe", "thumb", "values"));
+            JsonPointer.compile("/describe/thumb/values"));
     assertTrue(electricGuitarThumbOptional.isPresent());
     assertThat(electricGuitarThumbOptional.get().get(0).asText(), is(equalTo(
         "http://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Godin_LG-Squier_Strat.jpg/200px-Godin_LG-Squier_Strat.jpg")));
 
     Optional<JsonNode> guitaleleLabelOptional = resources
         .getValues("http://dbpedia.org/resource/Guitalele",
-            Arrays.asList("describe", "label", "values", "en"));
+            JsonPointer.compile("/describe/label/values/en"));
     assertTrue(guitaleleLabelOptional.isPresent());
     assertThat("http://dbpedia.org/resource/Guitalele",
         guitaleleLabelOptional.get().get(0).asText(),
         is(equalTo("Guitalele")));
     Optional<JsonNode> guitaleleThumbOptional = resources
         .getValues("http://dbpedia.org/resource/Guitalele",
-            Arrays.asList("describe", "thumb", "values"));
+            JsonPointer.compile("/describe/thumb/values"));
     assertFalse("There is no thumbnail of a 'guitalele' in the data",
         guitaleleThumbOptional.isPresent());
   }

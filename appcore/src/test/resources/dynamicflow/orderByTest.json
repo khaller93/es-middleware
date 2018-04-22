@@ -9,7 +9,7 @@
     {
       "name": "esm.aggregate.orderby",
       "param": {
-        "path": ["fts", "score"]
+        "path": "/fts/score"
       }
     }
   ]

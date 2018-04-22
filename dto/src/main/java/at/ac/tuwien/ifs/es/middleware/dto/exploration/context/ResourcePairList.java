@@ -1,10 +1,9 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.context;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
+import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.io.Serializable;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +69,7 @@ public class ResourcePairList implements ExplorationContext<ResourcePair> {
   }
 
   @Override
-  public Optional<JsonNode> getValues(String id, List<String> path) {
+  public Optional<JsonNode> getValues(String id, JsonPointer path) {
     return null;
   }
 

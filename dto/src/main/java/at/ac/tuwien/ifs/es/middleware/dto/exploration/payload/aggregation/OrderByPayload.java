@@ -1,6 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.aggregation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonPointer;
 import java.io.Serializable;
 import java.util.List;
 
@@ -18,8 +19,8 @@ public final class OrderByPayload implements Serializable {
   public enum ORDER_STRATEGY {ASC, DESC}
 
   private ORDER_STRATEGY strategy = ORDER_STRATEGY.DESC;
-  @JsonProperty(value = "path", required = true)
-  private List<String> path;
+
+  private JsonPointer path;
 
   public ORDER_STRATEGY getStrategy() {
     return strategy;
@@ -29,11 +30,12 @@ public final class OrderByPayload implements Serializable {
     this.strategy = strategy;
   }
 
-  public List<String> getPath() {
+  public JsonPointer getPath() {
     return path;
   }
 
-  public void setPath(List<String> path) {
+  @JsonProperty(value = "path", required = true)
+  public void setPath(JsonPointer path) {
     this.path = path;
   }
 

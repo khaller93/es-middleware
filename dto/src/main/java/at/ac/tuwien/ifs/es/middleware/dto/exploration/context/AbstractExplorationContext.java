@@ -1,6 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.context;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -18,12 +19,12 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
   @JsonProperty
   private Map<String, JsonNode> metadata;
 
-  public AbstractExplorationContext() {
+  protected AbstractExplorationContext() {
     this.values = new HashMap<>();
     this.metadata = new HashMap<>();
   }
 
-  public AbstractExplorationContext(Map<String, ObjectNode> values,
+  protected AbstractExplorationContext(Map<String, ObjectNode> values,
       Map<String, JsonNode> metadata) {
     this.values = values;
     this.metadata = metadata;
@@ -41,7 +42,7 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
   @Override
   public Map<String, JsonNode> getMetadata() {
     Map<String, JsonNode> copiedMetadata = new HashMap<>();
-    for(String name : copiedMetadata.keySet()){
+    for (String name : copiedMetadata.keySet()) {
       copiedMetadata.put(name, metadata.get(name).deepCopy());
     }
     return copiedMetadata;
@@ -93,23 +94,11 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
   }
 
   @Override
-  public Optional<JsonNode> getValues(String id, List<String> path) {
-    if (path == null) {
-      throw new IllegalArgumentException("The path must not be empty.");
-    }
-    if (values.containsKey(id)) {
-      JsonNode node = values.get(id);
-      for (String field : path) {
-        if (field.isEmpty()) {
-          throw new IllegalArgumentException("The fields in the path must not be empty.");
-        }
-        if (node.isObject() && node.has(field)) {
-          node = node.get(field);
-        } else {
-          return Optional.empty();
-        }
-      }
-      return Optional.of(node);
+  public Optional<JsonNode> getValues(String id, JsonPointer path) {
+    ObjectNode valuesNode = values.get(id);
+    if (valuesNode != null) {
+      JsonNode value = valuesNode.at(path);
+      return value.isMissingNode() ? Optional.empty() : Optional.of(value);
     } else {
       return Optional.empty();
     }
