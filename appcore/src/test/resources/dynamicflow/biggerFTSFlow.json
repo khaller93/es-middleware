@@ -1,0 +1,78 @@
+{
+  "steps": [
+    {
+      "name": "esm.source.fts",
+      "param": {
+        "keyword": "guitar"
+      }
+    },
+    {
+      "name": "esm.exploit.cardinality"
+    },
+    {
+      "name": "esm.aggregate.normalisation.minmax",
+      "param": {
+        "targets": [
+          {
+            "path": "/fts/score"
+          },
+          {
+            "path": "/cardinality/ingoing"
+          },
+          {
+            "path": "/cardinality/outgoing"
+          }
+        ]
+      }
+    },
+    {
+      "name": "esm.aggregate.weightedsum",
+      "param": {
+        "path": "/sum",
+        "candidates": {
+          "/fts/score": 1.0,
+          "/cardinality/ingoing": 2.0,
+          "/cardinality/outgoing": 0.5
+        }
+      }
+    },
+    {
+      "name": "esm.aggregate.orderby",
+      "param": {
+        "path": "/sum",
+        "strategy": "DESC"
+      }
+    },
+    {
+      "name": "esm.aggregate.limit",
+      "param": {
+        "number": 10
+      }
+    },
+    {
+      "name": "esm.exploit.describe",
+      "param": {
+        "content": {
+          "label": {
+            "@type": "text",
+            "properties": [
+              "http://www.w3.org/2000/01/rdf-schema#label"
+            ]
+          },
+          "thumb": {
+            "@type": "iri",
+            "properties": [
+              "http://dbpedia.org/ontology/thumbnail"
+            ]
+          },
+          "class": {
+            "@type": "iri",
+            "properties": [
+              "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

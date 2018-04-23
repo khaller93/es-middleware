@@ -7,10 +7,13 @@
       }
     },
     {
-      "name": "esm.aggregate.orderby",
+      "name": "esm.aggregate.normalisation.minmax",
       "param": {
-        "path": "/fts/score",
-        "strategy": "ASC"
+        "targets": [
+          {
+            "path": "/fts/score"
+          }
+        ]
       }
     }
   ]

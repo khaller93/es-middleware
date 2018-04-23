@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,7 +50,6 @@ public abstract class AbstractExplorationContextTest<T extends IdentifiableResul
     this.explorationContext = getContext();
     /* centrality dummy values */
     centralityObj = JsonNodeFactory.instance.objectNode();
-    centralityObj = JsonNodeFactory.instance.objectNode();
     centralityObj.set("acs", JsonNodeFactory.instance.numberNode(1.4));
     centralityObj.set("load", JsonNodeFactory.instance.numberNode(2.1));
     centralityObj.set("pageRank", JsonNodeFactory.instance.numberNode(4.5));
@@ -77,6 +77,15 @@ public abstract class AbstractExplorationContextTest<T extends IdentifiableResul
     explorationContext.removeMetadataFor("number");
     assertFalse(explorationContext.getMetadataFor("number").isPresent());
     assertThat(explorationContext.getMetadataEntryNames(), hasSize(0));
+  }
+
+  @Test
+  public void test_getMetadata_mustReturnDeepCopy() throws Exception {
+    explorationContext.setMetadataFor("centrality", centralityObj);
+    assertThat(explorationContext.getMetadataEntryNames(), containsInAnyOrder("centrality"));
+    Map<String, JsonNode> copiedMetadata = explorationContext.getMetadata();
+    centralityObj.set("acs", JsonNodeFactory.instance.numberNode(42.0));
+    assertThat(copiedMetadata.get("centrality").get("acs").asDouble(), is(equalTo(1.4)));
   }
 
   @Test
@@ -133,7 +142,7 @@ public abstract class AbstractExplorationContextTest<T extends IdentifiableResul
   public void test_putValuesDataWithPtr_mustBePersistent() throws Exception {
     ObjectNode aNode = JsonNodeFactory.instance.objectNode();
     aNode.set("dom", JsonNodeFactory.instance.numberNode(1.4));
-    explorationContext.putValuesData("a",JsonPointer.compile("/metrics/relevance"), aNode);
+    explorationContext.putValuesData("a", JsonPointer.compile("/metrics/relevance"), aNode);
     ObjectNode bNode = JsonNodeFactory.instance.objectNode();
     bNode.set("dom", JsonNodeFactory.instance.numberNode(2.2));
     explorationContext.putValuesData("b", JsonPointer.compile("/metrics/relevance"), bNode);
@@ -147,5 +156,53 @@ public abstract class AbstractExplorationContextTest<T extends IdentifiableResul
         .getValues("b", JsonPointer.compile("/metrics/relevance/dom"));
     assertTrue(bValues.isPresent());
     assertThat(bValues.get().asDouble(), is(2.2));
+  }
+
+  @Test
+  public void test_getValuesDataWithRootPtr_mustReturnAllValues() throws Exception {
+    explorationContext.putValuesData("a", JsonPointer.compile("/centrality"), centralityObj);
+    explorationContext.putValuesData("a", JsonPointer.compile("/similarity"), similarityObj);
+    Optional<JsonNode> aValues = explorationContext.getValues("a", JsonPointer.compile(""));
+    assertTrue(aValues.isPresent());
+    List<String> fields = new LinkedList<>();
+    aValues.get().fieldNames().forEachRemaining(fields::add);
+    assertThat(fields, containsInAnyOrder("centrality", "similarity"));
+  }
+
+  @Test
+  public void test_getAllValues_mustReturnDeepCopy() throws Exception {
+    explorationContext.putValuesData("a", JsonPointer.compile("/centrality"), centralityObj);
+    explorationContext.putValuesData("a", JsonPointer.compile("/similarity"), similarityObj);
+    Map<String, ObjectNode> allValues = explorationContext.getAllValues();
+    explorationContext.putValuesData("a", JsonPointer.compile("/centrality/load"),
+        JsonNodeFactory.instance.numberNode(121.42));
+    assertThat(allValues.keySet(), containsInAnyOrder("a"));
+    assertThat(allValues.get("a").get("centrality").get("load").asDouble(), is(equalTo(2.1)));
+    ((ObjectNode) allValues.get("a").get("centrality")).put("pageRank", 100.0);
+    assertThat(explorationContext.getValues("a", JsonPointer.compile("/centrality/pageRank")).get()
+        .asDouble(), is(equalTo(4.5)));
+  }
+
+  @Test
+  public void test_pushDataToRootPtr_mustBePersisted() throws Exception {
+    assertTrue(ExplorationContext.ROOT_PTR.matches());
+    ObjectNode rootNode = JsonNodeFactory.instance.objectNode();
+    rootNode.set("centrality", centralityObj);
+    rootNode.set("similarity", similarityObj);
+    explorationContext.putValuesData("a", ExplorationContext.ROOT_PTR, rootNode);
+
+    Optional<JsonNode> aValues = explorationContext.getValues("a");
+    assertTrue(aValues.isPresent());
+    List<String> fields = new LinkedList<>();
+    aValues.get().fieldNames().forEachRemaining(fields::add);
+    assertThat(fields, containsInAnyOrder("centrality", "similarity"));
+    assertThat(aValues.get().at(JsonPointer.compile("/centrality/acs")).asDouble(),
+        is(equalTo(1.4)));
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void test_pushNumberToRoot_mustThrowIllegalArgumentException() throws Exception {
+    explorationContext
+        .putValuesData("a", ExplorationContext.ROOT_PTR, JsonNodeFactory.instance.numberNode(1));
   }
 }

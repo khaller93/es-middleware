@@ -1,12 +1,18 @@
 package at.ac.tuwien.ifs.es.middleware.tests.integration;
 
 import static junit.framework.TestCase.assertTrue;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.number.OrderingComparison.lessThan;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
@@ -17,17 +23,27 @@ import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.rdf.api.IRI;
+import org.hamcrest.Matcher;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -71,6 +87,8 @@ public class DynamicExploratoryMusicPintaFlowTest {
         .put("simpleGuitarFTS", "/dynamicflow/simpleGuitarFTS.json")
         .put("guitarFTSWithNiceDescription", "/dynamicflow/customGuitarFTSDescriber.json")
         .put("orderByTest", "/dynamicflow/orderByTest.json")
+        .put("biggerFTSFLow", "/dynamicflow/biggerFTSFlow.json")
+        .put("minmaxFTSScore", "/dynamicflow/minmaxFTSScore.json")
         .build().entrySet()) {
       try (InputStream in = DynamicExploratoryMusicPintaFlowTest.class
           .getResourceAsStream(e.getValue())) {
@@ -239,7 +257,7 @@ public class DynamicExploratoryMusicPintaFlowTest {
   }
 
   @Test
-  public void test_orderBy() throws Exception {
+  public void test_orderBy_mustReturnInstrumentWithLowestScoreFirst() throws Exception {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.valueOf("application/json"));
     HttpEntity<String> entity = new HttpEntity<>(jsonTestMap.get("orderByTest"),
@@ -259,4 +277,80 @@ public class DynamicExploratoryMusicPintaFlowTest {
     assertThat(top10List, not(hasItem("http://dbtune.org/musicbrainz/resource/instrument/76")));
   }
 
+  @Test
+  public void test_bigFTSFlow_mustReturn10InstrumentWithBiggestSummedScore() throws Exception {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.valueOf("application/json"));
+    HttpEntity<String> entity = new HttpEntity<>(jsonTestMap.get("biggerFTSFLow"),
+        headers);
+    ResponseEntity<String> bigFlowResponse = restTemplate
+        .exchange("/explore/with/custom/flow", HttpMethod.POST, entity, String.class);
+    assertThat(bigFlowResponse.getStatusCode().value(), is(equalTo(200)));
+
+    ResourceList resourcesContext = parameterMapper
+        .readValue(bigFlowResponse.getBody(), ResourceList.class);
+    List<Resource> resourceList = resourcesContext.streamOfResults().collect(Collectors.toList());
+    assertThat(resourceList, hasSize(10));
+    /* get class and check them */
+    Iterable<Iterable<? super String>> classes = resourceList.stream().map(r -> {
+      Optional<JsonNode> optionalClasses = resourcesContext
+          .getValues(r.getId(), JsonPointer.compile("/describe/class/values"));
+      if (optionalClasses.isPresent()) {
+        List<String> resourceClasses = new LinkedList<>();
+        optionalClasses.get().iterator().forEachRemaining(c -> resourceClasses.add(c.asText()));
+        return resourceClasses;
+      } else {
+        return Collections.<String>emptyList();
+      }
+    }).collect(Collectors.toList());
+    assertThat(classes, everyItem(hasItem("http://purl.org/ontology/mo/Instrument")));
+    assertThat(classes, everyItem(hasItem("http://purl.org/ontology/mo/Instrument")));
+    /* get labels and check them */
+    List<String> labels = resourceList.stream().flatMap(r -> {
+      Optional<JsonNode> optionalLabels = resourcesContext
+          .getValues(r.getId(), JsonPointer.compile("/describe/label/values/en"));
+      if (optionalLabels.isPresent()) {
+        List<String> labelList = new LinkedList<>();
+        optionalLabels.get().forEach(l -> {
+          labelList.add(l.asText());
+        });
+        return labelList.stream();
+      } else {
+        return Stream.<String>empty();
+      }
+    }).collect(Collectors.toList());
+    assertThat(labels, hasItems("Acoustic guitar", "Electric guitar"));
+  }
+
+  @Test
+  public void test_minMaxFTSScore_valuesMustBeMappedBetween0And1() throws Exception {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.valueOf("application/json"));
+    HttpEntity<String> entity = new HttpEntity<>(jsonTestMap.get("minmaxFTSScore"),
+        headers);
+    ResponseEntity<String> bigFlowResponse = restTemplate
+        .exchange("/explore/with/custom/flow", HttpMethod.POST, entity, String.class);
+    assertThat(bigFlowResponse.getStatusCode().value(), is(equalTo(200)));
+
+    ResourceList resourcesContext = parameterMapper
+        .readValue(bigFlowResponse.getBody(), ResourceList.class);
+    List<Double> scoreNumbers = resourcesContext.streamOfResults()
+        .map(r -> {
+          Optional<JsonNode> optionalScore = resourcesContext
+              .getValues(r.getId(), JsonPointer.compile("/fts/score"));
+          return optionalScore.map(JsonNode::asDouble).orElse(null);
+        }).collect(Collectors.toList());
+    assertThat(scoreNumbers, everyItem(allOf(greaterThanOrEqualTo(0.0), lessThanOrEqualTo(1.0))));
+    /* check individual scores */
+    Optional<JsonNode> topMostResourceScore = resourcesContext
+        .getValues("http://dbtune.org/musicbrainz/resource/instrument/323",
+            JsonPointer.compile("/fts/score"));
+    assertTrue(topMostResourceScore.isPresent());
+    assertThat(topMostResourceScore.get().asDouble(), is(equalTo(1.0)));
+    Optional<JsonNode> furthestDownResourceScore = resourcesContext
+        .getValues("http://dbtune.org/musicbrainz/resource/instrument/475",
+            JsonPointer.compile("/fts/score"));
+    assertTrue(furthestDownResourceScore.isPresent());
+    assertThat(furthestDownResourceScore.get().asDouble(), is(equalTo(0.0)));
+  }
 }
