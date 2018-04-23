@@ -1,6 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.core.lookup.StrSubstitutor;
@@ -24,6 +25,7 @@ public class GraphDbLuceneConfig {
   public static final String GRAPHDB_LUCENE_NS = "http://www.ontotext.com/owlim/lucene#";
 
   private static final String TRIPLE_CONFIG_TEMPLATE = "${exclude}\n"
+      + "${index}\n"
       + "${exclude-entities}\n"
       + "${exclude-predicates}\n"
       + "${include}\n"
@@ -41,8 +43,7 @@ public class GraphDbLuceneConfig {
   @Value("${graphdb.lucene.initialize:true}")
   private boolean initialize;
 
-  @Value("${graphdb.lucene.index:uris}")
-  private List<String> indexing;
+  private List<String> indexing = Collections.singletonList("uris");
 
   @Value("${graphdb.lucene.exclude:#{null}}")
   private String excludePattern;

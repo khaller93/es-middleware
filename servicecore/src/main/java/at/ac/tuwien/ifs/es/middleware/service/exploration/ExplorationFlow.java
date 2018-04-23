@@ -57,6 +57,7 @@ public class ExplorationFlow {
       try {
         context = step.getValue0().apply(context, step.getValue1());
       } catch (ClassCastException c) {
+        c.printStackTrace();
         throw new ExplorationFlowSpecificationException(
             String.format("The payload for a flow step is invalid. %s", c.getMessage()));
       }

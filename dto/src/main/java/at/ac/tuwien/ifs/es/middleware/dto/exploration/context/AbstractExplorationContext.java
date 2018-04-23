@@ -11,6 +11,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * This class implements universal methods of an {@link ExplorationContext} such that the more
+ * specific implementation do not have to repeat themselves.
+ *
+ * @param <T> the type of the result for this {@link ExplorationContext}, which must be
+ * identifiable.
+ * @author Kevin Haller
+ * @version 1.0
+ * @since 1.0
+ */
 public abstract class AbstractExplorationContext<T extends IdentifiableResult> implements
     ExplorationContext<T> {
 
@@ -42,7 +52,7 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
   @Override
   public Map<String, JsonNode> getMetadata() {
     Map<String, JsonNode> copiedMetadata = new HashMap<>();
-    for (String name : copiedMetadata.keySet()) {
+    for (String name : metadata.keySet()) {
       copiedMetadata.put(name, metadata.get(name).deepCopy());
     }
     return copiedMetadata;
@@ -50,21 +60,21 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
 
   @Override
   public void putValuesData(String id, List<String> path, JsonNode data) {
-    if (path.isEmpty()) {
+    if (path == null || path.isEmpty()) {
       if (data.isObject()) {
         values.put(id, (ObjectNode) data);
       } else {
         throw new IllegalArgumentException("Root node must be an object, and not a value node.");
       }
+    } else {
+      ObjectNode node = values
+          .compute(id, (s, nodes) -> nodes != null && !nodes.isMissingNode() ? nodes
+              : JsonNodeFactory.instance.objectNode());
+      for (String segmentName : path.subList(0, path.size() - 1)) {
+        node = pushNode(segmentName, node);
+      }
+      node.set(path.get(path.size() - 1), data);
     }
-    ObjectNode node = values
-        .compute(id, (s, nodes) -> nodes != null && !nodes.isMissingNode() ? nodes
-            : JsonNodeFactory.instance.objectNode());
-    for (String segmentName : path.subList(0, path.size() - 1)) {
-      node = pushNode(segmentName, node);
-    }
-    node.set(path.get(path.size() - 1), data);
-    //putData(node, path, data);
   }
 
   @Override
@@ -75,15 +85,16 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
       } else {
         throw new IllegalArgumentException("Root node must be an object, and not a value node.");
       }
+    } else {
+      ObjectNode node = values
+          .compute(id, (s, nodes) -> nodes != null && !nodes.isMissingNode() ? nodes
+              : JsonNodeFactory.instance.objectNode());
+      while (!path.tail().matches()) {
+        node = pushNode(path.getMatchingProperty(), node);
+        path = path.tail();
+      }
+      node.set(path.getMatchingProperty(), data);
     }
-    ObjectNode node = values
-        .compute(id, (s, nodes) -> nodes != null && !nodes.isMissingNode() ? nodes
-            : JsonNodeFactory.instance.objectNode());
-    while (!path.tail().matches()) {
-      node = pushNode(path.getMatchingProperty(), node);
-      path = path.tail();
-    }
-    node.set(path.getMatchingProperty(), data);
   }
 
   private ObjectNode pushNode(String segmentName, ObjectNode node) {
