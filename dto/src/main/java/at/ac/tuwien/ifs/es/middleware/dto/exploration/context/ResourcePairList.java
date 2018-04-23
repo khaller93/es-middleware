@@ -16,12 +16,13 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
+ * //TODO: Implement.
  *
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
  */
-public class ResourcePairList implements ExplorationContext<ResourcePair> {
+public class ResourcePairList extends AbstractExplorationContext<ResourcePair> {
 
   @Override
   public Stream<ResourcePair> streamOfResults() {
@@ -29,65 +30,9 @@ public class ResourcePairList implements ExplorationContext<ResourcePair> {
   }
 
   @Override
-  public void setMetadataFor(String name, JsonNode data) {
-
-  }
-
-  @Override
-  public void removeMetadataFor(String name) {
-
-  }
-
-  @Override
-  public Optional<JsonNode> getMetadataFor(String name) {
-    return null;
-  }
-
-  @Override
-  public Set<String> getMetadataEntryNames() {
-    return null;
-  }
-
-  @Override
-  public Map<String, JsonNode> getMetadata() {
-    return null;
-  }
-
-  @Override
-  public void putValuesData(String id, List<String> path, JsonNode data) {
-
-  }
-
-  @Override
-  public void removeValuesData(String id) {
-
-  }
-
-  @Override
-  public Set<String> getResultIdsWithValues() {
-    return null;
-  }
-
-  @Override
-  public Optional<JsonNode> getValues(String id, JsonPointer path) {
-    return null;
-  }
-
-  @Override
-  public Optional<JsonNode> getValues(String id) {
-    return null;
-  }
-
-  @Override
-  public Map<String, ObjectNode> getAllValues() {
-    return null;
-  }
-
-  @Override
   public Iterator<ResourcePair> iterator() {
     return null;
   }
-
 
   @Override
   public Supplier<ExplorationContextContainer<ResourcePair>> supplier() {

@@ -129,4 +129,23 @@ public abstract class AbstractExplorationContextTest<T extends IdentifiableResul
     assertThat(fields, containsInAnyOrder("centrality", "similarity"));
   }
 
+  @Test
+  public void test_putValuesDataWithPtr_mustBePersistent() throws Exception {
+    ObjectNode aNode = JsonNodeFactory.instance.objectNode();
+    aNode.set("dom", JsonNodeFactory.instance.numberNode(1.4));
+    explorationContext.putValuesData("a",JsonPointer.compile("/metrics/relevance"), aNode);
+    ObjectNode bNode = JsonNodeFactory.instance.objectNode();
+    bNode.set("dom", JsonNodeFactory.instance.numberNode(2.2));
+    explorationContext.putValuesData("b", JsonPointer.compile("/metrics/relevance"), bNode);
+
+    assertThat(explorationContext.getResultIdsWithValues(), containsInAnyOrder("a", "b"));
+    Optional<JsonNode> aValues = explorationContext
+        .getValues("a", JsonPointer.compile("/metrics/relevance/dom"));
+    assertTrue(aValues.isPresent());
+    assertThat(aValues.get().asDouble(), is(1.4));
+    Optional<JsonNode> bValues = explorationContext
+        .getValues("b", JsonPointer.compile("/metrics/relevance/dom"));
+    assertTrue(bValues.isPresent());
+    assertThat(bValues.get().asDouble(), is(2.2));
+  }
 }

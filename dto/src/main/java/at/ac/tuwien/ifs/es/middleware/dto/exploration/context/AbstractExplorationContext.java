@@ -50,36 +50,53 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
 
   @Override
   public void putValuesData(String id, List<String> path, JsonNode data) {
-    if (path == null || path.isEmpty()) {
-      throw new IllegalArgumentException("The path must not be empty.");
+    if (path.isEmpty()) {
+      if (data.isObject()) {
+        values.put(id, (ObjectNode) data);
+      } else {
+        throw new IllegalArgumentException("Root node must be an object, and not a value node.");
+      }
     }
-    ObjectNode node;
-    if (!values.containsKey(id)) {
-      node = JsonNodeFactory.instance.objectNode();
-      values.put(id, node);
-    } else {
-      node = values.get(id);
+    ObjectNode node = values
+        .compute(id, (s, nodes) -> nodes != null && !nodes.isMissingNode() ? nodes
+            : JsonNodeFactory.instance.objectNode());
+    for (String segmentName : path.subList(0, path.size() - 1)) {
+      node = pushNode(segmentName, node);
     }
-    putData(node, path, data);
+    node.set(path.get(path.size() - 1), data);
+    //putData(node, path, data);
   }
 
-  private void putData(ObjectNode obj, List<String> path, JsonNode data) {
-    if (path.size() == 1) {
-      obj.set(path.get(0), data);
-    } else {
-      if (obj.has(path.get(0))) {
-        JsonNode newNode = obj.get(path.get(0));
-        if (newNode.isObject()) {
-          putData((ObjectNode) newNode, path.subList(1, path.size()), data);
-        } else {
-          throw new IllegalArgumentException(
-              "There is a primitive value stored between the given path.");
-        }
+  @Override
+  public void putValuesData(String id, JsonPointer path, JsonNode data) {
+    if (path.matches()) {
+      if (data.isObject()) {
+        values.put(id, (ObjectNode) data);
       } else {
-        ObjectNode newNode = JsonNodeFactory.instance.objectNode();
-        obj.set(path.get(0), newNode);
-        putData(newNode, path.subList(1, path.size()), data);
+        throw new IllegalArgumentException("Root node must be an object, and not a value node.");
       }
+    }
+    ObjectNode node = values
+        .compute(id, (s, nodes) -> nodes != null && !nodes.isMissingNode() ? nodes
+            : JsonNodeFactory.instance.objectNode());
+    while (!path.tail().matches()) {
+      node = pushNode(path.getMatchingProperty(), node);
+      path = path.tail();
+    }
+    node.set(path.getMatchingProperty(), data);
+  }
+
+  private ObjectNode pushNode(String segmentName, ObjectNode node) {
+    if (node.has(segmentName)) {
+      JsonNode newNode = node.get(segmentName);
+      if (newNode.isObject()) {
+        return (ObjectNode) newNode;
+      } else {
+        throw new IllegalArgumentException(
+            "There is a primitive value stored between the given path.");
+      }
+    } else {
+      return node.putObject(segmentName);
     }
   }
 

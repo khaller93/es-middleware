@@ -91,6 +91,16 @@ public interface ExplorationContext<T extends IdentifiableResult> extends Iterab
   void putValuesData(String id, List<String> path, JsonNode data);
 
   /**
+   * Puts the given {@code data} to the value node with the given {@code id} on the given position.
+   * The data can then be accessed with {@link ExplorationContext#getValues(String, JsonPointer)}.
+   *
+   * @param id to which the data shall be stored.
+   * @param path position to which the data shall be stored.
+   * @param data the data that shall be stored.
+   */
+  void putValuesData(String id, JsonPointer path, JsonNode data);
+
+  /**
    * Gets the {@link JsonNode} on the given position in the value node stored under the given {@code
    * id}. If there is no data for {@code id} or the path goes nowhere, {@link Optional#EMPTY} will
    * be returned.
