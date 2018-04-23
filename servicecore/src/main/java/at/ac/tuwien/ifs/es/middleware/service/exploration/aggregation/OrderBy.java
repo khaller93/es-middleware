@@ -59,7 +59,7 @@ public class OrderBy implements AggregationOperator<OrderByPayload> {
             String.format("There is no value associated with '%s'.", payload.getPath()));
       }
     }
-    final int strategy = payload.getStrategy() == ORDER_STRATEGY.ASC ? -1 : 1;
+    final int strategy = payload.getStrategy() == ORDER_STRATEGY.ASC ? 1 : -1;
     return identifiableResults.streamOfResults().sorted(new Comparator<IdentifiableResult>() {
       @Override
       public int compare(IdentifiableResult t1, IdentifiableResult t2) {
