@@ -1,5 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.controller;
 
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.meta.TimeMetadata;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.request.DynamicExplorationFlowRequest;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
@@ -55,8 +56,7 @@ public class ExploratorySearchController {
       throws ExplorationFlowSpecificationException {
     Instant timestampEntered = Instant.now();
     ExplorationContext context = dynamicExplorationFlowFactory.constructFlow(request).execute();
-    context.setMetadataFor("timestamp.entered", payloadMapper.valueToTree(timestampEntered));
-    context.setMetadataFor("timestamp.exited", payloadMapper.valueToTree(Instant.now()));
+    context.setMetadataFor("time", payloadMapper.valueToTree(new TimeMetadata(timestampEntered)));
     return context;
   }
 
@@ -72,8 +72,7 @@ public class ExploratorySearchController {
     Instant timestampEntered = Instant.now();
     ExplorationContext context = commonExplorationFlowFactory
         .constructFullTextSearchFlow(keyword, languages, classes, limit, offset).execute();
-    context.setMetadataFor("timestamp.entered", payloadMapper.valueToTree(timestampEntered));
-    context.setMetadataFor("timestamp.exited", payloadMapper.valueToTree(Instant.now()));
+    context.setMetadataFor("time", payloadMapper.valueToTree(new TimeMetadata(timestampEntered)));
     return context;
   }
 
