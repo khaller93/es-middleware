@@ -31,11 +31,6 @@ public class CommonExplorationFlowFactory {
 
   private FullTextSearch fullTextSearch;
   private ResourceDescriber resourceDescriber;
-  private ObjectMapper parameterMapper;
-
-  public CommonExplorationFlowFactory(@Autowired ObjectMapper parameterMapper) {
-    this.parameterMapper = parameterMapper;
-  }
 
   /**
    * Sets the {@link FullTextSearch} that shall be used for the common flows.

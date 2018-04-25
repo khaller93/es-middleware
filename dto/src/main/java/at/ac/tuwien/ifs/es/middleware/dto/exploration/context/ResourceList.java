@@ -81,6 +81,16 @@ public class ResourceList extends AbstractExplorationContext<Resource> implement
     return new ResourceList(list);
   }
 
+  /**
+   * Gets the size of the results list.
+   *
+   * @return the size of the results list.
+   */
+  @JsonProperty(value = "size")
+  public int getSize() {
+    return list.size();
+  }
+
   @Override
   @Nonnull
   public Iterator<Resource> iterator() {

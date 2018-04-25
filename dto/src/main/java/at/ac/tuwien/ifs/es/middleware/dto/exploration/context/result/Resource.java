@@ -56,4 +56,11 @@ public final class Resource implements IdentifiableResult {
   public int hashCode() {
     return resource != null ? resource.hashCode() : 0;
   }
+
+  @Override
+  public String toString() {
+    return "Resource{" +
+        "resource=" + resource +
+        '}';
+  }
 }

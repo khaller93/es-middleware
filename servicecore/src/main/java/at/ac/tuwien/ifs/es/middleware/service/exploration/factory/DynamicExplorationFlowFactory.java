@@ -9,6 +9,7 @@ import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFl
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,8 +50,20 @@ public class DynamicExplorationFlowFactory {
    */
   public ExplorationFlow constructFlow(DynamicExplorationFlowRequest request) {
     logger.debug("Start to dynamically construct the flow '%s'.", request);
+    return constructFlow(request.getSteps());
+  }
+
+  /**
+   * Takes the specification of an {@link ExplorationFlow} written by a client and constructs the
+   * corresponding exploration flow.
+   *
+   * @param steps that were specified by the client.
+   * @return {@link ExplorationFlow} that covers the specification of the client.
+   */
+  public ExplorationFlow constructFlow(List<ExplorationFlowStepRequest> steps) {
+    logger.debug("Start to dynamically construct the flow with steps '%s'.", steps);
     ExplorationFlow flow = new ExplorationFlow();
-    for (ExplorationFlowStepRequest step : request.getSteps()) {
+    for (ExplorationFlowStepRequest step : steps) {
       Optional<Class<? extends ExplorationFlowStep>> optionalClass = registry.get(step.getName());
       if (optionalClass.isPresent()) {
         try {
@@ -70,5 +83,4 @@ public class DynamicExplorationFlowFactory {
     }
     return flow;
   }
-
 }
