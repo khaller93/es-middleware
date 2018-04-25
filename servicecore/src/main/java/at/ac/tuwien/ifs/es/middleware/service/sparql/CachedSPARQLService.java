@@ -8,7 +8,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 /**
- * This is an implementation of {@link SPARQLService} that caches the query requests using Redis.
+ * This is an implementation of {@link SPARQLService} that caches the query requests.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -23,7 +23,7 @@ public class CachedSPARQLService implements SPARQLService {
     this.knowledgeGraphDAO = knowledgeGraphDAO;
   }
 
-  @Cacheable({"sparql","query"})
+  @Cacheable({"sparql", "query"})
   @Override
   public QueryResult query(String query, boolean includeInference)
       throws KnowledgeGraphSPARQLException {

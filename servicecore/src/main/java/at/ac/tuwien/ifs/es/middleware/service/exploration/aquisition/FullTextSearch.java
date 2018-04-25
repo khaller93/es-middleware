@@ -1,12 +1,12 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.FullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.acquisition.FullTextSearchPayload;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
+import at.ac.tuwien.ifs.es.middleware.service.fts.FullTextSearchService;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Collections;
@@ -22,7 +22,6 @@ import org.apache.commons.rdf.api.RDFTerm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -42,11 +41,10 @@ public class FullTextSearch implements AcquisitionSource<FullTextSearchPayload> 
 
   private static final Logger logger = LoggerFactory.getLogger(FullTextSearch.class);
 
-  private FullTextSearchDAO fullTextSearchDAO;
+  private FullTextSearchService fullTextSearchService;
 
-  public FullTextSearch(
-      @Autowired @Qualifier("SpecificFullTextSearchDAO") FullTextSearchDAO fullTextSearchDAO) {
-    this.fullTextSearchDAO = fullTextSearchDAO;
+  public FullTextSearch(@Autowired FullTextSearchService fullTextSearchService) {
+    this.fullTextSearchService = fullTextSearchService;
   }
 
   @Override
@@ -57,7 +55,7 @@ public class FullTextSearch implements AcquisitionSource<FullTextSearchPayload> 
   @Override
   public ExplorationContext apply(FullTextSearchPayload payload) {
     logger.debug("FTS request {} handed over to exploration flow.");
-    List<Map<String, RDFTerm>> fullTextResultTable = fullTextSearchDAO
+    List<Map<String, RDFTerm>> fullTextResultTable = fullTextSearchService
         .searchFullText(payload.getKeyword(),
             payload.getClasses() != null ? payload.getClasses().stream().map(Resource::value)
                 .collect(Collectors.toList()) : Collections.emptyList(),
@@ -81,7 +79,7 @@ public class FullTextSearch implements AcquisitionSource<FullTextSearchPayload> 
       }
     } else {
       logger.debug("The used full-text-search dao '{}' does not hand over a score.",
-          fullTextSearchDAO.toString());
+          fullTextSearchService.toString());
     }
     return rlContext;
   }

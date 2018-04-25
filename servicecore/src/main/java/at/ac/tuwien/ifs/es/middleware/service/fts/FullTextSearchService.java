@@ -1,20 +1,19 @@
-package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
+package at.ac.tuwien.ifs.es.middleware.service.fts;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 
 /**
- * Instances provide a full-text-search interface to the managed knowledge graph.
+ * This service provides methods for apply a full-text search on the knowledge graph.
  *
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
  */
-public interface FullTextSearchDAO {
+public interface FullTextSearchService {
 
   /**
    * Applies a full text search on the managed knowledge graph using the given {@code keyword} and
@@ -26,9 +25,7 @@ public interface FullTextSearchDAO {
    * @return a ranked list of distinct resource IRIs and optionally corresponding scores.
    * @throws KnowledgeGraphDAOException if fts could not be applied successfully.
    */
-  default List<Map<String, RDFTerm>> searchFullText(String keyword) {
-    return searchFullText(keyword, Collections.emptyList());
-  }
+  List<Map<String, RDFTerm>> searchFullText(String keyword);
 
   /**
    * Applies a full text search on the managed knowledge graph using the given {@code keyword} and
@@ -44,10 +41,7 @@ public interface FullTextSearchDAO {
    * @return a ranked list of distinct resource IRIs and optionally corresponding scores.
    * @throws KnowledgeGraphDAOException if fts could not be applied successfully.
    */
-  default List<Map<String, RDFTerm>> searchFullText(String keyword,
-      List<BlankNodeOrIRI> classes) {
-    return searchFullText(keyword, classes, null, null);
-  }
+  List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes);
 
   /**
    * Applies a full text search on the managed knowledge graph using the given {@code keyword} and

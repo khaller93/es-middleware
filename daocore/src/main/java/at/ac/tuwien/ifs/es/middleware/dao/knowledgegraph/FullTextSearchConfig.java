@@ -6,6 +6,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Primary;
 
 /**
  * This configuration prepares the certain {@link FullTextSearchDAO} that is specified in the
@@ -21,6 +22,7 @@ public class FullTextSearchConfig {
   @Value("${esm.fts.choice:#{null}}")
   private String choice;
 
+  @Primary
   @Lazy
   @Bean
   public FullTextSearchDAO SpecificFullTextSearchDAO(@Autowired ApplicationContext context) {
