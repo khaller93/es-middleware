@@ -52,7 +52,7 @@ public class ExploratoryControllerMusicPintaFTSTest {
   public void test_searchForInstrument_mustReturnCorrespondingMatchesForGuitar()
       throws IOException {
     ResponseEntity<String> guitarFTSearchResponse = restTemplate
-        .getForEntity("/explore/with/fts/guitar", String.class);
+        .getForEntity("/explore/with/keyword/guitar", String.class);
     assertThat("The request must be successful.", guitarFTSearchResponse.getStatusCode().value(),
         is(200));
 
@@ -75,7 +75,7 @@ public class ExploratoryControllerMusicPintaFTSTest {
   @Test
   public void test_searchForInstrument_mustReturnExactly5ResultsWithOffset() throws Exception {
     ResponseEntity<String> guitarFTSearchResponse = restTemplate
-        .getForEntity("/explore/with/fts/guitar?offset={offset}&limit={limit}", String.class, 7, 6);
+        .getForEntity("/explore/with/keyword/guitar?offset={offset}&limit={limit}", String.class, 7, 6);
     ResourceList result = payloadMapper
         .readValue(guitarFTSearchResponse.getBody(), ResourceList.class);
     assertTrue(guitarFTSearchResponse.getStatusCode().is2xxSuccessful());
@@ -107,7 +107,7 @@ public class ExploratoryControllerMusicPintaFTSTest {
   public void test_searchForPerformanceAndInstrument_mustReturnTop5GuitarMatches()
       throws Exception {
     ResponseEntity<String> guitarFTSearchResponse = restTemplate
-        .getForEntity("/explore/with/fts/guitar?classes={classes}&limit={limit}", String.class,
+        .getForEntity("/explore/with/keyword/guitar?classes={classes}&limit={limit}", String.class,
             String.join(",", Arrays.asList("http://purl.org/ontology/mo/Performance",
                 "http://purl.org/ontology/mo/Instrument")), 20);
     assertTrue(guitarFTSearchResponse.getStatusCode().is2xxSuccessful());

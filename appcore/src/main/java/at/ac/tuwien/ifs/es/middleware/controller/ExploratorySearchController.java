@@ -60,7 +60,7 @@ public class ExploratorySearchController {
     return context;
   }
 
-  @GetMapping(value = "/with/fts/{keyword}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/with/keyword/{keyword}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation(value = "Apply full-text-search with the given keyword.")
   public ExplorationContext exploreWithFullTextSearch(
       @ApiParam(value = "Keyword for which corresponding resources shall be found.", required = true) @PathVariable String keyword,

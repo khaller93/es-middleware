@@ -54,7 +54,7 @@ public class FullTextSearch implements AcquisitionSource<FullTextSearchPayload> 
 
   @Override
   public ExplorationContext apply(FullTextSearchPayload payload) {
-    logger.debug("FTS request {} handed over to exploration flow.");
+    logger.debug("FTS request {} handed over to exploration flow.", payload);
     List<Map<String, RDFTerm>> fullTextResultTable = fullTextSearchService
         .searchFullText(payload.getKeyword(),
             payload.getClasses() != null ? payload.getClasses().stream().map(Resource::value)
