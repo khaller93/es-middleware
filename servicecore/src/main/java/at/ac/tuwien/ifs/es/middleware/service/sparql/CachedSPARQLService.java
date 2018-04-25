@@ -5,6 +5,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLExceptio
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.QueryResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 /**
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
  * @version 1.0
  * @since 1.0
  */
+@Lazy
 @Service("CachedSPARQLService")
 public class CachedSPARQLService implements SPARQLService {
 

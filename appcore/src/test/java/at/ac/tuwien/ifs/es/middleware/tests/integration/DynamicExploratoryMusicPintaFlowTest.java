@@ -63,7 +63,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(classes = ExploratorySearchApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
     "esm.db.choice=IndexedMemoryDB",
-    "esm.fts.choice=IndexedMemoryDB"})
+    "esm.fts.choice=IndexedMemoryDB"
+})
 public class DynamicExploratoryMusicPintaFlowTest {
 
   @Autowired

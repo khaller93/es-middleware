@@ -48,7 +48,9 @@ import org.springframework.util.MultiValueMap;
 @SpringBootTest(classes = ExploratorySearchApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
     "esm.db.choice=IndexedMemoryDB",
-    "esm.fts.choice=IndexedMemoryDB"})
+    "esm.fts.choice=IndexedMemoryDB",
+    "esm.cache.enable=false"
+})
 public class SPARQLControllerTest {
 
   @Autowired

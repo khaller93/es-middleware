@@ -1,5 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.tests.integration;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.contains;
@@ -36,7 +37,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(classes = ExploratorySearchApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
     "esm.db.choice=IndexedMemoryDB",
-    "esm.fts.choice=IndexedMemoryDB"})
+    "esm.fts.choice=IndexedMemoryDB",
+    "esm.cache.enable=false"
+})
 public class ExploratoryControllerMusicPintaFTSTest {
 
   @Autowired
@@ -75,10 +78,11 @@ public class ExploratoryControllerMusicPintaFTSTest {
   @Test
   public void test_searchForInstrument_mustReturnExactly5ResultsWithOffset() throws Exception {
     ResponseEntity<String> guitarFTSearchResponse = restTemplate
-        .getForEntity("/explore/with/keyword/guitar?offset={offset}&limit={limit}", String.class, 7, 6);
+        .getForEntity("/explore/with/keyword/guitar?offset={offset}&limit={limit}", String.class, 7,
+            6);
     ResourceList result = payloadMapper
         .readValue(guitarFTSearchResponse.getBody(), ResourceList.class);
-    assertTrue(guitarFTSearchResponse.getStatusCode().is2xxSuccessful());
+    assertThat(guitarFTSearchResponse.getStatusCode().value(), is(equalTo(200)));
 
     List<String> resourceIds = result.asResourceList().stream().map(Resource::getId)
         .collect(Collectors.toList());
@@ -94,9 +98,9 @@ public class ExploratoryControllerMusicPintaFTSTest {
   @Test
   public void test_searchForPerformance_mustReturnNoResult() throws Exception {
     ResponseEntity<String> guitarFTSearchResponse = restTemplate
-        .getForEntity("/explore/with/fts/guitar?classes={classes}", String.class,
+        .getForEntity("/explore/with/keyword/guitar?classes={classes}", String.class,
             "http://purl.org/ontology/mo/MusicArtist");
-    assertTrue(guitarFTSearchResponse.getStatusCode().is2xxSuccessful());
+    assertThat(guitarFTSearchResponse.getStatusCode().value(), is(equalTo(200)));
 
     ResourceList result = payloadMapper
         .readValue(guitarFTSearchResponse.getBody(), ResourceList.class);
@@ -110,7 +114,7 @@ public class ExploratoryControllerMusicPintaFTSTest {
         .getForEntity("/explore/with/keyword/guitar?classes={classes}&limit={limit}", String.class,
             String.join(",", Arrays.asList("http://purl.org/ontology/mo/Performance",
                 "http://purl.org/ontology/mo/Instrument")), 20);
-    assertTrue(guitarFTSearchResponse.getStatusCode().is2xxSuccessful());
+    assertThat(guitarFTSearchResponse.getStatusCode().value(), is(equalTo(200)));
 
     ResourceList result = payloadMapper
         .readValue(guitarFTSearchResponse.getBody(), ResourceList.class);

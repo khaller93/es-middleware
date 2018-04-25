@@ -5,6 +5,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.exception.MalformedSPARQLQueryExceptio
 import at.ac.tuwien.ifs.es.middleware.dto.exception.SPARQLExecutionException;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.QueryResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 /**
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
  * @version 1.0
  * @since 1.0
  */
+@Lazy
 @Service("SimpleSPARQLService")
 public class SimpleSPARQLService implements SPARQLService {
 

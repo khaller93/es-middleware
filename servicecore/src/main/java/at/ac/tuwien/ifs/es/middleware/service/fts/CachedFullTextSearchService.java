@@ -7,7 +7,9 @@ import java.util.Map;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 /**
@@ -18,12 +20,14 @@ import org.springframework.stereotype.Service;
  * @version 1.0
  * @since 1.0
  */
+@Lazy
 @Service("CachedFullTextSearchService")
 public class CachedFullTextSearchService implements FullTextSearchService {
 
   private FullTextSearchDAO fullTextSearchDAO;
 
-  public CachedFullTextSearchService(@Autowired FullTextSearchDAO fullTextSearchDAO) {
+  public CachedFullTextSearchService(
+      @Autowired @Qualifier("getSpecificFullTextSearchDAO") FullTextSearchDAO fullTextSearchDAO) {
     this.fullTextSearchDAO = fullTextSearchDAO;
   }
 

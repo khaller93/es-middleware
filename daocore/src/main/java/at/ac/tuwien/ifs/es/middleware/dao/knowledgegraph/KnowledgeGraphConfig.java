@@ -30,7 +30,7 @@ public class KnowledgeGraphConfig {
   @Bean
   @Primary
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-  public KnowledgeGraphDAO SpecifiedKnowledgeGraphDAO(@Autowired ApplicationContext context) {
+  public KnowledgeGraphDAO getSpecifiedKnowledgeGraphDAO(@Autowired ApplicationContext context) {
     return context.getBean(choice, KnowledgeGraphDAO.class);
   }
 

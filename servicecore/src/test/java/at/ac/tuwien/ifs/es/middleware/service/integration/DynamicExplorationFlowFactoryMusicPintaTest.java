@@ -21,6 +21,8 @@ import at.ac.tuwien.ifs.es.middleware.service.exploration.exploitation.ResourceD
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.exploitation.DescriberPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.factory.DynamicExplorationFlowFactory;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFlowRegistry;
+import at.ac.tuwien.ifs.es.middleware.service.fts.FullTextSearchService;
+import at.ac.tuwien.ifs.es.middleware.service.fts.SimpleFullTextSearchService;
 import at.ac.tuwien.ifs.es.middleware.service.sparql.SimpleSPARQLService;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,12 +42,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {KnowledgeGraphConfig.class, SimpleSPARQLService.class,
-    IndexedMemoryKnowledgeGraph.class, FullTextSearchConfig.class,
-    DynamicExplorationFlowFactory.class, ExplorationFlowRegistry.class, FullTextSearch.class,
-    ResourceDescriber.class, ObjectMapper.class})
+    IndexedMemoryKnowledgeGraph.class, DynamicExplorationFlowFactory.class,
+    ExplorationFlowRegistry.class, FullTextSearchConfig.class, FullTextSearch.class,
+    ResourceDescriber.class,
+    SimpleFullTextSearchService.class, ObjectMapper.class})
 @TestPropertySource(properties = {
     "esm.db.choice=IndexedMemoryDB",
     "esm.fts.choice=IndexedMemoryDB",
+    "esm.cache.enable=false"
 })
 public class DynamicExplorationFlowFactoryMusicPintaTest {
 

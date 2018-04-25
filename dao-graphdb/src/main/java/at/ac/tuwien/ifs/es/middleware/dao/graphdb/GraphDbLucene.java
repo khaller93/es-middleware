@@ -17,10 +17,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 @Lazy
-@Repository("GraphDBLucene")
+@Component("GraphDBLucene")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class GraphDbLucene implements FullTextSearchDAO {
 
@@ -36,13 +37,8 @@ public class GraphDbLucene implements FullTextSearchDAO {
       + "${limit}\n";
 
   private final static String[] FTS_CLASSES_FILTER = new String[]{
-      "FILTER EXISTS {\n"
-          + "?resource a %s .\n"
-          + "}",
-      "FILTER EXISTS {\n"
-          + "?resource a ?class .\n"
-          + "FILTER(?class in (%s)) .\n"
-          + "}"
+      "\n?resource a %s .\n",
+      "\n?resource a ?class .\nFILTER(?class in (%s)) .\n"
   };
 
   private static final String INSERT_INDEX_DATA_QUERY =

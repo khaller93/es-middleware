@@ -43,20 +43,15 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
           + "  ?resource search:matches [\n"
           + "    search:query \"${keyword}\";\n"
           + "    search:score ?score\n"
-          + "  ]\n"
+          + "  ] .\n"
           + "  ${class-filter}\n"
           + "} ORDER BY DESC(?score)\n"
           + "${offset}\n"
           + "${limit}\n";
 
   private final static String[] FTS_CLASSES_FILTER = new String[]{
-      "FILTER EXISTS {\n"
-          + "?resource a %s .\n"
-          + "}",
-      "FILTER EXISTS {\n"
-          + "?resource a ?class .\n"
-          + "FILTER(?class in (%s)) .\n"
-          + "}"
+      "\n?resource a %s .\n",
+      "\n?resource a ?class .\nFILTER(?class in (%s)) .\n"
   };
 
   /**
