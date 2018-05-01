@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.service.integration;
+package at.ac.tuwien.ifs.es.middleware.testutil;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -12,16 +12,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphConfig;
-import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.IndexedMemoryKnowledgeGraph;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.MalformedSPARQLQueryException;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.AskQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.GraphQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.QueryResult;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
-import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,6 +29,7 @@ import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.rdf.api.Triple;
 import org.apache.commons.rdf.simple.SimpleRDF;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,25 +38,28 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+/**
+ * This class implements generic tests for the SPARQL interface of {@link KnowledgeGraphDAO}s.
+ *
+ * @author Kevin Haller
+ * @version 1.0
+ * @since 1.0
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {MusicPintaInstrumentsResource.class,
-    KnowledgeGraphConfig.class, SimpleSPARQLService.class, IndexedMemoryKnowledgeGraph.class})
-@TestPropertySource(properties = {
-    "esm.db.choice=IndexedMemoryDB",
-    "esm.cache.enable=false"
+@ContextConfiguration(classes={
+    MusicPintaInstrumentsResource.class
 })
-public class SimpleSPARQLServiceTest {
+public abstract class AbstractMusicPintaSPARQLTests {
 
   @Rule
   @Autowired
-  public MusicPintaInstrumentsResource musicPintaResource;
-
+  public MusicPintaInstrumentsResource musicPintaInstrumentsResource;
   @Autowired
-  public SPARQLService sparqlService;
+  private KnowledgeGraphDAO knowledgeGraphDAO;
 
   @Test
   public void test_countQuery_ok_mustReturnValue() throws Exception {
-    QueryResult result = sparqlService
+    QueryResult result = knowledgeGraphDAO
         .query("SELECT (COUNT(DISTINCT ?s) as ?cnt) WHERE { ?s ?p ?o }", false);
     assertThat("The result must be of a 'select' query.", result,
         instanceOf(SelectQueryResult.class));
@@ -73,7 +74,7 @@ public class SimpleSPARQLServiceTest {
 
   @Test
   public void test_selectResourceQuery_ok_mustReturnMusicInstruments() throws Exception {
-    QueryResult result = sparqlService
+    QueryResult result = knowledgeGraphDAO
         .query("SELECT DISTINCT ?s WHERE { ?s a <http://purl.org/ontology/mo/Instrument> }", false);
     assertThat("The result must be of a 'select' query.", result,
         instanceOf(SelectQueryResult.class));
@@ -93,14 +94,14 @@ public class SimpleSPARQLServiceTest {
   @Test(expected = MalformedSPARQLQueryException.class)
   public void test_executeUpdateQueryOnQueryMethod_throwMalformedSPARQLQueryException()
       throws Exception {
-    sparqlService.query(
+    knowledgeGraphDAO.query(
         "INSERT DATA { <test:a> a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"A\" ; rdfs:comment \"A test instance.\" . }",
         false);
   }
 
   @Test
   public void test_askForUnknownInstrument_mustReturnFalse() throws Exception {
-    QueryResult result = sparqlService.query(
+    QueryResult result = knowledgeGraphDAO.query(
         "ASK WHERE { ?s a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"Jaguar\"@en .}",
         false);
     assertThat("The result must be of an 'ask' query.", result, instanceOf(AskQueryResult.class));
@@ -112,7 +113,7 @@ public class SimpleSPARQLServiceTest {
 
   @Test
   public void test_askForWellKnownInstrument_mustReturnTrue() throws Exception {
-    QueryResult result = sparqlService.query(
+    QueryResult result = knowledgeGraphDAO.query(
         "ASK WHERE { ?s a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"Harp\"@en .}",
         false);
     assertThat("The result must be of an 'ask' query.", result, instanceOf(AskQueryResult.class));
@@ -124,7 +125,7 @@ public class SimpleSPARQLServiceTest {
   @Test
   public void test_describeQuery_ok() throws Exception {
     RDF valueFactory = new SimpleRDF();
-    QueryResult result = sparqlService
+    QueryResult result = knowledgeGraphDAO
         .query("DESCRIBE <http://dbpedia.org/resource/Huluhu>", false);
     assertThat("", result, instanceOf(GraphQueryResult.class));
     Graph resultGraph = ((GraphQueryResult) result).value();
@@ -158,9 +159,10 @@ public class SimpleSPARQLServiceTest {
   @Test
   public void test_updateInsertData_mustBeSuccessful() throws Exception {
     RDF valueFactory = new SimpleRDF();
-    sparqlService.update(
+    knowledgeGraphDAO.update(
         "INSERT DATA { <test:a> a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"A\" ; rdfs:comment \"A test instance.\" . }");
-    GraphQueryResult result = (GraphQueryResult) sparqlService.query("Describe <test:a>", false);
+    GraphQueryResult result = (GraphQueryResult) knowledgeGraphDAO
+        .query("Describe <test:a>", false);
     Graph resultGraph = result.value();
     IRI testIRI = valueFactory.createIRI("test:a");
     assertTrue(resultGraph.contains(testIRI, null, null));
@@ -178,14 +180,15 @@ public class SimpleSPARQLServiceTest {
 
   @Test(expected = KnowledgeGraphSPARQLException.class)
   public void test_updateInsertDataWithInvalidIRI_mustRespondWithFailure() throws Exception {
-    sparqlService.update("INSERT DATA { <:a/\\path> a <http://purl.org/ontology/mo/Instrument>. }");
+    knowledgeGraphDAO
+        .update("INSERT DATA { <:a/\\path> a <http://purl.org/ontology/mo/Instrument>. }");
   }
 
   @Test
   public void test_updateDeleteData_mustBeSuccessful() throws Exception {
     RDF valueFactory = new SimpleRDF();
-    sparqlService.update("DELETE WHERE { <http://dbpedia.org/resource/Huluhu> ?p1 ?o .}");
-    GraphQueryResult result = (GraphQueryResult) sparqlService
+    knowledgeGraphDAO.update("DELETE WHERE { <http://dbpedia.org/resource/Huluhu> ?p1 ?o .}");
+    GraphQueryResult result = (GraphQueryResult) knowledgeGraphDAO
         .query("DESCRIBE <http://dbpedia.org/resource/Huluhu>", false);
     Graph resultGraph = result.value();
     IRI testIRI = valueFactory.createIRI("http://dbpedia.org/resource/Huluhu");

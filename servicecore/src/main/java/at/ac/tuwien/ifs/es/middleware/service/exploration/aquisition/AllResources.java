@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.logging.log4j.core.lookup.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,7 +105,7 @@ public class AllResources implements AcquisitionSource<AllResourcesPayload> {
     valuesMap
         .put("exclude", prepareFilterBlock(EXCLUDE_FILTER_TEMPLATE, payload.getExcludedClasses()));
     // Reads the result.
-    String query = new StrSubstitutor(valuesMap).replace(allQueryTemplate);
+    String query = new StringSubstitutor(valuesMap).replace(allQueryTemplate);
     logger.debug("Executing the query '{}' for all resources operator.", query);
     SelectQueryResult result = (SelectQueryResult) sparqlService.query(query, true);
     return ResourceList.of(result, "s");

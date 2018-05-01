@@ -82,7 +82,7 @@ public abstract class RDF4JKnowledgeGraphDAO implements KnowledgeGraphDAO {
 
   @Override
   public void update(String query) throws KnowledgeGraphSPARQLException {
-    logger.debug("Update {} was requested to be executed");
+    logger.debug("Update {} was requested to be executed", query);
     try (RepositoryConnection con = repository.getConnection()) {
       con.prepareUpdate(query).execute();
     } catch (RDF4JException e) {

@@ -2,6 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.dao.rdf4j;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.FullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.GremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.InMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
@@ -11,12 +12,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
-import org.apache.logging.log4j.core.lookup.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.eclipse.rdf4j.sail.lucene.LuceneSail;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -56,11 +59,14 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
       "\n?resource a ?class .\nFILTER(?class in (%s)) .\n"
   };
 
+  private ApplicationContext context;
+
   /**
    * Creates a new {@link KnowledgeGraphDAO} in
    * memory that is indexed.
    */
-  public IndexedMemoryKnowledgeGraph() {
+  public IndexedMemoryKnowledgeGraph(@Autowired ApplicationContext context) {
+    this.context = context;
     LuceneSail luceneSail = new LuceneSail();
     luceneSail.setParameter(LuceneSail.LUCENE_RAMDIR_KEY, "true");
     luceneSail.setBaseSail(new MemoryStore());
@@ -98,7 +104,7 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
     valueMap.put("class-filter", prepareFilter(classes));
     valueMap.put("offset", offset != null ? "OFFSET " + offset.toString() : "");
     valueMap.put("limit", limit != null ? "LIMIT " + limit.toString() : "");
-    String filledFtsQuery = new StrSubstitutor(valueMap).replace(FTS_QUERY);
+    String filledFtsQuery = new StringSubstitutor(valueMap).replace(FTS_QUERY);
     logger.trace(
         "Query resulting from FTS call for {} with parameters (offset={}, limit={}, classes={}).",
         filledFtsQuery, offset, limit, classes);
@@ -112,7 +118,6 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
 
   @Override
   public GremlinDAO getGremlinDAO() {
-    //TODO: Implement
-    return null;
+    return context.getBean("InMemoryGremlin", InMemoryGremlinDAO.class);
   }
 }

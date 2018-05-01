@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.apache.logging.log4j.core.lookup.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -85,7 +85,7 @@ public class GraphDbLuceneConfig {
    * @return the configuration triples for {@link GraphDbLucene}.
    */
   public String getConfigTriples() {
-    return new StrSubstitutor(ImmutableMap.<String, String>builder()
+    return new StringSubstitutor(ImmutableMap.<String, String>builder()
         .put("index", indexing == null || indexing.isEmpty() ? ""
             : String.format("luc:index luc:setParam \"%s\".",
                 indexing.stream().collect(Collectors.joining(","))))

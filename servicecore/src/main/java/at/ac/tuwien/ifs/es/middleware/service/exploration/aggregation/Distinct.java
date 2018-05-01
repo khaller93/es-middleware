@@ -19,7 +19,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
-import org.apache.logging.log4j.core.lookup.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -64,7 +64,7 @@ public class Distinct implements AggregationOperator<VoidPayload> {
   public ExplorationContext apply(ExplorationContext context, VoidPayload payload) {
     if (context instanceof ResourceList) {
       ResourceList resourceList = (ResourceList) context;
-      SelectQueryResult queryResult = (SelectQueryResult) sparqlService.query(new StrSubstitutor(
+      SelectQueryResult queryResult = (SelectQueryResult) sparqlService.query(new StringSubstitutor(
           Collections.singletonMap("resourceList", resourceList.asResourceSet().stream().map(
               BlankOrIRIJsonUtil::stringForSPARQLResourceOf).collect(Collectors.joining("\n"))))
           .replace(DUPLICATES_QUERY), true);

@@ -47,7 +47,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     SimpleFullTextSearchService.class, ObjectMapper.class})
 @TestPropertySource(properties = {
     "esm.db.choice=IndexedMemoryDB",
-    "esm.fts.choice=IndexedMemoryDB",
     "esm.cache.enable=false"
 })
 public class DynamicExplorationFlowFactoryMusicPintaTest {

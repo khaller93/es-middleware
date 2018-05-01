@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
-import org.apache.logging.log4j.core.lookup.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.eclipse.rdf4j.repository.sparql.SPARQLRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +88,7 @@ public class StardogKnowledgeGraphDAO extends RDF4JKnowledgeGraphDAO implements 
     }
     queryValuesMap.put("offset", offset != null ? String.format("OFFSET %d", offset) : "");
     queryValuesMap.put("limit", limit != null ? String.format("LIMIT %d",limit) : "");
-    String searchQuery = new StrSubstitutor(queryValuesMap).replace(SEARCH_QUERY);
+    String searchQuery = new StringSubstitutor(queryValuesMap).replace(SEARCH_QUERY);
     logger
         .trace("Searching with '{}' for '{}' of classes {} with limit={}, offset={}.", searchQuery,
             keyword, classes, offset, limit);

@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
+import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,7 +83,7 @@ public class GraphDbLucene implements FullTextSearchDAO {
     valueMap.put("class-filter", prepareFilter(classes));
     valueMap.put("offset", offset != null ? "OFFSET " + offset.toString() : "");
     valueMap.put("limit", limit != null ? "LIMIT " + limit.toString() : "");
-    String filledFtsQuery = new org.apache.logging.log4j.core.lookup.StrSubstitutor(valueMap)
+    String filledFtsQuery = new StringSubstitutor(valueMap)
         .replace(FTS_QUERY);
     logger.trace(
         "Query resulting from FTS call for {} with parameters (offset={}, limit={}, classes={}).",

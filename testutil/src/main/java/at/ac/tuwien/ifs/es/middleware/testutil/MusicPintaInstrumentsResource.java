@@ -1,11 +1,12 @@
 package at.ac.tuwien.ifs.es.middleware.testutil;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
 import org.eclipse.rdf4j.model.Model;
-import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
 import org.junit.rules.ExternalResource;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * This is an {@link ExternalResource} that loads the music pinta instruments subset into the
- * specified {@link RDF4JKnowledgeGraphDAO}.
+ * specified {@link KnowledgeGraphDAO}.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -39,23 +40,27 @@ public class MusicPintaInstrumentsResource extends ExternalResource {
     }
   }
 
-  private RDF4JKnowledgeGraphDAO knowledgeGraphDAO;
+  private KnowledgeGraphDAO knowledgeGraphDAO;
 
-  public MusicPintaInstrumentsResource(@Autowired KnowledgeGraphDAO KnowledgeGraphDAO) {
-    this.knowledgeGraphDAO = (RDF4JKnowledgeGraphDAO) KnowledgeGraphDAO;
+  public MusicPintaInstrumentsResource(@Autowired KnowledgeGraphDAO knowledgeGraphDAO) {
+    this.knowledgeGraphDAO = knowledgeGraphDAO;
   }
 
   @Override
   protected void before() throws Throwable {
-    try (RepositoryConnection con = knowledgeGraphDAO.getRepository().getConnection()) {
-      con.add(testModel);
+    Iterator<Statement> statementIterator = testModel.iterator();
+    while (statementIterator.hasNext()) {
+      try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+        for (int i = 0; i < 5000 && statementIterator.hasNext(); i++) {
+          Rio.write(statementIterator.next(), out, RDFFormat.NTRIPLES);
+        }
+        knowledgeGraphDAO.update(String.format("INSERT DATA {%s}", new String(out.toByteArray())));
+      }
     }
   }
 
   @Override
   protected void after() {
-    try (RepositoryConnection con = knowledgeGraphDAO.getRepository().getConnection()) {
-      con.clear();
-    }
+    knowledgeGraphDAO.update("DELETE {?s ?p ?o} WHERE {?s ?p ?o}");
   }
 }

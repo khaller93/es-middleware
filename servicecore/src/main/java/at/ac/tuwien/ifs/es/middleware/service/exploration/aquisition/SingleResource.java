@@ -10,7 +10,7 @@ import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForEx
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import java.util.Collections;
 import java.util.Map;
-import org.apache.logging.log4j.core.lookup.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +58,7 @@ public class SingleResource implements AcquisitionSource<SingleResourcePayload> 
         .singletonMap("s",
             BlankOrIRIJsonUtil.stringForSPARQLResourceOf(payload.getResource().value()));
     AskQueryResult existResult = (AskQueryResult) sparqlService
-        .query(new StrSubstitutor(valueMap).replace(ASK_EXIST_QUERY), true);
+        .query(new StringSubstitutor(valueMap).replace(ASK_EXIST_QUERY), true);
     if (existResult.value()) {
       return new ResourceList(Collections.singletonList(payload.getResource()));
     } else {
