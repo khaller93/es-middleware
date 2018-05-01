@@ -48,6 +48,7 @@
     <module>dao-graphdb</module>
     <module>dao-blazegraph</module>
     <module>testutil</module>
+    <module>dao-stardog</module>
   </modules>
 
   <dependencies>
