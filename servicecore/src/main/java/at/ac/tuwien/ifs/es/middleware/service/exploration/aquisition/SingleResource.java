@@ -7,7 +7,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.sparql.AskQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.acquisition.SingleResourcePayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
-import at.ac.tuwien.ifs.es.middleware.service.sparql.SPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import java.util.Collections;
 import java.util.Map;
 import org.apache.logging.log4j.core.lookup.StrSubstitutor;

@@ -1,6 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.FullTextSearchDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.GremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import java.util.HashMap;
@@ -55,7 +57,7 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
   };
 
   /**
-   * Creates a new {@link at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO} in
+   * Creates a new {@link KnowledgeGraphDAO} in
    * memory that is indexed.
    */
   public IndexedMemoryKnowledgeGraph() {
@@ -101,5 +103,16 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
         "Query resulting from FTS call for {} with parameters (offset={}, limit={}, classes={}).",
         filledFtsQuery, offset, limit, classes);
     return ((SelectQueryResult) this.query(filledFtsQuery, true)).value();
+  }
+
+  @Override
+  public FullTextSearchDAO getFullTextSearchDAO() {
+    return this;
+  }
+
+  @Override
+  public GremlinDAO getGremlinDAO() {
+    //TODO: Implement
+    return null;
   }
 }

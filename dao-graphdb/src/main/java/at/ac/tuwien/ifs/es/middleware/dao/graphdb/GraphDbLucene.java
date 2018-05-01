@@ -18,10 +18,9 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Repository;
 
 @Lazy
-@Component("GraphDBLucene")
+@Component("InBuiltLucene")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class GraphDbLucene implements FullTextSearchDAO {
 
@@ -52,12 +51,12 @@ public class GraphDbLucene implements FullTextSearchDAO {
       "PREFIX luc: <http://www.ontotext.com/owlim/lucene#>\n"
           + "INSERT DATA { <%s> luc:updateIndex _:b1 . }";
 
-  private KnowledgeGraphDAO knowledgeGraphDAO;
+  private KnowledgeGraphDAO KnowledgeGraphDAO;
   private GraphDbLuceneConfig graphDbLuceneConfig;
 
-  public GraphDbLucene(@Autowired KnowledgeGraphDAO knowledgeGraphDAO,
+  public GraphDbLucene(@Autowired KnowledgeGraphDAO KnowledgeGraphDAO,
       @Autowired GraphDbLuceneConfig graphDbLuceneConfig) {
-    this.knowledgeGraphDAO = knowledgeGraphDAO;
+    this.KnowledgeGraphDAO = KnowledgeGraphDAO;
     this.graphDbLuceneConfig = graphDbLuceneConfig;
   }
 
@@ -65,7 +64,7 @@ public class GraphDbLucene implements FullTextSearchDAO {
   public void initialize() {
     if (graphDbLuceneConfig.shouldBeInitialized()) {
       logger.debug("The GraphDb Lucene index will be initialized.");
-      knowledgeGraphDAO
+      KnowledgeGraphDAO
           .update(String.format(INSERT_INDEX_DATA_QUERY, graphDbLuceneConfig.getConfigTriples(),
               graphDbLuceneConfig.getLuceneIndexIRI()));
     }
@@ -88,7 +87,7 @@ public class GraphDbLucene implements FullTextSearchDAO {
     logger.trace(
         "Query resulting from FTS call for {} with parameters (offset={}, limit={}, classes={}).",
         filledFtsQuery, offset, limit, classes);
-    return ((SelectQueryResult) knowledgeGraphDAO.query(filledFtsQuery, true)).value();
+    return ((SelectQueryResult) KnowledgeGraphDAO.query(filledFtsQuery, true)).value();
   }
 
   /**
@@ -117,7 +116,7 @@ public class GraphDbLucene implements FullTextSearchDAO {
    */
   private void performBatchUpdateOfIndex() {
     logger.debug("Batch updating the lucene index for '{}'.", graphDbLuceneConfig.getName());
-    knowledgeGraphDAO
+    KnowledgeGraphDAO
         .update(String.format(BATCH_UPDATE_QUERY, graphDbLuceneConfig.getLuceneIndexIRI()));
   }
 

@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.service.fts;
+package at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.fts;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
 import java.util.List;

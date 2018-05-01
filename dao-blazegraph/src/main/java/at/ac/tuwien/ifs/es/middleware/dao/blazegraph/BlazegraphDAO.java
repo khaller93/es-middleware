@@ -1,5 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.blazegraph;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.FullTextSearchDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.GremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
 import org.eclipse.rdf4j.repository.sparql.SPARQLRepository;
@@ -26,9 +28,17 @@ public class BlazegraphDAO extends RDF4JKnowledgeGraphDAO {
 
   private static final Logger logger = LoggerFactory.getLogger(BlazegraphDAO.class);
 
-  private String queryEndpointURL;
-
   public BlazegraphDAO(@Value("${blazegraph.queryEndpointURL}") String queryEndpointURL) {
     init(new SPARQLRepository(queryEndpointURL));
+  }
+
+  @Override
+  public FullTextSearchDAO getFullTextSearchDAO() {
+    return null;
+  }
+
+  @Override
+  public GremlinDAO getGremlinDAO() {
+    return null;
   }
 }

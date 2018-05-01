@@ -21,9 +21,8 @@ import at.ac.tuwien.ifs.es.middleware.service.exploration.exploitation.ResourceD
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.exploitation.DescriberPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.factory.DynamicExplorationFlowFactory;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFlowRegistry;
-import at.ac.tuwien.ifs.es.middleware.service.fts.FullTextSearchService;
-import at.ac.tuwien.ifs.es.middleware.service.fts.SimpleFullTextSearchService;
-import at.ac.tuwien.ifs.es.middleware.service.sparql.SimpleSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.fts.SimpleFullTextSearchService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;

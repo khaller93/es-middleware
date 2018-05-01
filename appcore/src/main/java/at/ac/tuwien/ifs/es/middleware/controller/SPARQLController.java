@@ -5,7 +5,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.exception.MalformedSPARQLQueryExceptio
 import at.ac.tuwien.ifs.es.middleware.dto.exception.SPARQLExecutionException;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.SPARQLResultFormatException;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.SPARQLResultSerializationException;
-import at.ac.tuwien.ifs.es.middleware.service.sparql.SPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;

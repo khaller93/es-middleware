@@ -4,8 +4,8 @@ import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLExceptio
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.QueryResult;
 
 /**
- * An instance of this interface represents a DAO to a certain knowledge graph. This DAO provides
- * the ability to query the graph using SPARQL.
+ * An instance of this interface represents a SPARQL interface to a certain knowledge graph. This
+ * DAO provides the ability to query the graph using SPARQL.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -34,4 +34,18 @@ public interface KnowledgeGraphDAO {
    * successfully.
    */
   void update(String query) throws KnowledgeGraphSPARQLException;
+
+  /**
+   * Gets the {@link FullTextSearchDAO} for this knowledge graph.
+   *
+   * @return {@link FullTextSearchDAO} for this knowledge graph.
+   */
+  FullTextSearchDAO getFullTextSearchDAO();
+
+  /**
+   * Gets the {@link GremlinDAO} for this knowledge graph.
+   *
+   * @return {@link GremlinDAO} for this knowledge graph.
+   */
+  GremlinDAO getGremlinDAO();
 }

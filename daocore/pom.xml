@@ -23,6 +23,17 @@
       <artifactId>commons-rdf-api</artifactId>
       <version>${commons-rdf.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.tinkerpop</groupId>
+      <artifactId>gremlin-core</artifactId>
+      <version>${tinkerpop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tinkerpop</groupId>
+      <artifactId>tinkergraph-gremlin</artifactId>
+      <version>${tinkerpop.version}</version>
+      <scope>test</scope>
+    </dependency>
     <!-- ES Middleware dependencies -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>

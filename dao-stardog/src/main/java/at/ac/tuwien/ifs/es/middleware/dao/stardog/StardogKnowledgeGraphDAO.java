@@ -1,6 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.stardog;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.FullTextSearchDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.GremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
@@ -92,5 +93,16 @@ public class StardogKnowledgeGraphDAO extends RDF4JKnowledgeGraphDAO implements 
         .trace("Searching with '{}' for '{}' of classes {} with limit={}, offset={}.", searchQuery,
             keyword, classes, offset, limit);
     return ((SelectQueryResult) query(searchQuery, true)).value();
+  }
+
+  @Override
+  public FullTextSearchDAO getFullTextSearchDAO() {
+    return this;
+  }
+
+  @Override
+  public GremlinDAO getGremlinDAO() {
+    //TODO: Implement.
+    return null;
   }
 }

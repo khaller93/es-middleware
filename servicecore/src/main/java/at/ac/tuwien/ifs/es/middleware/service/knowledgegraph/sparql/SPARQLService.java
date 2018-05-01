@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.service.sparql;
+package at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql;
 
 
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;

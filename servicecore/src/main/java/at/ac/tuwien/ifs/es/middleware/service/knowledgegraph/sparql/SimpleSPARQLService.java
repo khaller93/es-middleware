@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.service.sparql;
+package at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.MalformedSPARQLQueryException;
@@ -19,21 +19,21 @@ import org.springframework.stereotype.Service;
 @Service("SimpleSPARQLService")
 public class SimpleSPARQLService implements SPARQLService {
 
-  private KnowledgeGraphDAO knowledgeGraphDAO;
+  private KnowledgeGraphDAO KnowledgeGraphDAO;
 
-  public SimpleSPARQLService(@Autowired KnowledgeGraphDAO knowledgeGraphDAO) {
-    this.knowledgeGraphDAO = knowledgeGraphDAO;
+  public SimpleSPARQLService(@Autowired KnowledgeGraphDAO KnowledgeGraphDAO) {
+    this.KnowledgeGraphDAO = KnowledgeGraphDAO;
   }
 
   @Override
   public QueryResult query(String query, boolean includeInference) throws SPARQLExecutionException,
       MalformedSPARQLQueryException {
-    return knowledgeGraphDAO.query(query, includeInference);
+    return KnowledgeGraphDAO.query(query, includeInference);
   }
 
   @Override
   public void update(String query) throws SPARQLExecutionException,
       MalformedSPARQLQueryException {
-    knowledgeGraphDAO.update(query);
+    KnowledgeGraphDAO.update(query);
   }
 }

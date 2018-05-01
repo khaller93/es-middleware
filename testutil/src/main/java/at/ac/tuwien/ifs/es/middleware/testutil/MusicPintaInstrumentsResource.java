@@ -10,7 +10,6 @@ import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
 import org.junit.rules.ExternalResource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -42,8 +41,8 @@ public class MusicPintaInstrumentsResource extends ExternalResource {
 
   private RDF4JKnowledgeGraphDAO knowledgeGraphDAO;
 
-  public MusicPintaInstrumentsResource(@Autowired KnowledgeGraphDAO knowledgeGraphDAO) {
-    this.knowledgeGraphDAO = (RDF4JKnowledgeGraphDAO) knowledgeGraphDAO;
+  public MusicPintaInstrumentsResource(@Autowired KnowledgeGraphDAO KnowledgeGraphDAO) {
+    this.knowledgeGraphDAO = (RDF4JKnowledgeGraphDAO) KnowledgeGraphDAO;
   }
 
   @Override

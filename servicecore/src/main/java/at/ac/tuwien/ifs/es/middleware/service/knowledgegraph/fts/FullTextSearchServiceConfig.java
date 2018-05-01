@@ -1,6 +1,5 @@
-package at.ac.tuwien.ifs.es.middleware.service.fts;
+package at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.fts;
 
-import at.ac.tuwien.ifs.es.middleware.service.sparql.SPARQLService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
