@@ -61,7 +61,7 @@ public class DynamicExplorationFlowFactory {
    * @return {@link ExplorationFlow} that covers the specification of the client.
    */
   public ExplorationFlow constructFlow(List<ExplorationFlowStepRequest> steps) {
-    logger.debug("Start to dynamically construct the flow with steps '%s'.", steps);
+    logger.debug("Start to dynamically construct the flow with steps '{}'.", steps);
     ExplorationFlow flow = new ExplorationFlow();
     for (ExplorationFlowStepRequest step : steps) {
       Optional<Class<? extends ExplorationFlowStep>> optionalClass = registry.get(step.getName());
