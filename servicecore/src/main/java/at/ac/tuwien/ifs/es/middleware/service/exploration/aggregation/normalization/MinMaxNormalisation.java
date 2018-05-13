@@ -41,7 +41,7 @@ public class MinMaxNormalisation implements AggregationOperator<MinMaxPayload> {
 
   @Override
   public ExplorationContext apply(ExplorationContext context, MinMaxPayload payload) {
-    logger.debug("Min,Max scaling with specification {} is applied to {}.", payload, context);
+    logger.debug("Min,Max scaling applied with specification {} to {}.", payload, context);
     ExplorationContext<IdentifiableResult> eContext = ((ExplorationContext<IdentifiableResult>) context);
     /* prepare target map */
     Map<JsonPointer, MinMaxTarget> minMaxTargetMap = new HashMap<>();

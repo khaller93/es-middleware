@@ -5,6 +5,8 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IdentifiableResult
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.aggregation.LimitPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
 import java.util.Iterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +24,8 @@ import org.springframework.stereotype.Component;
 @RegisterForExplorationFlow("esm.aggregate.limit")
 public class Limit implements AggregationOperator<LimitPayload> {
 
+  private static final Logger logger = LoggerFactory.getLogger(Limit.class);
+
   @Override
   public Class<LimitPayload> getParameterClass() {
     return LimitPayload.class;
@@ -30,16 +34,7 @@ public class Limit implements AggregationOperator<LimitPayload> {
   @SuppressWarnings("unchecked")
   @Override
   public ExplorationContext apply(ExplorationContext context, LimitPayload payload) {
-    /*int limit = payload.getNumber();
-    Iterator<IdentifiableResult> iterator = context.streamOfResults().iterator();
-    while (iterator.hasNext()) {
-      IdentifiableResult next = iterator.next();
-      if (limit > 0) {
-        limit--;
-      } else {
-        context.removeResult(next);
-      }
-    }*/
+    logger.debug("Apply the limit operator to {} with {}", context, payload);
     ExplorationContext<IdentifiableResult> identifiableResultsContext = (ExplorationContext<IdentifiableResult>) context;
     return identifiableResultsContext.streamOfResults().limit(payload.getNumber())
         .collect(identifiableResultsContext);

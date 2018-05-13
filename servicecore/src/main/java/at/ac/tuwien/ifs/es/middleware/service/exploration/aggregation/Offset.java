@@ -5,6 +5,8 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IdentifiableResult
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.aggregation.OffsetPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
 import java.util.Iterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +24,8 @@ import org.springframework.stereotype.Component;
 @RegisterForExplorationFlow("esm.aggregate.offset")
 public class Offset implements AggregationOperator<OffsetPayload> {
 
+  private static final Logger logger = LoggerFactory.getLogger(Offset.class);
+
   @Override
   public Class<OffsetPayload> getParameterClass() {
     return OffsetPayload.class;
@@ -30,16 +34,7 @@ public class Offset implements AggregationOperator<OffsetPayload> {
   @SuppressWarnings("unchecked")
   @Override
   public ExplorationContext apply(ExplorationContext context, OffsetPayload payload) {
-    /*int offset = payload.getNumber();
-    Iterator<IdentifiableResult> iterator = context.streamOfResults().iterator();
-    while (iterator.hasNext()) {
-      IdentifiableResult next = iterator.next();
-      if (offset > 0) {
-        context.removeResult(next);
-        offset--;
-      }
-    }
-    return context;*/
+    logger.debug("Apply the offset parameter {} with {}.", context, payload);
     ExplorationContext<IdentifiableResult> identifiableResultsContext = (ExplorationContext<IdentifiableResult>) context;
     return identifiableResultsContext.streamOfResults().skip(payload.getNumber())
         .collect(identifiableResultsContext);

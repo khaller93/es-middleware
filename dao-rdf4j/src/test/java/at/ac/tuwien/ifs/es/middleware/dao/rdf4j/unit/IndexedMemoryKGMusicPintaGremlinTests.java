@@ -1,5 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j.unit;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.InMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.IndexedMemoryKnowledgeGraph;
 import at.ac.tuwien.ifs.es.middleware.testutil.AbstractMusicPintaGremlinTests;
 import org.springframework.test.context.ContextConfiguration;
@@ -13,8 +14,9 @@ import org.springframework.test.context.ContextConfiguration;
  * @since 1.0
  */
 @ContextConfiguration(classes = {
-    IndexedMemoryKnowledgeGraph.class
+    IndexedMemoryKnowledgeGraph.class,
+    InMemoryGremlinDAO.class
 })
-public class IndexedMemoryKGMusicPintaSPARQLTests extends AbstractMusicPintaGremlinTests {
+public class IndexedMemoryKGMusicPintaGremlinTests extends AbstractMusicPintaGremlinTests {
 
 }

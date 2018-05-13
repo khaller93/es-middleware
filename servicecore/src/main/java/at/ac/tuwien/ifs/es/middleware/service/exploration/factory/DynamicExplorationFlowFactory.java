@@ -49,7 +49,7 @@ public class DynamicExplorationFlowFactory {
    * @return {@link ExplorationFlow} that covers the specification of the client.
    */
   public ExplorationFlow constructFlow(DynamicExplorationFlowRequest request) {
-    logger.debug("Start to dynamically construct the flow '%s'.", request);
+    logger.debug("Start to dynamically construct the flow '{}'.", request);
     return constructFlow(request.getSteps());
   }
 

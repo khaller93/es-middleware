@@ -15,7 +15,7 @@ import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Graph.Features;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerFactory;
+import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ public class InMemoryGremlinDAO implements GremlinDAO {
 
   private static final Logger logger = LoggerFactory.getLogger(InMemoryGremlinDAO.class);
 
-  private static final int LOAD_LIMIT = 1000;
+  private static final int LOAD_LIMIT = 10000;
 
   private static final String ALL_STATEMENTS_QUERY = "SELECT DISTINCT ?s ?p ?o WHERE {\n"
       + "  ?s ?p ?o .\n"
@@ -67,8 +67,8 @@ public class InMemoryGremlinDAO implements GremlinDAO {
    * @return {@link Graph} that contains the loaded statements from the {@link KnowledgeGraphDAO}.
    */
   private Graph constructGremlinGraphFromKnowledgeGraph() {
-    logger.debug("Starts to construct an in-memory graph.");
-    Graph newGraph = TinkerFactory.createModern();
+    logger.info("Starts to construct an in-memory graph.");
+    Graph newGraph = TinkerGraph.open();
     Map<BlankNodeOrIRI, Vertex> recognizedNodes = new HashMap<>();
     List<Map<String, RDFTerm>> values;
     int offset = 0;
@@ -81,24 +81,24 @@ public class InMemoryGremlinDAO implements GremlinDAO {
       for (Map<String, RDFTerm> row : values) {
         BlankNodeOrIRI sResource = (BlankNodeOrIRI) row.get("s");
         Vertex sVertex = recognizedNodes
-            .compute(sResource, (blankNodeOrIRI, vertex) -> vertex != null ? vertex
-                : newGraph.addVertex(T.id, BlankOrIRIJsonUtil.stringValue(sResource)));
+            .compute(sResource, (nodeR, vertex) -> vertex != null ? vertex
+                : newGraph.addVertex(T.id, BlankOrIRIJsonUtil.stringValue(nodeR)));
         BlankNodeOrIRI oResource = (BlankNodeOrIRI) row.get("o");
         Vertex oVertex = recognizedNodes
-            .compute(sResource, (blankNodeOrIRI, vertex) -> vertex != null ? vertex
-                : newGraph.addVertex(T.id, BlankOrIRIJsonUtil.stringValue(oResource)));
+            .compute(oResource, (nodeR, vertex) -> vertex != null ? vertex
+                : newGraph.addVertex(T.id, BlankOrIRIJsonUtil.stringValue(nodeR)));
         BlankNodeOrIRI property = (BlankNodeOrIRI) row.get("p");
         sVertex.addEdge(BlankOrIRIJsonUtil.stringValue(property), oVertex);
       }
-      logger.debug("Loaded {} statements from the knowledge graph {}.", offset + values.size(),
+      logger.info("Loaded {} statements from the knowledge graph {}.", offset + values.size(),
           knowledgeGraphDAO.getClass().getSimpleName());
       offset += LOAD_LIMIT;
-    } while (!values.isEmpty() && values.size() < 1000);
+    } while (!values.isEmpty() && values.size() == LOAD_LIMIT);
     return newGraph;
   }
 
   @Override
-  public GraphTraversalSource traverse() {
+  public GraphTraversalSource traversal() {
     return graph.traversal();
   }
 

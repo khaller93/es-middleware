@@ -16,11 +16,11 @@ import org.apache.tinkerpop.gremlin.structure.Graph.Features;
 public interface GremlinDAO {
 
   /**
-   * Returns the ability to traverse the knowledge graph.
+   * Returns the ability to traversal the knowledge graph.
    *
    * @return {@link GraphTraversalSource} for traversing the knowledge graph.
    */
-  GraphTraversalSource traverse();
+  GraphTraversalSource traversal();
 
   /**
    * Gets the graph features of this Gremlin DAO.

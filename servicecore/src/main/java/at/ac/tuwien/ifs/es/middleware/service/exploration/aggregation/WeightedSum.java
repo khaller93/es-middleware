@@ -38,7 +38,7 @@ public class WeightedSum implements AggregationOperator<WeightedSumPayload> {
 
   @Override
   public ExplorationContext apply(ExplorationContext context, WeightedSumPayload payload) {
-    logger.debug("A weighted sum is computed with {}.", payload);
+    logger.debug("Apply weighted sum to {} computed with {}.", context, payload);
     JsonPointer ptr = payload.getPath();
     ExplorationContext<IdentifiableResult> eContext = context;
     if (!ptr.matches()) {
