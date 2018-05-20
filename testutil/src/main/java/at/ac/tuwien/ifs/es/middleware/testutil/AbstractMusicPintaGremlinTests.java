@@ -6,46 +6,52 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.Literal;
-import org.apache.commons.rdf.api.RDFTerm;
-import org.apache.tinkerpop.gremlin.structure.T;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * This class implements generic tests for the SPARQL interface of {@link KnowledgeGraphDAO}s.
+ * This class implements generic tests for the SPARQL interface of {@link KnowledgeGraphDAO}s. The
+ * method {@link AbstractMusicPintaGremlinTests#getKnowledgeGraphDAO()} must return the tested
+ * {@link KnowledgeGraphDAO}.
  *
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {
-    MusicPintaInstrumentsResource.class
-})
-public class AbstractMusicPintaGremlinTests {
+public abstract class AbstractMusicPintaGremlinTests {
 
-  @Rule
-  @Autowired
-  public MusicPintaInstrumentsResource musicPintaInstrumentsResource;
-  @Autowired
+  private MusicPintaInstrumentsResource musicPintaInstrumentsResource;
   private KnowledgeGraphDAO knowledgeGraphDAO;
+
+  /**
+   * gets the {@link KnowledgeGraphDAO} that shall be tested.
+   */
+  public abstract KnowledgeGraphDAO getKnowledgeGraphDAO();
+
+  @Before
+  public void setUp() throws Throwable {
+    this.knowledgeGraphDAO = getKnowledgeGraphDAO();
+    this.musicPintaInstrumentsResource = new MusicPintaInstrumentsResource(this.knowledgeGraphDAO);
+    this.musicPintaInstrumentsResource.before();
+  }
+
+  @After
+  public void tearDown() throws Throwable {
+    this.musicPintaInstrumentsResource.after();
+  }
 
   @Test
   public void test_getResource_mustBeInGremlinGraph() throws Exception {
@@ -104,5 +110,34 @@ public class AbstractMusicPintaGremlinTests {
     assertThat(
         classesWithInstancesGremlin.stream().map(v -> (String) v.id()).collect(Collectors.toList()),
         containsInAnyOrder(classesWithInstancesSPARQL));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void test_getAllClasses_mustHaveInstrumentAndPerformanceClass() {
+    GraphTraversalSource g = knowledgeGraphDAO.getGremlinDAO().traversal();
+    List<Vertex> classes = g.V()
+        .union(__.inE("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").inV(),
+            __.as("c").out("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+                .V("http://www.w3.org/2000/01/rdf-schema#Class").select("c")).dedup().toList();
+    List<String> classStrings = classes.stream().map(v -> (String) v.id())
+        .collect(Collectors.toList());
+    assertThat(classStrings, hasItems("http://purl.org/ontology/mo/Instrument",
+        "http://purl.org/ontology/mo/Performance"));
+  }
+
+  @Test(timeout = 60000)
+  @SuppressWarnings("unchecked")
+  public void test_getAllSubClassesOfGuitar() {
+    GraphTraversalSource g = knowledgeGraphDAO.getGremlinDAO().traversal();
+    List<Object> guitarSubClasses = g.V("http://dbpedia.org/resource/Guitar").as("c")
+        .repeat(__.in("http://www.w3.org/2000/01/rdf-schema#subClassOf"))
+        .until(__.or(__.not(__.in("http://www.w3.org/2000/01/rdf-schema#subClassOf")),
+            __.cyclicPath())).path().unfold().dedup().toList();
+    List<String> guitarSubClassStrings = guitarSubClasses.stream()
+        .map(v -> ((String) ((Vertex) v).id())).collect(Collectors.toList());
+    assertThat(guitarSubClassStrings, hasItems("http://dbpedia.org/resource/Electric_guitar",
+        "http://dbpedia.org/resource/Classical_guitar",
+        "http://dbtune.org/musicbrainz/resource/instrument/467"));
   }
 }

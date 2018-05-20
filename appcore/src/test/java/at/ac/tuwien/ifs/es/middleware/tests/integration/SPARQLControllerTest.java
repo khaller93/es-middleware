@@ -10,11 +10,13 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertTrue;
 
 import at.ac.tuwien.ifs.es.middleware.ExploratorySearchApplication;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import java.io.ByteArrayInputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Value;
@@ -44,6 +46,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+/**
+ * This class integration tests {@link at.ac.tuwien.ifs.es.middleware.controller.SPARQLController}.
+ *
+ * @author Kevin Haller
+ * @version 1.0
+ * @since 1.0
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ExploratorySearchApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
@@ -55,9 +64,15 @@ public class SPARQLControllerTest {
 
   @Autowired
   private TestRestTemplate restTemplate;
-  @Rule
   @Autowired
+  private KnowledgeGraphDAO knowledgeGraphDAO;
+  @Rule
   public MusicPintaInstrumentsResource musicPintaResource;
+
+  @PostConstruct
+  public void setUpBean() {
+    this.musicPintaResource = new MusicPintaInstrumentsResource(knowledgeGraphDAO);
+  }
 
   @Test
   public void test_countQuery_ok_mustReturnValue() throws Exception {

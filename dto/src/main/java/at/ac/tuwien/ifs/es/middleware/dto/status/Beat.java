@@ -1,6 +1,5 @@
-package at.ac.tuwien.ifs.es.middleware.dto.heartbeat;
+package at.ac.tuwien.ifs.es.middleware.dto.status;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import java.time.Instant;
 
 /**
@@ -16,10 +15,21 @@ public class Beat {
   private String version;
   private Instant timestamp;
 
-  public Beat(String name, String version) {
+  public Beat(String name, String version, Instant timestamp) {
     this.name = name;
     this.version = version;
-    this.timestamp = Instant.now();
+    this.timestamp = timestamp;
+  }
+
+  /**
+   * Creates a new heart beat representing an ok status of this middleware.
+   *
+   * @param name of the middleware
+   * @param version of the middleware
+   * @return a new heart beat representing an ok status of this middleware.
+   */
+  public static Beat ok(String name, String version) {
+    return new Beat(name, version, Instant.now());
   }
 
   public String getName() {

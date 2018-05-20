@@ -56,7 +56,7 @@ public class DatasetInformationService {
    *
    * @return a map that contains a list of sameAs entities for the key entity.
    */
-  @Cacheable("sameas-entities-map")
+  @Cacheable("sparql")
   public Map<Resource, List<Resource>> getSameAsEntitiesMap() {
     logger.debug("Start to compute the 'owl:sameAs' entities to all entities.");
     Map<Resource, List<Resource>> sameAsMap = new HashMap<>();

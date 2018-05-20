@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.stardog;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.FullTextSearchDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.GremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
@@ -101,7 +101,7 @@ public class StardogKnowledgeGraphDAO extends RDF4JKnowledgeGraphDAO implements 
   }
 
   @Override
-  public GremlinDAO getGremlinDAO() {
+  public KnowledgeGraphGremlinDAO getGremlinDAO() {
     //TODO: Implement.
     return null;
   }

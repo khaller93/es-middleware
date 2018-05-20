@@ -4,6 +4,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IdentifiableResult
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 
@@ -65,6 +66,24 @@ public class ResourcePair implements IdentifiableResult {
 
   public Resource getSecond() {
     return second;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ResourcePair that = (ResourcePair) o;
+    return Objects.equals(first, that.first) &&
+        Objects.equals(second, that.second);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(first, second);
   }
 
   @Override

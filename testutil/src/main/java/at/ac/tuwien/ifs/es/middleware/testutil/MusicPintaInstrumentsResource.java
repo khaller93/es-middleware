@@ -1,18 +1,19 @@
 package at.ac.tuwien.ifs.es.middleware.testutil;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.AbstractClonedGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.GremlinDAOUpdateEvent;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
 import org.junit.rules.ExternalResource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
 
 /**
  * This is an {@link ExternalResource} that loads the music pinta instruments subset into the
@@ -22,8 +23,6 @@ import org.springframework.stereotype.Component;
  * @version 1.0
  * @since 1.0
  */
-@Lazy
-@Component
 public class MusicPintaInstrumentsResource extends ExternalResource {
 
   private static Model testModel;
@@ -42,7 +41,7 @@ public class MusicPintaInstrumentsResource extends ExternalResource {
 
   private KnowledgeGraphDAO knowledgeGraphDAO;
 
-  public MusicPintaInstrumentsResource(@Autowired KnowledgeGraphDAO knowledgeGraphDAO) {
+  public MusicPintaInstrumentsResource(KnowledgeGraphDAO knowledgeGraphDAO) {
     this.knowledgeGraphDAO = knowledgeGraphDAO;
   }
 
@@ -57,6 +56,11 @@ public class MusicPintaInstrumentsResource extends ExternalResource {
         knowledgeGraphDAO.update(String.format("INSERT DATA {%s}", new String(out.toByteArray())));
       }
     }
+    /* wait for the GremlinDAO to be updated */
+    LinkedBlockingQueue<GremlinDAOUpdateEvent> events = new LinkedBlockingQueue<>();
+    ((AbstractClonedGremlinDAO) knowledgeGraphDAO.getGremlinDAO()).setUpdateListenerFunction(
+        events::add);
+    events.poll(30, TimeUnit.SECONDS);
   }
 
   @Override

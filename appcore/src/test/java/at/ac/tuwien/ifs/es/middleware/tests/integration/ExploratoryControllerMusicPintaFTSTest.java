@@ -3,27 +3,30 @@ package at.ac.tuwien.ifs.es.middleware.tests.integration;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 import at.ac.tuwien.ifs.es.middleware.ExploratorySearchApplication;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.AbstractClonedGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.GremlinDAOUpdateEvent;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import org.apache.commons.rdf.api.IRI;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +36,13 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
+/**
+ * This class integration tests {@link at.ac.tuwien.ifs.es.middleware.controller.ExploratorySearchController}.
+ *
+ * @author Kevin Haller
+ * @version 1.0
+ * @since 1.0
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ExploratorySearchApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
@@ -46,10 +56,15 @@ public class ExploratoryControllerMusicPintaFTSTest {
   private TestRestTemplate restTemplate;
   @Autowired
   private ObjectMapper payloadMapper;
-
-  @Rule
   @Autowired
+  private KnowledgeGraphDAO knowledgeGraphDAO;
+  @Rule
   public MusicPintaInstrumentsResource musicPintaResource;
+
+  @PostConstruct
+  public void setUpBean() {
+    this.musicPintaResource = new MusicPintaInstrumentsResource(knowledgeGraphDAO);
+  }
 
   @Test
   public void test_searchForInstrument_mustReturnCorrespondingMatchesForGuitar()

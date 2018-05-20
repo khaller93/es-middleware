@@ -9,17 +9,21 @@ import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
- * This class is a simple implementation of {@link FullTextSearchService}.
+ * This class is an implementation of {@link FullTextSearchService} that caches the full-text-search
+ * result.
  *
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
  */
 @Lazy
+@Primary
 @Service("SimpleFullTextSearchService")
 public class SimpleFullTextSearchService implements FullTextSearchService {
 
@@ -29,17 +33,19 @@ public class SimpleFullTextSearchService implements FullTextSearchService {
     this.fullTextSearchDAO = knowledgeGraphDAO.getFullTextSearchDAO();
   }
 
-
+  @Cacheable({"fts"})
   @Override
   public List<Map<String, RDFTerm>> searchFullText(String keyword) {
     return fullTextSearchDAO.searchFullText(keyword);
   }
 
+  @Cacheable({"fts"})
   @Override
   public List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes) {
     return fullTextSearchDAO.searchFullText(keyword, classes);
   }
 
+  @Cacheable({"fts"})
   @Override
   public List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
       Integer offset, Integer limit) throws KnowledgeGraphDAOException {

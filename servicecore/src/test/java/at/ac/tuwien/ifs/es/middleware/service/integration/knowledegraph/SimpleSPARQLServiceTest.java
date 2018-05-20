@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.service.integration;
+package at.ac.tuwien.ifs.es.middleware.service.integration.knowledegraph;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -11,6 +11,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.InMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.IndexedMemoryKnowledgeGraph;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
@@ -40,9 +41,17 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+/**
+ *
+ *
+ * @author Kevin Haller
+ * @version 1.0
+ * @since 1.0
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {MusicPintaInstrumentsResource.class,
-    KnowledgeGraphConfig.class, SimpleSPARQLService.class, IndexedMemoryKnowledgeGraph.class})
+    KnowledgeGraphConfig.class, SimpleSPARQLService.class, IndexedMemoryKnowledgeGraph.class,
+    InMemoryGremlinDAO.class})
 @TestPropertySource(properties = {
     "esm.db.choice=IndexedMemoryDB",
     "esm.cache.enable=false"

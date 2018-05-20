@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.service.integration;
+package at.ac.tuwien.ifs.es.middleware.service.integration.factory;
 
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;

@@ -11,7 +11,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.MalformedSPARQLQueryException;
@@ -29,14 +28,9 @@ import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.rdf.api.Triple;
 import org.apache.commons.rdf.simple.SimpleRDF;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * This class implements generic tests for the SPARQL interface of {@link KnowledgeGraphDAO}s.
@@ -45,17 +39,27 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @version 1.0
  * @since 1.0
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes={
-    MusicPintaInstrumentsResource.class
-})
 public abstract class AbstractMusicPintaSPARQLTests {
 
-  @Rule
-  @Autowired
-  public MusicPintaInstrumentsResource musicPintaInstrumentsResource;
-  @Autowired
+  private MusicPintaInstrumentsResource musicPintaInstrumentsResource;
   private KnowledgeGraphDAO knowledgeGraphDAO;
+
+  @Before
+  public void setUp() throws Throwable {
+    this.knowledgeGraphDAO = getKnowledgeGraphDAO();
+    this.musicPintaInstrumentsResource = new MusicPintaInstrumentsResource(this.knowledgeGraphDAO);
+    this.musicPintaInstrumentsResource.before();
+  }
+
+  @After
+  public void tearDown() throws Throwable {
+    this.musicPintaInstrumentsResource.after();
+  }
+
+  /**
+   * gets the {@link KnowledgeGraphDAO} that shall be tested.
+   */
+  public abstract KnowledgeGraphDAO getKnowledgeGraphDAO();
 
   @Test
   public void test_countQuery_ok_mustReturnValue() throws Exception {

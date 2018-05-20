@@ -20,10 +20,10 @@ public class SwaggerConfig {
       "https://www.ifs.tuwien.ac.at/", "sek@ifs.tuwien.ac.at");
 
   private final ApiInfo API_INFO;
-  private final String version = "1.0.0";
+  private final String version = SystemInfo.MIDDLEWARE_VERSION;
 
   public SwaggerConfig() {
-    API_INFO = new ApiInfo("Exploratory Search Middleware",
+    API_INFO = new ApiInfo(SystemInfo.MIDDLEWARE_NAME,
         "This application provides services for exploring a knowledge graph stored in a supported triplestore/graph database.",
         version, "urn:tos", GENERIC_CONTACT, "MIT", "https://opensource.org/licenses/MIT",
         new ArrayList<VendorExtension>());

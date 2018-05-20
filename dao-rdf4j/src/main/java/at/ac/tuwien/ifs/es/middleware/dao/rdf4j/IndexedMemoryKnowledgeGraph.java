@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.FullTextSearchDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.GremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.InMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
@@ -117,7 +117,7 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
   }
 
   @Override
-  public GremlinDAO getGremlinDAO() {
+  public KnowledgeGraphGremlinDAO getGremlinDAO() {
     return context.getBean("InMemoryGremlin", InMemoryGremlinDAO.class);
   }
 }

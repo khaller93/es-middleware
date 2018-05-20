@@ -2,6 +2,8 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.registry;
 
 import at.ac.tuwien.ifs.es.middleware.service.exploration.factory.DynamicExplorationFlowFactory;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -60,6 +62,15 @@ public final class ExplorationFlowRegistry {
   public void unregister(String uid) {
     Class<? extends ExplorationFlowStep> clazz = registry.remove(uid);
     logger.info("The exploration step '{}' has been unregistered. It refered to '{}'.", uid, clazz);
+  }
+
+  /**
+   * Gets all the registered {@link ExplorationFlowStep}s.
+   *
+   * @return all the registered {@link ExplorationFlowStep}s.
+   */
+  public Map<String, Class<? extends ExplorationFlowStep>> getAllRegisteredSteps() {
+    return new HashMap<>(registry);
   }
 
 }

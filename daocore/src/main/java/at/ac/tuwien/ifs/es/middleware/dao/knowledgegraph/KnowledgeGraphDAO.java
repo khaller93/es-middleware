@@ -43,9 +43,9 @@ public interface KnowledgeGraphDAO {
   FullTextSearchDAO getFullTextSearchDAO();
 
   /**
-   * Gets the {@link GremlinDAO} for this knowledge graph.
+   * Gets the {@link KnowledgeGraphGremlinDAO} for this knowledge graph.
    *
-   * @return {@link GremlinDAO} for this knowledge graph.
+   * @return {@link KnowledgeGraphGremlinDAO} for this knowledge graph.
    */
-  GremlinDAO getGremlinDAO();
+  KnowledgeGraphGremlinDAO getGremlinDAO();
 }

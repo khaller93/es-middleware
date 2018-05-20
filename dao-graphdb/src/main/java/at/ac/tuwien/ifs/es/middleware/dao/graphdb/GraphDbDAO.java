@@ -1,9 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.FullTextSearchDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.GremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSetupException;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
 import org.eclipse.rdf4j.repository.Repository;
 import org.slf4j.Logger;
@@ -43,8 +42,7 @@ public abstract class GraphDbDAO extends RDF4JKnowledgeGraphDAO {
   }
 
   @Override
-  public GremlinDAO getGremlinDAO() {
-    //TODO: Implement.
-    return null;
+  public KnowledgeGraphGremlinDAO getGremlinDAO() {
+    return context.getBean("InMemoryGremlin", KnowledgeGraphGremlinDAO.class);
   }
 }

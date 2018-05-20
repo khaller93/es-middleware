@@ -13,7 +13,7 @@ import org.apache.tinkerpop.gremlin.structure.Graph.Features;
  * @version 1.0
  * @since 1.0
  */
-public interface GremlinDAO {
+public interface KnowledgeGraphGremlinDAO {
 
   /**
    * Returns the ability to traversal the knowledge graph.
