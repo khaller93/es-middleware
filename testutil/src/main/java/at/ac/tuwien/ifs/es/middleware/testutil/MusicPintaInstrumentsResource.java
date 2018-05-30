@@ -1,8 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.testutil;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.AbstractClonedGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.AbstractClonedGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.GremlinDAOUpdateEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDAOUpdatedEvent;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,11 +53,12 @@ public class MusicPintaInstrumentsResource extends ExternalResource {
         for (int i = 0; i < 5000 && statementIterator.hasNext(); i++) {
           Rio.write(statementIterator.next(), out, RDFFormat.NTRIPLES);
         }
-        knowledgeGraphDAO.update(String.format("INSERT DATA {%s}", new String(out.toByteArray())));
+        knowledgeGraphDAO.getSparqlDAO()
+            .update(String.format("INSERT DATA {%s}", new String(out.toByteArray())));
       }
     }
     /* wait for the GremlinDAO to be updated */
-    LinkedBlockingQueue<GremlinDAOUpdateEvent> events = new LinkedBlockingQueue<>();
+    LinkedBlockingQueue<GremlinDAOUpdatedEvent> events = new LinkedBlockingQueue<>();
     ((AbstractClonedGremlinDAO) knowledgeGraphDAO.getGremlinDAO()).setUpdateListenerFunction(
         events::add);
     events.poll(30, TimeUnit.SECONDS);
@@ -65,6 +66,6 @@ public class MusicPintaInstrumentsResource extends ExternalResource {
 
   @Override
   protected void after() {
-    knowledgeGraphDAO.update("DELETE {?s ?p ?o} WHERE {?s ?p ?o}");
+    knowledgeGraphDAO.getSparqlDAO().update("DELETE {?s ?p ?o} WHERE {?s ?p ?o}");
   }
 }

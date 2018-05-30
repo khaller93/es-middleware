@@ -1,8 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.FullTextSearchDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.InMemoryGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.InMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
 @Component("IndexedMemoryDB")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implements
-    FullTextSearchDAO {
+    KGFullTextSearchDAO {
 
   private final static Logger logger = LoggerFactory.getLogger(IndexedMemoryKnowledgeGraph.class);
 
@@ -112,12 +112,12 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
   }
 
   @Override
-  public FullTextSearchDAO getFullTextSearchDAO() {
+  public KGFullTextSearchDAO getFullTextSearchDAO() {
     return this;
   }
 
   @Override
-  public KnowledgeGraphGremlinDAO getGremlinDAO() {
+  public KGGremlinDAO getGremlinDAO() {
     return context.getBean("InMemoryGremlin", InMemoryGremlinDAO.class);
   }
 }

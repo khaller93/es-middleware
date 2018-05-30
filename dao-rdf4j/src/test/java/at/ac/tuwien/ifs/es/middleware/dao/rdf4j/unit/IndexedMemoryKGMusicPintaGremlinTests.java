@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j.unit;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.InMemoryGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.InMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.IndexedMemoryKnowledgeGraph;
 import at.ac.tuwien.ifs.es.middleware.testutil.AbstractMusicPintaGremlinTests;
@@ -28,7 +28,7 @@ public class IndexedMemoryKGMusicPintaGremlinTests extends AbstractMusicPintaGre
   private IndexedMemoryKnowledgeGraph knowledgeGraphDAO;
 
   @Override
-  public KnowledgeGraphDAO getKnowledgeGraphDAO() {
+  public KnowledgeGraphDAO getSparqlDAO() {
     return knowledgeGraphDAO;
   }
 

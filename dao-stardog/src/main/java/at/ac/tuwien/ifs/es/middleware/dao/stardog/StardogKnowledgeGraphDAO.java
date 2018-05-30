@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.stardog;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.FullTextSearchDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * This is an implementation of {@link KnowledgeGraphDAO} and {@link FullTextSearchDAO} for Stardog
+ * This is an implementation of {@link KnowledgeGraphDAO} and {@link KGFullTextSearchDAO} for Stardog
  * using RDF4J.
  *
  * @author Kevin Haller
@@ -35,7 +35,8 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component("Stardog")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-public class StardogKnowledgeGraphDAO extends RDF4JKnowledgeGraphDAO implements FullTextSearchDAO {
+public class StardogKnowledgeGraphDAO extends RDF4JKnowledgeGraphDAO implements
+    KGFullTextSearchDAO {
 
   private static final Logger logger = LoggerFactory.getLogger(StardogKnowledgeGraphDAO.class);
 
@@ -55,7 +56,7 @@ public class StardogKnowledgeGraphDAO extends RDF4JKnowledgeGraphDAO implements 
   };
 
   /**
-   * Creates a new Stardog DAO for {@link KnowledgeGraphDAO} and {@link FullTextSearchDAO}.
+   * Creates a new Stardog DAO for {@link KnowledgeGraphDAO} and {@link KGFullTextSearchDAO}.
    *
    * @param stardogConfiguration that specifies properties for Stardog.
    */
@@ -96,12 +97,12 @@ public class StardogKnowledgeGraphDAO extends RDF4JKnowledgeGraphDAO implements 
   }
 
   @Override
-  public FullTextSearchDAO getFullTextSearchDAO() {
+  public KGFullTextSearchDAO getFullTextSearchDAO() {
     return this;
   }
 
   @Override
-  public KnowledgeGraphGremlinDAO getGremlinDAO() {
+  public KGGremlinDAO getGremlinDAO() {
     //TODO: Implement.
     return null;
   }

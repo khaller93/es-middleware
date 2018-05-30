@@ -14,38 +14,23 @@ import at.ac.tuwien.ifs.es.middleware.dto.sparql.QueryResult;
 public interface KnowledgeGraphDAO {
 
   /**
-   * Queries the knowledge graph using given SPARQL {@code query} and returns the result. The
-   * operations SELECT, ASK, CONSTRUCT and DESCRIBE are supported by this method.
+   * Gets the {@link KGSparqlDAO} for this knowledge graph.
    *
-   * @param query which shall be executed (SELECT, ASK, CONSTRUCT and DESCRIBE).
-   * @param includeInferred {@code true}, if entailed statements should be considered, otherwise
-   * {@code false}.
-   * @return {@link QueryResult} of the SPARQL query.
-   * @throws KnowledgeGraphSPARQLException if the given SPARQL query could not be executed
-   * successfully.
+   * @return {@link KGSparqlDAO} for this knowledge graph.
    */
-  QueryResult query(String query, boolean includeInferred) throws KnowledgeGraphSPARQLException;
+  KGSparqlDAO getSparqlDAO();
 
   /**
-   * Updates the knowledge graph using given SPARQL {@code query}.
+   * Gets the {@link KGFullTextSearchDAO} for this knowledge graph.
    *
-   * @param query which shall be executed (INSERT, DELETE).
-   * @throws KnowledgeGraphSPARQLException if the given SPARQL query could not be executed
-   * successfully.
+   * @return {@link KGFullTextSearchDAO} for this knowledge graph.
    */
-  void update(String query) throws KnowledgeGraphSPARQLException;
+  KGFullTextSearchDAO getFullTextSearchDAO();
 
   /**
-   * Gets the {@link FullTextSearchDAO} for this knowledge graph.
+   * Gets the {@link KGGremlinDAO} for this knowledge graph.
    *
-   * @return {@link FullTextSearchDAO} for this knowledge graph.
+   * @return {@link KGGremlinDAO} for this knowledge graph.
    */
-  FullTextSearchDAO getFullTextSearchDAO();
-
-  /**
-   * Gets the {@link KnowledgeGraphGremlinDAO} for this knowledge graph.
-   *
-   * @return {@link KnowledgeGraphGremlinDAO} for this knowledge graph.
-   */
-  KnowledgeGraphGremlinDAO getGremlinDAO();
+  KGGremlinDAO getGremlinDAO();
 }

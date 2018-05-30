@@ -1,6 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.FullTextSearchDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
@@ -23,7 +24,7 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component("InBuiltLucene")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-public class GraphDbLucene implements FullTextSearchDAO {
+public class GraphDbLucene implements KGFullTextSearchDAO {
 
   private static final Logger logger = LoggerFactory.getLogger(GraphDbLucene.class);
 
@@ -52,12 +53,13 @@ public class GraphDbLucene implements FullTextSearchDAO {
       "PREFIX luc: <http://www.ontotext.com/owlim/lucene#>\n"
           + "INSERT DATA { <%s> luc:updateIndex _:b1 . }";
 
-  private KnowledgeGraphDAO KnowledgeGraphDAO;
+  private KGSparqlDAO sparqlDAO;
   private GraphDbLuceneConfig graphDbLuceneConfig;
 
-  public GraphDbLucene(@Autowired KnowledgeGraphDAO KnowledgeGraphDAO,
-      @Autowired GraphDbLuceneConfig graphDbLuceneConfig) {
-    this.KnowledgeGraphDAO = KnowledgeGraphDAO;
+  @Autowired
+  public GraphDbLucene(KnowledgeGraphDAO knowledgeGraphDAO,
+      GraphDbLuceneConfig graphDbLuceneConfig) {
+    this.sparqlDAO = knowledgeGraphDAO.getSparqlDAO();
     this.graphDbLuceneConfig = graphDbLuceneConfig;
   }
 
@@ -65,7 +67,7 @@ public class GraphDbLucene implements FullTextSearchDAO {
   public void initialize() {
     if (graphDbLuceneConfig.shouldBeInitialized()) {
       logger.debug("The GraphDb Lucene index will be initialized.");
-      KnowledgeGraphDAO
+      sparqlDAO
           .update(String.format(INSERT_INDEX_DATA_QUERY, graphDbLuceneConfig.getConfigTriples(),
               graphDbLuceneConfig.getLuceneIndexIRI()));
     }
@@ -88,7 +90,7 @@ public class GraphDbLucene implements FullTextSearchDAO {
     logger.trace(
         "Query resulting from FTS call for {} with parameters (offset={}, limit={}, classes={}).",
         filledFtsQuery, offset, limit, classes);
-    return ((SelectQueryResult) KnowledgeGraphDAO.query(filledFtsQuery, true)).value();
+    return ((SelectQueryResult) sparqlDAO.query(filledFtsQuery, true)).value();
   }
 
   /**
@@ -117,8 +119,7 @@ public class GraphDbLucene implements FullTextSearchDAO {
    */
   private void performBatchUpdateOfIndex() {
     logger.debug("Batch updating the lucene index for '{}'.", graphDbLuceneConfig.getName());
-    KnowledgeGraphDAO
-        .update(String.format(BATCH_UPDATE_QUERY, graphDbLuceneConfig.getLuceneIndexIRI()));
+    sparqlDAO.update(String.format(BATCH_UPDATE_QUERY, graphDbLuceneConfig.getLuceneIndexIRI()));
   }
 
 }

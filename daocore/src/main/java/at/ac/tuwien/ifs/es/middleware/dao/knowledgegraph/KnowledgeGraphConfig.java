@@ -22,8 +22,6 @@ import org.springframework.context.annotation.Scope;
 @Configuration
 public class KnowledgeGraphConfig {
 
-  private static final Logger logger = LoggerFactory.getLogger(KnowledgeGraphDAO.class);
-
   @Value("${esm.db.choice}")
   private String choice;
 

@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.blazegraph;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.FullTextSearchDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
 import org.eclipse.rdf4j.repository.sparql.SPARQLRepository;
@@ -33,12 +33,12 @@ public class BlazegraphDAO extends RDF4JKnowledgeGraphDAO {
   }
 
   @Override
-  public FullTextSearchDAO getFullTextSearchDAO() {
+  public KGFullTextSearchDAO getFullTextSearchDAO() {
     return null;
   }
 
   @Override
-  public KnowledgeGraphGremlinDAO getGremlinDAO() {
+  public KGGremlinDAO getGremlinDAO() {
     return null;
   }
 }

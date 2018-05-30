@@ -1,5 +1,7 @@
-package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
+package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,9 +11,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * This {@link KnowledgeGraphGremlinDAO} is a {@link Graph} in-memory. It reads in all relationships between
- * resources (ignoring literals) and loads them into a graph that makes it possible to query over it
- * with Gremlin.
+ * This class implements the {@link KGGremlinDAO} as a in-memory {@link TinkerGraph}. It makes use
+ * of the abstract implementation {@link AbstractClonedGremlinDAO}, which implements all the
+ * necessary steps for cloning relevant data from the {@link KnowledgeGraphDAO}.
  *
  * @author Kevin Haller
  * @version 1.0

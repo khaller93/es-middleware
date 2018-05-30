@@ -1,7 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.SPARQLDAOUpdateEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOUpdatedEvent;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.MalformedSPARQLQueryException;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.SPARQLExecutionException;
@@ -42,7 +43,7 @@ import org.springframework.context.ApplicationEventPublisher;
  * @see <a href="http://rdf4j.org/">RDF4J</a>
  * @since 1.0
  */
-public abstract class RDF4JKnowledgeGraphDAO implements KnowledgeGraphDAO {
+public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO, KnowledgeGraphDAO {
 
   private static final Logger logger = LoggerFactory.getLogger(RDF4JKnowledgeGraphDAO.class);
 
@@ -123,7 +124,7 @@ public abstract class RDF4JKnowledgeGraphDAO implements KnowledgeGraphDAO {
               updateLock.lock();
               try {
                 logger.debug("The scheduled update task has been executed.");
-                applicationEventPublisher.publishEvent(new SPARQLDAOUpdateEvent(this));
+                applicationEventPublisher.publishEvent(new SPARQLDAOUpdatedEvent(this));
                 timer = null;
               } finally {
                 updateLock.unlock();
@@ -137,6 +138,11 @@ public abstract class RDF4JKnowledgeGraphDAO implements KnowledgeGraphDAO {
     } catch (RDF4JException e) {
       throw new SPARQLExecutionException(e);
     }
+  }
+
+  @Override
+  public KGSparqlDAO getSparqlDAO() {
+    return this;
   }
 
   /**

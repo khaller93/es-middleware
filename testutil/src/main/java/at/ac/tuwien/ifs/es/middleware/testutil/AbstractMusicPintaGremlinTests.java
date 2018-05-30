@@ -7,6 +7,8 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
@@ -24,7 +26,7 @@ import org.junit.Test;
 
 /**
  * This class implements generic tests for the SPARQL interface of {@link KnowledgeGraphDAO}s. The
- * method {@link AbstractMusicPintaGremlinTests#getKnowledgeGraphDAO()} must return the tested
+ * method {@link AbstractMusicPintaGremlinTests#getSparqlDAO()} must return the tested
  * {@link KnowledgeGraphDAO}.
  *
  * @author Kevin Haller
@@ -34,17 +36,20 @@ import org.junit.Test;
 public abstract class AbstractMusicPintaGremlinTests {
 
   private MusicPintaInstrumentsResource musicPintaInstrumentsResource;
-  private KnowledgeGraphDAO knowledgeGraphDAO;
+  private KGSparqlDAO sparqlDAO;
+  private KGGremlinDAO gremlinDAO;
 
   /**
    * gets the {@link KnowledgeGraphDAO} that shall be tested.
    */
-  public abstract KnowledgeGraphDAO getKnowledgeGraphDAO();
+  public abstract KnowledgeGraphDAO getSparqlDAO();
 
   @Before
   public void setUp() throws Throwable {
-    this.knowledgeGraphDAO = getKnowledgeGraphDAO();
-    this.musicPintaInstrumentsResource = new MusicPintaInstrumentsResource(this.knowledgeGraphDAO);
+    KnowledgeGraphDAO knowledgeGraphDAO = getSparqlDAO();
+    this.sparqlDAO = knowledgeGraphDAO.getSparqlDAO();
+    this.gremlinDAO = knowledgeGraphDAO.getGremlinDAO();
+    this.musicPintaInstrumentsResource = new MusicPintaInstrumentsResource(knowledgeGraphDAO);
     this.musicPintaInstrumentsResource.before();
   }
 
@@ -55,13 +60,13 @@ public abstract class AbstractMusicPintaGremlinTests {
 
   @Test
   public void test_getResource_mustBeInGremlinGraph() throws Exception {
-    assertThat(knowledgeGraphDAO.getGremlinDAO().traversal()
+    assertThat(gremlinDAO.traversal()
         .V("http://dbtune.org/musicbrainz/resource/instrument/132").toList(), hasSize(1));
   }
 
   @Test
   public void test_getCategoriesOfInstrument117_mustReturnAllCategories() throws Exception {
-    List<Vertex> categoriesGremlin = knowledgeGraphDAO.getGremlinDAO().traversal()
+    List<Vertex> categoriesGremlin = gremlinDAO.traversal()
         .V("http://dbtune.org/musicbrainz/resource/instrument/117")
         .out("http://purl.org/dc/terms/subject").toList();
     assertThat(categoriesGremlin.stream().map(c -> (String) c.id()).collect(Collectors.toList()),
@@ -71,18 +76,18 @@ public abstract class AbstractMusicPintaGremlinTests {
 
   @Test
   public void test_countAllInstruments_mustReturnCorrectResults() throws Exception {
-    long instrumentsCount = Long.parseLong(((Literal) (((SelectQueryResult) knowledgeGraphDAO
+    long instrumentsCount = Long.parseLong(((Literal) (((SelectQueryResult) sparqlDAO
         .query("select (COUNT(DISTINCT ?s) AS ?cnt) { \n"
             + " ?s a <http://purl.org/ontology/mo/Instrument> .\n"
             + "}", true)).value().get(0).get("cnt"))).getLexicalForm());
     assertThat(
-        knowledgeGraphDAO.getGremlinDAO().traversal().V("http://purl.org/ontology/mo/Instrument")
+        gremlinDAO.traversal().V("http://purl.org/ontology/mo/Instrument")
             .inE().outV().dedup().count().next(), is(equalTo(instrumentsCount)));
   }
 
   @Test
   public void test_getCountIndividuals_mustReturnCorrectNumber() throws Exception {
-    long totalResourceNumber = Long.parseLong(((Literal) ((SelectQueryResult) knowledgeGraphDAO
+    long totalResourceNumber = Long.parseLong(((Literal) ((SelectQueryResult) sparqlDAO
         .query("SELECT (count(DISTINCT ?s) AS ?cnt) WHERE {\n"
             + "  {?s ?p ?o}\n"
             + "  UNION\n"
@@ -90,20 +95,20 @@ public abstract class AbstractMusicPintaGremlinTests {
             + "  FILTER(!isLiteral(?s))\n"
             + "}", true)).value().get(0).get("cnt")).getLexicalForm());
     assertThat("Each resource (not-literal) must be represented as vertex in the gremlin graph.",
-        knowledgeGraphDAO.getGremlinDAO().traversal().V().count().next(),
+        gremlinDAO.traversal().V().count().next(),
         is(equalTo(totalResourceNumber)));
   }
 
   @Test
   @Ignore
   public void test_countAllClassesWithInstances_mustReturnCorrectNumber() throws Exception {
-    List<String> classesWithInstancesSPARQL = (((SelectQueryResult) knowledgeGraphDAO
+    List<String> classesWithInstancesSPARQL = (((SelectQueryResult) sparqlDAO
         .query("select DISTINCT ?clazz { \n"
             + " ?s a ?clazz\n"
             + "}", true)).value()).stream()
         .map(r -> BlankOrIRIJsonUtil.stringValue((BlankNodeOrIRI) r.get("clazz")))
         .collect(Collectors.toList());
-    List<Vertex> classesWithInstancesGremlin = knowledgeGraphDAO.getGremlinDAO().traversal().V()
+    List<Vertex> classesWithInstancesGremlin = gremlinDAO.traversal().V()
         .outE("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").inV().dedup().toList();
     System.out.println(classesWithInstancesGremlin.stream().map(v -> (String) v.id())
         .collect(Collectors.toList()));
@@ -115,7 +120,7 @@ public abstract class AbstractMusicPintaGremlinTests {
   @Test
   @SuppressWarnings("unchecked")
   public void test_getAllClasses_mustHaveInstrumentAndPerformanceClass() {
-    GraphTraversalSource g = knowledgeGraphDAO.getGremlinDAO().traversal();
+    GraphTraversalSource g = gremlinDAO.traversal();
     List<Vertex> classes = g.V()
         .union(__.inE("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").inV(),
             __.as("c").out("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
@@ -129,7 +134,7 @@ public abstract class AbstractMusicPintaGremlinTests {
   @Test(timeout = 60000)
   @SuppressWarnings("unchecked")
   public void test_getAllSubClassesOfGuitar() {
-    GraphTraversalSource g = knowledgeGraphDAO.getGremlinDAO().traversal();
+    GraphTraversalSource g = gremlinDAO.traversal();
     List<Object> guitarSubClasses = g.V("http://dbpedia.org/resource/Guitar").as("c")
         .repeat(__.in("http://www.w3.org/2000/01/rdf-schema#subClassOf"))
         .until(__.or(__.not(__.in("http://www.w3.org/2000/01/rdf-schema#subClassOf")),

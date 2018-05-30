@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.FullTextSearchDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
 import org.eclipse.rdf4j.repository.Repository;
@@ -33,16 +33,16 @@ public abstract class GraphDbDAO extends RDF4JKnowledgeGraphDAO {
   }
 
   @Override
-  public FullTextSearchDAO getFullTextSearchDAO() {
+  public KGFullTextSearchDAO getFullTextSearchDAO() {
     if (fullTextSearchChoice == null) {
-      return context.getBean("InBuiltLucene", FullTextSearchDAO.class);
+      return context.getBean("InBuiltLucene", KGFullTextSearchDAO.class);
     } else {
-      return context.getBean(fullTextSearchChoice, FullTextSearchDAO.class);
+      return context.getBean(fullTextSearchChoice, KGFullTextSearchDAO.class);
     }
   }
 
   @Override
-  public KnowledgeGraphGremlinDAO getGremlinDAO() {
-    return context.getBean("InMemoryGremlin", KnowledgeGraphGremlinDAO.class);
+  public KGGremlinDAO getGremlinDAO() {
+    return context.getBean("InMemoryGremlin", KGGremlinDAO.class);
   }
 }

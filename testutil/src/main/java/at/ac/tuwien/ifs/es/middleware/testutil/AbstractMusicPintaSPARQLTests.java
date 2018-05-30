@@ -11,6 +11,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.MalformedSPARQLQueryException;
@@ -42,12 +43,13 @@ import org.junit.Test;
 public abstract class AbstractMusicPintaSPARQLTests {
 
   private MusicPintaInstrumentsResource musicPintaInstrumentsResource;
-  private KnowledgeGraphDAO knowledgeGraphDAO;
+  private KGSparqlDAO sparqlDAO;
 
   @Before
   public void setUp() throws Throwable {
-    this.knowledgeGraphDAO = getKnowledgeGraphDAO();
-    this.musicPintaInstrumentsResource = new MusicPintaInstrumentsResource(this.knowledgeGraphDAO);
+    KnowledgeGraphDAO knowledgeGraphDAO = getKnowledgeGraphDAO();
+    this.sparqlDAO = knowledgeGraphDAO.getSparqlDAO();
+    this.musicPintaInstrumentsResource = new MusicPintaInstrumentsResource(knowledgeGraphDAO);
     this.musicPintaInstrumentsResource.before();
   }
 
@@ -63,7 +65,7 @@ public abstract class AbstractMusicPintaSPARQLTests {
 
   @Test
   public void test_countQuery_ok_mustReturnValue() throws Exception {
-    QueryResult result = knowledgeGraphDAO
+    QueryResult result = sparqlDAO
         .query("SELECT (COUNT(DISTINCT ?s) as ?cnt) WHERE { ?s ?p ?o }", false);
     assertThat("The result must be of a 'select' query.", result,
         instanceOf(SelectQueryResult.class));
@@ -78,7 +80,7 @@ public abstract class AbstractMusicPintaSPARQLTests {
 
   @Test
   public void test_selectResourceQuery_ok_mustReturnMusicInstruments() throws Exception {
-    QueryResult result = knowledgeGraphDAO
+    QueryResult result = sparqlDAO
         .query("SELECT DISTINCT ?s WHERE { ?s a <http://purl.org/ontology/mo/Instrument> }", false);
     assertThat("The result must be of a 'select' query.", result,
         instanceOf(SelectQueryResult.class));
@@ -98,14 +100,14 @@ public abstract class AbstractMusicPintaSPARQLTests {
   @Test(expected = MalformedSPARQLQueryException.class)
   public void test_executeUpdateQueryOnQueryMethod_throwMalformedSPARQLQueryException()
       throws Exception {
-    knowledgeGraphDAO.query(
+    sparqlDAO.query(
         "INSERT DATA { <test:a> a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"A\" ; rdfs:comment \"A test instance.\" . }",
         false);
   }
 
   @Test
   public void test_askForUnknownInstrument_mustReturnFalse() throws Exception {
-    QueryResult result = knowledgeGraphDAO.query(
+    QueryResult result = sparqlDAO.query(
         "ASK WHERE { ?s a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"Jaguar\"@en .}",
         false);
     assertThat("The result must be of an 'ask' query.", result, instanceOf(AskQueryResult.class));
@@ -117,7 +119,7 @@ public abstract class AbstractMusicPintaSPARQLTests {
 
   @Test
   public void test_askForWellKnownInstrument_mustReturnTrue() throws Exception {
-    QueryResult result = knowledgeGraphDAO.query(
+    QueryResult result = sparqlDAO.query(
         "ASK WHERE { ?s a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"Harp\"@en .}",
         false);
     assertThat("The result must be of an 'ask' query.", result, instanceOf(AskQueryResult.class));
@@ -129,7 +131,7 @@ public abstract class AbstractMusicPintaSPARQLTests {
   @Test
   public void test_describeQuery_ok() throws Exception {
     RDF valueFactory = new SimpleRDF();
-    QueryResult result = knowledgeGraphDAO
+    QueryResult result = sparqlDAO
         .query("DESCRIBE <http://dbpedia.org/resource/Huluhu>", false);
     assertThat("", result, instanceOf(GraphQueryResult.class));
     Graph resultGraph = ((GraphQueryResult) result).value();
@@ -163,9 +165,9 @@ public abstract class AbstractMusicPintaSPARQLTests {
   @Test
   public void test_updateInsertData_mustBeSuccessful() throws Exception {
     RDF valueFactory = new SimpleRDF();
-    knowledgeGraphDAO.update(
+    sparqlDAO.update(
         "INSERT DATA { <test:a> a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"A\" ; rdfs:comment \"A test instance.\" . }");
-    GraphQueryResult result = (GraphQueryResult) knowledgeGraphDAO
+    GraphQueryResult result = (GraphQueryResult) sparqlDAO
         .query("Describe <test:a>", false);
     Graph resultGraph = result.value();
     IRI testIRI = valueFactory.createIRI("test:a");
@@ -184,15 +186,15 @@ public abstract class AbstractMusicPintaSPARQLTests {
 
   @Test(expected = KnowledgeGraphSPARQLException.class)
   public void test_updateInsertDataWithInvalidIRI_mustRespondWithFailure() throws Exception {
-    knowledgeGraphDAO
+    sparqlDAO
         .update("INSERT DATA { <:a/\\path> a <http://purl.org/ontology/mo/Instrument>. }");
   }
 
   @Test
   public void test_updateDeleteData_mustBeSuccessful() throws Exception {
     RDF valueFactory = new SimpleRDF();
-    knowledgeGraphDAO.update("DELETE WHERE { <http://dbpedia.org/resource/Huluhu> ?p1 ?o .}");
-    GraphQueryResult result = (GraphQueryResult) knowledgeGraphDAO
+    sparqlDAO.update("DELETE WHERE { <http://dbpedia.org/resource/Huluhu> ?p1 ?o .}");
+    GraphQueryResult result = (GraphQueryResult) sparqlDAO
         .query("DESCRIBE <http://dbpedia.org/resource/Huluhu>", false);
     Graph resultGraph = result.value();
     IRI testIRI = valueFactory.createIRI("http://dbpedia.org/resource/Huluhu");

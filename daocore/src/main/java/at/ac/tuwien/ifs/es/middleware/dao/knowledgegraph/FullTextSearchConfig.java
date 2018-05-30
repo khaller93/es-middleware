@@ -1,5 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearchDAOReadyEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearchDAOUpdatedEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearchDAOUpdatingEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -10,7 +13,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 
 /**
- * This configuration prepares the certain {@link FullTextSearchDAO} that is specified in the
+ * This configuration prepares the certain {@link KGFullTextSearchDAO} that is specified in the
  * application properties. The relevant property is {@code esm.fts.choice}.
  *
  * @author Kevin Haller
@@ -26,11 +29,11 @@ public class FullTextSearchConfig {
   @Lazy
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-  public FullTextSearchDAO getSpecificFullTextSearchDAO(@Autowired ApplicationContext context) {
+  public KGFullTextSearchDAO getSpecificFullTextSearchDAO(@Autowired ApplicationContext context) {
     if (choice == null) {
       throw new IllegalStateException("There was no choice for full-text-search given.");
     }
-    return context.getBean(choice, FullTextSearchDAO.class);
+    return context.getBean(choice, KGFullTextSearchDAO.class);
   }
 
 }

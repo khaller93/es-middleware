@@ -1,7 +1,10 @@
-package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
+package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.GremlinDAOUpdateEvent;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.SPARQLDAOUpdateEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDAOUpdatedEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOUpdatedEvent;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import java.time.Instant;
@@ -31,16 +34,16 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 
 /**
- * This is a {@link KnowledgeGraphGremlinDAO} in which data will be cloned from the {@link
- * KnowledgeGraphDAO}. It implements generic methods and expects simply a new clean {@link Graph}
- * from the implementing class to work.
+ * This is a {@link KGGremlinDAO} in which data will be cloned from the {@link KnowledgeGraphDAO}.
+ * It implements generic methods and expects simply a new clean {@link Graph} from the implementing
+ * class to work.
  *
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractClonedGremlinDAO implements KnowledgeGraphGremlinDAO,
-    ApplicationListener<SPARQLDAOUpdateEvent> {
+public abstract class AbstractClonedGremlinDAO implements KGGremlinDAO,
+    ApplicationListener<SPARQLDAOUpdatedEvent> {
 
   private static final Logger logger = LoggerFactory.getLogger(InMemoryGremlinDAO.class);
 
@@ -56,14 +59,14 @@ public abstract class AbstractClonedGremlinDAO implements KnowledgeGraphGremlinD
   @Autowired
   private ApplicationEventPublisher applicationEventPublisher;
 
-  private KnowledgeGraphDAO knowledgeGraphDAO;
+  private KGSparqlDAO sparqlDAO;
   private Graph graph;
   private long timestamp;
 
   private ExecutorService threadPool = Executors.newCachedThreadPool();
   private ReadWriteLock graphLock = new ReentrantReadWriteLock(true);
 
-  private Consumer<GremlinDAOUpdateEvent> updateTriggerFunction;
+  private Consumer<GremlinDAOUpdatedEvent> updateTriggerFunction;
 
   /**
    * Creates a new {@link AbstractClonedGremlinDAO} with the given {@code knowledgeGraphDAO}.
@@ -71,7 +74,7 @@ public abstract class AbstractClonedGremlinDAO implements KnowledgeGraphGremlinD
    * @param knowledgeGraphDAO that shall be used.
    */
   public AbstractClonedGremlinDAO(KnowledgeGraphDAO knowledgeGraphDAO) {
-    this.knowledgeGraphDAO = knowledgeGraphDAO;
+    this.sparqlDAO = knowledgeGraphDAO.getSparqlDAO();
   }
 
   @PostConstruct
@@ -87,7 +90,7 @@ public abstract class AbstractClonedGremlinDAO implements KnowledgeGraphGremlinD
   public abstract Graph newGraphInstance();
 
   @Override
-  public void onApplicationEvent(SPARQLDAOUpdateEvent event) {
+  public void onApplicationEvent(SPARQLDAOUpdatedEvent event) {
     logger.debug("Recognized an SPARQL update event {}.", event);
     threadPool.submit(new GraphConstruction(event.getTimestamp()));
   }
@@ -137,7 +140,7 @@ public abstract class AbstractClonedGremlinDAO implements KnowledgeGraphGremlinD
       Map<String, String> valuesMap = new HashMap<>();
       valuesMap.put("offset", String.valueOf(offset));
       valuesMap.put("limit", String.valueOf(LOAD_LIMIT));
-      values = ((SelectQueryResult) knowledgeGraphDAO
+      values = ((SelectQueryResult) sparqlDAO
           .query(new StringSubstitutor(valuesMap).replace(ALL_STATEMENTS_QUERY), true)).value();
       for (Map<String, RDFTerm> row : values) {
         BlankNodeOrIRI sResource = (BlankNodeOrIRI) row.get("s");
@@ -152,7 +155,7 @@ public abstract class AbstractClonedGremlinDAO implements KnowledgeGraphGremlinD
         sVertex.addEdge(BlankOrIRIJsonUtil.stringValue(property), oVertex);
       }
       logger.info("Loaded {} statements from the knowledge graph {}.", offset + values.size(),
-          knowledgeGraphDAO.getClass().getSimpleName());
+          sparqlDAO.getClass().getSimpleName());
       offset += LOAD_LIMIT;
     } while (!values.isEmpty() && values.size() == LOAD_LIMIT);
     return newGraph;
@@ -179,10 +182,10 @@ public abstract class AbstractClonedGremlinDAO implements KnowledgeGraphGremlinD
           oldGraph = AbstractClonedGremlinDAO.this.graph;
           AbstractClonedGremlinDAO.this.graph = newGraph;
           AbstractClonedGremlinDAO.this.timestamp = this.issuedTimestamp;
-          GremlinDAOUpdateEvent gremlinDAOUpdateEvent = new GremlinDAOUpdateEvent(this);
-          applicationEventPublisher.publishEvent(gremlinDAOUpdateEvent);
+          GremlinDAOUpdatedEvent gremlinDAOUpdatedEvent = new GremlinDAOUpdatedEvent(this);
+          applicationEventPublisher.publishEvent(gremlinDAOUpdatedEvent);
           if (updateTriggerFunction != null) {
-            updateTriggerFunction.accept(gremlinDAOUpdateEvent);
+            updateTriggerFunction.accept(gremlinDAOUpdatedEvent);
           }
         } else {
           oldGraph = newGraph;
@@ -199,12 +202,12 @@ public abstract class AbstractClonedGremlinDAO implements KnowledgeGraphGremlinD
   }
 
   /**
-   * Sets a listener for {@link GremlinDAOUpdateEvent}s. The given argument can be {@code null}, but
-   * then the previous set listener will be removed.
+   * Sets a listener for {@link GremlinDAOUpdatedEvent}s. The given argument can be {@code null},
+   * but then the previous set listener will be removed.
    *
-   * @param listener that shall be called if the {@link KnowledgeGraphGremlinDAO} has updated.
+   * @param listener that shall be called if the {@link KGGremlinDAO} has updated.
    */
-  public void setUpdateListenerFunction(Consumer<GremlinDAOUpdateEvent> listener) {
+  public void setUpdateListenerFunction(Consumer<GremlinDAOUpdatedEvent> listener) {
     this.updateTriggerFunction = listener;
   }
 
