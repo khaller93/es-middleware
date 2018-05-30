@@ -19,7 +19,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.sparql.QueryResult;
  * issue a {@link SPARQLDAOUpdatedEvent}.
  * <p/>
  * However, the DAO can always fail, and the resulting state will then be {@code failed}. A
- * transition into {@code failed}, will trigger a {@link SPARQLDAOUpdatedEvent}. A DAO can always
+ * transition into {@code failed}, will trigger a {@link SPARQLDAOFailedEvent}. A DAO can always
  * recover, and move to {@code ready} again, also triggering the corresponding event.
  *
  * @author Kevin Haller
