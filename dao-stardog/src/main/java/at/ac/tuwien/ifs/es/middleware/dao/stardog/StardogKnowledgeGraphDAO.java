@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.text.StringSubstitutor;
@@ -19,13 +20,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * This is an implementation of {@link KnowledgeGraphDAO} and {@link KGFullTextSearchDAO} for Stardog
- * using RDF4J.
+ * This is an implementation of {@link KnowledgeGraphDAO} and {@link KGFullTextSearchDAO} for
+ * Stardog using RDF4J.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -55,12 +57,22 @@ public class StardogKnowledgeGraphDAO extends RDF4JKnowledgeGraphDAO implements
       "\n?resource a ?class .\nFILTER(?class in (%s)) .\n"
   };
 
+  private StardogConfiguration stardogConfiguration;
+
   /**
    * Creates a new Stardog DAO for {@link KnowledgeGraphDAO} and {@link KGFullTextSearchDAO}.
    *
    * @param stardogConfiguration that specifies properties for Stardog.
    */
-  public StardogKnowledgeGraphDAO(@Autowired StardogConfiguration stardogConfiguration) {
+  @Autowired
+  public StardogKnowledgeGraphDAO(StardogConfiguration stardogConfiguration,
+      ApplicationContext context) {
+    super(context);
+    this.stardogConfiguration = stardogConfiguration;
+  }
+
+  @PostConstruct
+  public void setUp() {
     SPARQLRepository sparqlRepository = new SPARQLRepository(
         stardogConfiguration.getSPARQLEndpointURL());
     sparqlRepository.setUsernameAndPassword(stardogConfiguration.getUsername(),
@@ -88,7 +100,7 @@ public class StardogKnowledgeGraphDAO extends RDF4JKnowledgeGraphDAO implements
       queryValuesMap.put("classes-filter", "");
     }
     queryValuesMap.put("offset", offset != null ? String.format("OFFSET %d", offset) : "");
-    queryValuesMap.put("limit", limit != null ? String.format("LIMIT %d",limit) : "");
+    queryValuesMap.put("limit", limit != null ? String.format("LIMIT %d", limit) : "");
     String searchQuery = new StringSubstitutor(queryValuesMap).replace(SEARCH_QUERY);
     logger
         .trace("Searching with '{}' for '{}' of classes {} with limit={}, offset={}.", searchQuery,

@@ -24,7 +24,8 @@ import org.springframework.stereotype.Component;
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class InMemoryGremlinDAO extends AbstractClonedGremlinDAO {
 
-  public InMemoryGremlinDAO(@Autowired KnowledgeGraphDAO knowledgeGraphDAO) {
+  @Autowired
+  public InMemoryGremlinDAO(KnowledgeGraphDAO knowledgeGraphDAO) {
     super(knowledgeGraphDAO);
   }
 

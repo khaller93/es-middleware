@@ -1,10 +1,12 @@
 package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOFailedEvent;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSetupException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Model;
@@ -21,8 +23,6 @@ import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParseException;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -43,25 +43,41 @@ import org.springframework.stereotype.Component;
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class EmbeddedGraphDbDAO extends GraphDbDAO {
 
-  private static final Logger logger = LoggerFactory.getLogger(EmbeddedGraphDbDAO.class);
-
   private RepositoryManager repositoryManager;
+
+  @Value("${graphdb.embedded.location}")
+  private String location;
+  @Value("${graphdb.embedded.config.path}")
+  private String repositoryConfig;
 
   /**
    * Creates a {@link GraphDbDAO} with the given repository configuration and repository location.
    */
-  public EmbeddedGraphDbDAO(@Value("${graphdb.embedded.location}") String location,
-      @Value("${graphdb.embedded.config.path}") String repositoryConfig,
-      @Autowired ApplicationContext context) throws KnowledgeGraphSetupException {
+  @Autowired
+  public EmbeddedGraphDbDAO(ApplicationContext context) throws KnowledgeGraphSetupException {
+    super(context);
+  }
+
+  @PostConstruct
+  public void setUp() {
     this.repositoryManager = new LocalRepositoryManager(new File(location));
     try {
       this.repositoryManager.initialize();
-      this.initGraphDb(prepareRepository(repositoryManager, repositoryConfig), context);
+      this.init(prepareRepository(repositoryManager, repositoryConfig));
     } catch (RepositoryException re) {
+      getApplicationContext()
+          .publishEvent(new SPARQLDAOFailedEvent(this, "Triplestore could not be setup", re));
       throw new KnowledgeGraphSetupException(re);
     }
   }
 
+  /**
+   * Prepares the repository for the embedded GraphDB, using the given {@code repositoryConfig}.
+   *
+   * @param repositoryManager {@link RepositoryManager} that shall be used.
+   * @param repositoryConfig path to the configuration for the embedded GraphDB.
+   * @return {@link Repository} representing the embedded GraphDB.
+   */
   private static Repository prepareRepository(RepositoryManager repositoryManager,
       String repositoryConfig) {
     if (repositoryConfig == null || repositoryConfig.isEmpty()) {

@@ -4,10 +4,10 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDAOUpdatedEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOReadyEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOUpdatedEvent;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +17,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
@@ -31,7 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
 
 /**
  * This is a {@link KGGremlinDAO} in which data will be cloned from the {@link KnowledgeGraphDAO}.
@@ -42,8 +42,7 @@ import org.springframework.context.ApplicationListener;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractClonedGremlinDAO implements KGGremlinDAO,
-    ApplicationListener<SPARQLDAOUpdatedEvent> {
+public abstract class AbstractClonedGremlinDAO implements KGGremlinDAO {
 
   private static final Logger logger = LoggerFactory.getLogger(InMemoryGremlinDAO.class);
 
@@ -56,7 +55,6 @@ public abstract class AbstractClonedGremlinDAO implements KGGremlinDAO,
       + "OFFSET ${offset}\n"
       + "LIMIT ${limit}";
 
-  @Autowired
   private ApplicationEventPublisher applicationEventPublisher;
 
   private KGSparqlDAO sparqlDAO;
@@ -73,13 +71,14 @@ public abstract class AbstractClonedGremlinDAO implements KGGremlinDAO,
    *
    * @param knowledgeGraphDAO that shall be used.
    */
+  @Autowired
   public AbstractClonedGremlinDAO(KnowledgeGraphDAO knowledgeGraphDAO) {
     this.sparqlDAO = knowledgeGraphDAO.getSparqlDAO();
   }
 
-  @PostConstruct
-  public void setUp() {
-    threadPool.submit(new GraphConstruction(Instant.now().getEpochSecond()));
+  @Autowired
+  public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+    this.applicationEventPublisher = applicationEventPublisher;
   }
 
   /**
@@ -89,7 +88,13 @@ public abstract class AbstractClonedGremlinDAO implements KGGremlinDAO,
    */
   public abstract Graph newGraphInstance();
 
-  @Override
+  @EventListener
+  public void onApplicationEvent(SPARQLDAOReadyEvent event) {
+    logger.debug("SPARQL DAO is ready {}.", event);
+    threadPool.submit(new GraphConstruction(event.getTimestamp()));
+  }
+
+  @EventListener
   public void onApplicationEvent(SPARQLDAOUpdatedEvent event) {
     logger.debug("Recognized an SPARQL update event {}.", event);
     threadPool.submit(new GraphConstruction(event.getTimestamp()));

@@ -4,11 +4,14 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
+import javax.annotation.PostConstruct;
 import org.eclipse.rdf4j.repository.sparql.SPARQLRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -28,7 +31,16 @@ public class BlazegraphDAO extends RDF4JKnowledgeGraphDAO {
 
   private static final Logger logger = LoggerFactory.getLogger(BlazegraphDAO.class);
 
-  public BlazegraphDAO(@Value("${blazegraph.queryEndpointURL}") String queryEndpointURL) {
+  @Value("${blazegraph.queryEndpointURL}")
+  private String queryEndpointURL;
+
+  @Autowired
+  public BlazegraphDAO(ApplicationContext context) {
+    super(context);
+  }
+
+  @PostConstruct
+  public void setUp() {
     init(new SPARQLRepository(queryEndpointURL));
   }
 

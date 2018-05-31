@@ -25,10 +25,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class IndexedMemoryKGMusicPintaGremlinTests extends AbstractMusicPintaGremlinTests {
 
   @Autowired
-  private IndexedMemoryKnowledgeGraph knowledgeGraphDAO;
+  private KnowledgeGraphDAO knowledgeGraphDAO;
 
   @Override
-  public KnowledgeGraphDAO getSparqlDAO() {
+  public KnowledgeGraphDAO getKnowledgeGraphDAO() {
     return knowledgeGraphDAO;
   }
 

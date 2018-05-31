@@ -2,6 +2,8 @@ package at.ac.tuwien.ifs.es.middleware.dao.rdf4j;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOFailedEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOReadyEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOUpdatedEvent;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.MalformedSPARQLQueryException;
@@ -26,12 +28,14 @@ import org.eclipse.rdf4j.query.TupleQuery;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.sail.Sail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 
 /**
@@ -47,15 +51,18 @@ public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO, KnowledgeGr
 
   private static final Logger logger = LoggerFactory.getLogger(RDF4JKnowledgeGraphDAO.class);
 
-  @Autowired
-  private ApplicationEventPublisher applicationEventPublisher;
-
-  private Repository repository;
+  private Lock updateLock = new ReentrantLock();
 
   @Value("${esm.db.updateInterval:5000}")
   private long updateInterval;
-  private Lock updateLock;
   private Timer timer;
+
+  private Repository repository;
+  private ApplicationContext applicationContext;
+
+  public RDF4JKnowledgeGraphDAO(ApplicationContext applicationContext) {
+    this.applicationContext = applicationContext;
+  }
 
   /**
    * Initializes a new {@link RDF4JKnowledgeGraphDAO} with the given {@link Repository}.
@@ -65,8 +72,15 @@ public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO, KnowledgeGr
   protected void init(Repository repository) {
     assert repository != null;
     this.repository = repository;
-    this.repository.initialize();
-    this.updateLock = new ReentrantLock();
+    try {
+      this.repository.initialize();
+    } catch (RepositoryException re) {
+      applicationContext
+          .publishEvent(
+              new SPARQLDAOFailedEvent(this, "Initialization of triplestore failed.", re));
+      throw re;
+    }
+    applicationContext.publishEvent(new SPARQLDAOReadyEvent(this));
   }
 
   /**
@@ -76,6 +90,15 @@ public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO, KnowledgeGr
    */
   protected void init(Sail sail) {
     this.init(new SailRepository(sail));
+  }
+
+  /**
+   * Gets the application context maintained by this DAO.
+   *
+   * @return {@link ApplicationContext} that is maintained by this DAO.
+   */
+  protected ApplicationContext getApplicationContext() {
+    return applicationContext;
   }
 
   @Override
@@ -124,7 +147,7 @@ public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO, KnowledgeGr
               updateLock.lock();
               try {
                 logger.debug("The scheduled update task has been executed.");
-                applicationEventPublisher.publishEvent(new SPARQLDAOUpdatedEvent(this));
+                applicationContext.publishEvent(new SPARQLDAOUpdatedEvent(this));
                 timer = null;
               } finally {
                 updateLock.unlock();

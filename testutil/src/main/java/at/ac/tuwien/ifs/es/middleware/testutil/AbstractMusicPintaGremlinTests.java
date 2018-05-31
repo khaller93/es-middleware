@@ -26,7 +26,7 @@ import org.junit.Test;
 
 /**
  * This class implements generic tests for the SPARQL interface of {@link KnowledgeGraphDAO}s. The
- * method {@link AbstractMusicPintaGremlinTests#getSparqlDAO()} must return the tested
+ * method {@link AbstractMusicPintaGremlinTests#getKnowledgeGraphDAO()} must return the tested
  * {@link KnowledgeGraphDAO}.
  *
  * @author Kevin Haller
@@ -42,11 +42,11 @@ public abstract class AbstractMusicPintaGremlinTests {
   /**
    * gets the {@link KnowledgeGraphDAO} that shall be tested.
    */
-  public abstract KnowledgeGraphDAO getSparqlDAO();
+  public abstract KnowledgeGraphDAO getKnowledgeGraphDAO();
 
   @Before
   public void setUp() throws Throwable {
-    KnowledgeGraphDAO knowledgeGraphDAO = getSparqlDAO();
+    KnowledgeGraphDAO knowledgeGraphDAO = getKnowledgeGraphDAO();
     this.sparqlDAO = knowledgeGraphDAO.getSparqlDAO();
     this.gremlinDAO = knowledgeGraphDAO.getGremlinDAO();
     this.musicPintaInstrumentsResource = new MusicPintaInstrumentsResource(knowledgeGraphDAO);

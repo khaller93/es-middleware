@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.text.StringSubstitutor;
@@ -59,18 +60,21 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
       "\n?resource a ?class .\nFILTER(?class in (%s)) .\n"
   };
 
-  private ApplicationContext context;
 
   /**
-   * Creates a new {@link KnowledgeGraphDAO} in
-   * memory that is indexed.
+   * Creates a new {@link KnowledgeGraphDAO} in memory that is indexed.
    */
-  public IndexedMemoryKnowledgeGraph(@Autowired ApplicationContext context) {
-    this.context = context;
+  @Autowired
+  public IndexedMemoryKnowledgeGraph(ApplicationContext context) {
+    super(context);
+  }
+
+  @PostConstruct
+  public void setUp() {
     LuceneSail luceneSail = new LuceneSail();
     luceneSail.setParameter(LuceneSail.LUCENE_RAMDIR_KEY, "true");
     luceneSail.setBaseSail(new MemoryStore());
-    init(luceneSail);
+    this.init(luceneSail);
   }
 
   /**
@@ -118,6 +122,6 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
 
   @Override
   public KGGremlinDAO getGremlinDAO() {
-    return context.getBean("InMemoryGremlin", InMemoryGremlinDAO.class);
+    return getApplicationContext().getBean("InMemoryGremlin", InMemoryGremlinDAO.class);
   }
 }

@@ -12,12 +12,25 @@ import org.springframework.context.ApplicationEvent;
  */
 public class SPARQLDAOFailedEvent extends ApplicationEvent {
 
+  private String message;
+  private Exception exception;
+
   /**
-   * Create a new ApplicationEvent.
-   *
-   * @param source the object on which the event initially occurred (never {@code null})
+   * @param source that issued the event.
+   * @param message {@link String} describing the failure briefly, can be {@code null}.
+   * @param exception {@link Exception} that has been thrown, can be {@code null}.
    */
-  public SPARQLDAOFailedEvent(Object source) {
+  public SPARQLDAOFailedEvent(Object source, String message, Exception exception) {
     super(source);
+    this.message = message;
+    this.exception = exception;
+  }
+
+  public String getMessage() {
+    return message;
+  }
+
+  public Exception getException() {
+    return exception;
   }
 }
