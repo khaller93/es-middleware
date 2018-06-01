@@ -11,8 +11,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.MalformedSPARQLQueryException;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.AskQueryResult;
@@ -34,7 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * This class implements generic tests for the SPARQL interface of {@link KnowledgeGraphDAO}s.
+ * This class implements generic tests for the SPARQL interface of {@link KGSparqlDAO}s.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -44,12 +44,13 @@ public abstract class AbstractMusicPintaSPARQLTests {
 
   private MusicPintaInstrumentsResource musicPintaInstrumentsResource;
   private KGSparqlDAO sparqlDAO;
+  private KGGremlinDAO gremlinDAO;
 
   @Before
   public void setUp() throws Throwable {
-    KnowledgeGraphDAO knowledgeGraphDAO = getKnowledgeGraphDAO();
-    this.sparqlDAO = knowledgeGraphDAO.getSparqlDAO();
-    this.musicPintaInstrumentsResource = new MusicPintaInstrumentsResource(knowledgeGraphDAO);
+    this.sparqlDAO = getSparqlDAO();
+    this.gremlinDAO = getGremlinDAO();
+    this.musicPintaInstrumentsResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
     this.musicPintaInstrumentsResource.before();
   }
 
@@ -59,9 +60,14 @@ public abstract class AbstractMusicPintaSPARQLTests {
   }
 
   /**
-   * gets the {@link KnowledgeGraphDAO} that shall be tested.
+   * gets the {@link KGSparqlDAO} that shall be tested.
    */
-  public abstract KnowledgeGraphDAO getKnowledgeGraphDAO();
+  protected abstract KGSparqlDAO getSparqlDAO();
+
+  /**
+   * gets the {@link KGGremlinDAO} that shall be tested.
+   */
+  protected abstract KGGremlinDAO getGremlinDAO();
 
   @Test
   public void test_countQuery_ok_mustReturnValue() throws Exception {

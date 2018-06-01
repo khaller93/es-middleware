@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.fts;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
 import java.util.List;
 import java.util.Map;
@@ -26,28 +26,29 @@ import org.springframework.stereotype.Service;
 @Service("SimpleFullTextSearchService")
 public class SimpleFullTextSearchService implements FullTextSearchService {
 
-  private KGFullTextSearchDAO KGFullTextSearchDAO;
+  private KGFullTextSearchDAO fullTextSearchDAO;
 
-  public SimpleFullTextSearchService(@Autowired KnowledgeGraphDAO knowledgeGraphDAO) {
-    this.KGFullTextSearchDAO = knowledgeGraphDAO.getFullTextSearchDAO();
+  @Autowired
+  public SimpleFullTextSearchService(KGFullTextSearchDAO fullTextSearchDAO) {
+    this.fullTextSearchDAO = fullTextSearchDAO;
   }
 
   @Cacheable({"fts"})
   @Override
   public List<Map<String, RDFTerm>> searchFullText(String keyword) {
-    return KGFullTextSearchDAO.searchFullText(keyword);
+    return fullTextSearchDAO.searchFullText(keyword);
   }
 
   @Cacheable({"fts"})
   @Override
   public List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes) {
-    return KGFullTextSearchDAO.searchFullText(keyword, classes);
+    return fullTextSearchDAO.searchFullText(keyword, classes);
   }
 
   @Cacheable({"fts"})
   @Override
   public List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
       Integer offset, Integer limit) throws KnowledgeGraphDAOException {
-    return KGFullTextSearchDAO.searchFullText(keyword, classes, offset, limit);
+    return fullTextSearchDAO.searchFullText(keyword, classes, offset, limit);
   }
 }

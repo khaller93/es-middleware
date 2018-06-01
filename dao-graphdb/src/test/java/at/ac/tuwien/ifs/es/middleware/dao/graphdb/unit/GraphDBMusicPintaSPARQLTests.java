@@ -1,9 +1,11 @@
 package at.ac.tuwien.ifs.es.middleware.dao.graphdb.unit;
 
 import at.ac.tuwien.ifs.es.middleware.dao.graphdb.EmbeddedGraphDbDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbLucene;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.InMemoryGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.testutil.AbstractMusicPintaSPARQLTests;
 import java.io.File;
 import java.io.IOException;
@@ -19,31 +21,33 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * This is a test class implementing {@link AbstractMusicPintaSPARQLTests} for an embedded {@link
- * GraphDbDAO}.
+ * This is a test class implementing {@link AbstractMusicPintaSPARQLTests} for {@link
+ * EmbeddedGraphDbDAO}.
  *
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {EmbeddedGraphDbDAO.class, InMemoryGremlinDAO.class})
+@ContextConfiguration(classes = {EmbeddedGraphDbDAO.class, InMemoryGremlinDAO.class,
+    GraphDbLucene.class})
 @TestPropertySource(properties = {
     "graphdb.embedded.location=graphdb/",
-    "graphdb.embedded.config.path=graphdb/configuration/graphdb-musicpinta-instruments.ttl"
+    "graphdb.embedded.config.path=graphdb/conf/graphdb-musicpinta-instruments.ttl"
 })
-@Ignore
 public class GraphDBMusicPintaSPARQLTests extends AbstractMusicPintaSPARQLTests {
 
   @Autowired
-  private EmbeddedGraphDbDAO embeddedGraphDbDAO;
+  private KGSparqlDAO sparqlDAO;
+  @Autowired
+  private KGGremlinDAO gremlinDAO;
 
   private static final File graphDbDir = new File("graphdb/");
 
   @BeforeClass
   public static void setUpClass() throws IOException {
     graphDbDir.mkdirs();
-    File graphConfigDir = new File(graphDbDir, "configuration");
+    File graphConfigDir = new File(graphDbDir, "conf");
     graphConfigDir.mkdir();
     try (InputStream configIn = GraphDBMusicPintaSPARQLTests.class
         .getResourceAsStream("/graphdb-musicpinta-instruments.ttl")) {
@@ -62,7 +66,12 @@ public class GraphDBMusicPintaSPARQLTests extends AbstractMusicPintaSPARQLTests 
   }
 
   @Override
-  public KnowledgeGraphDAO getKnowledgeGraphDAO() {
-    return embeddedGraphDbDAO;
+  protected KGSparqlDAO getSparqlDAO() {
+    return sparqlDAO;
+  }
+
+  @Override
+  protected KGGremlinDAO getGremlinDAO() {
+    return gremlinDAO;
   }
 }

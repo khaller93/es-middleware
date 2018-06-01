@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOFailedEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOReadyEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOUpdatedEvent;
@@ -33,13 +33,11 @@ import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.sail.Sail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEventPublisher;
 
 /**
- * This class implements the generic methods of {@link KnowledgeGraphDAO} using the RDF4J
+ * This class implements the generic methods of {@link KnowledgeGraphDAOConfig} using the RDF4J
  * framework.
  *
  * @author Kevin Haller
@@ -47,7 +45,7 @@ import org.springframework.context.ApplicationEventPublisher;
  * @see <a href="http://rdf4j.org/">RDF4J</a>
  * @since 1.0
  */
-public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO, KnowledgeGraphDAO {
+public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO {
 
   private static final Logger logger = LoggerFactory.getLogger(RDF4JKnowledgeGraphDAO.class);
 
@@ -161,11 +159,6 @@ public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO, KnowledgeGr
     } catch (RDF4JException e) {
       throw new SPARQLExecutionException(e);
     }
-  }
-
-  @Override
-  public KGSparqlDAO getSparqlDAO() {
-    return this;
   }
 
   /**

@@ -1,8 +1,5 @@
 package at.ac.tuwien.ifs.es.middleware.dao.blazegraph;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
 import javax.annotation.PostConstruct;
 import org.eclipse.rdf4j.repository.sparql.SPARQLRepository;
@@ -17,7 +14,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * This class is an implementation of {@link KnowledgeGraphDAO} for blazegraph triplestore.
+ * This class is an implementation of {@link at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO}
+ * for blazegraph triplestore.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -25,7 +23,7 @@ import org.springframework.stereotype.Component;
  * @since 1.0
  */
 @Lazy
-@Component("Blazegraph")
+@Component("BlazegraphDAO")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class BlazegraphDAO extends RDF4JKnowledgeGraphDAO {
 
@@ -44,13 +42,4 @@ public class BlazegraphDAO extends RDF4JKnowledgeGraphDAO {
     init(new SPARQLRepository(queryEndpointURL));
   }
 
-  @Override
-  public KGFullTextSearchDAO getFullTextSearchDAO() {
-    return null;
-  }
-
-  @Override
-  public KGGremlinDAO getGremlinDAO() {
-    return null;
-  }
 }

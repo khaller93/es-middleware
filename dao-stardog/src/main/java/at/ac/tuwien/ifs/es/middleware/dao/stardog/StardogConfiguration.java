@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 
 /**
- * This class maintains the configuration for Stardog.
+ * This class maintains the conf for Stardog.
  *
  * @author Kevin Haller
  * @version 1.0

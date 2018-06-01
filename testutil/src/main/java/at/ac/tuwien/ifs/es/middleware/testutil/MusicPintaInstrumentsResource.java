@@ -1,7 +1,9 @@
 package at.ac.tuwien.ifs.es.middleware.testutil;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.AbstractClonedGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDAOUpdatedEvent;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -17,7 +19,7 @@ import org.junit.rules.ExternalResource;
 
 /**
  * This is an {@link ExternalResource} that loads the music pinta instruments subset into the
- * specified {@link KnowledgeGraphDAO}.
+ * specified {@link KnowledgeGraphDAOConfig}.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -39,10 +41,12 @@ public class MusicPintaInstrumentsResource extends ExternalResource {
     }
   }
 
-  private KnowledgeGraphDAO knowledgeGraphDAO;
+  private KGSparqlDAO sparqlDAO;
+  private KGGremlinDAO gremlinDAO;
 
-  public MusicPintaInstrumentsResource(KnowledgeGraphDAO knowledgeGraphDAO) {
-    this.knowledgeGraphDAO = knowledgeGraphDAO;
+  public MusicPintaInstrumentsResource(KGSparqlDAO sparqlDAO, KGGremlinDAO gremlinDAO) {
+    this.sparqlDAO = sparqlDAO;
+    this.gremlinDAO = gremlinDAO;
   }
 
   @Override
@@ -53,19 +57,18 @@ public class MusicPintaInstrumentsResource extends ExternalResource {
         for (int i = 0; i < 5000 && statementIterator.hasNext(); i++) {
           Rio.write(statementIterator.next(), out, RDFFormat.NTRIPLES);
         }
-        knowledgeGraphDAO.getSparqlDAO()
-            .update(String.format("INSERT DATA {%s}", new String(out.toByteArray())));
+        sparqlDAO.update(String.format("INSERT DATA {%s}", new String(out.toByteArray())));
       }
     }
     /* wait for the GremlinDAO to be updated */
     LinkedBlockingQueue<GremlinDAOUpdatedEvent> events = new LinkedBlockingQueue<>();
-    ((AbstractClonedGremlinDAO) knowledgeGraphDAO.getGremlinDAO()).setUpdateListenerFunction(
+    ((AbstractClonedGremlinDAO) gremlinDAO).setUpdateListenerFunction(
         events::add);
     events.poll(30, TimeUnit.SECONDS);
   }
 
   @Override
   protected void after() {
-    knowledgeGraphDAO.getSparqlDAO().update("DELETE {?s ?p ?o} WHERE {?s ?p ?o}");
+    sparqlDAO.update("DELETE {?s ?p ?o} WHERE {?s ?p ?o}");
   }
 }

@@ -20,4 +20,6 @@ import org.junit.runners.Suite.SuiteClasses;
     SimilarityMetricsServiceTest.class, SimpleSPARQLServiceTest.class})
 public class KnowledgeGraphServiceTestSuite {
 
+
+
 }

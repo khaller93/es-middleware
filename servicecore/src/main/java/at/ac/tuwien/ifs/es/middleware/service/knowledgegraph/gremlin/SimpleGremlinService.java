@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -20,14 +20,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class SimpleGremlinService implements GremlinService{
 
-  private KGGremlinDAO KGGremlinDAO;
+  private KGGremlinDAO gremlinDAO;
 
-  public SimpleGremlinService(@Autowired KnowledgeGraphDAO knowledgeGraphDAO) {
-    this.KGGremlinDAO = knowledgeGraphDAO.getGremlinDAO();
+  @Autowired
+  public SimpleGremlinService(KGGremlinDAO gremlinDAO) {
+    this.gremlinDAO = gremlinDAO;
   }
 
   @Override
   public GraphTraversalSource traversal() {
-    return KGGremlinDAO.traversal();
+    return gremlinDAO.traversal();
   }
 }

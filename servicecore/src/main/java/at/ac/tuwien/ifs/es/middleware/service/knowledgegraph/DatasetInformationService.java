@@ -47,7 +47,8 @@ public class DatasetInformationService {
    *
    * @param sparqlService that shall be used to query the knowledge graph.
    */
-  public DatasetInformationService(@Autowired SPARQLService sparqlService) {
+  @Autowired
+  public DatasetInformationService(SPARQLService sparqlService) {
     this.sparqlService = sparqlService;
   }
 

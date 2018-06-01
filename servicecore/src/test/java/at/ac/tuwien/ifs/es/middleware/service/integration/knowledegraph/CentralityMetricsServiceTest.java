@@ -5,9 +5,10 @@ import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.InMemoryGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphConfig;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.IndexedMemoryKnowledgeGraph;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
@@ -20,6 +21,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.PostConstruct;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,22 +39,23 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 1.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {MusicPintaInstrumentsResource.class,
-    KnowledgeGraphConfig.class, SimpleGremlinService.class, CentralityMetricsService.class,
+@ContextConfiguration(classes = {SimpleGremlinService.class, CentralityMetricsService.class,
     IndexedMemoryKnowledgeGraph.class, InMemoryGremlinDAO.class})
-@TestPropertySource(properties = {
-    "esm.db.choice=IndexedMemoryDB",
-    "esm.cache.enable=false"
-})
 public class CentralityMetricsServiceTest {
 
   @Rule
-  @Autowired
   public MusicPintaInstrumentsResource musicPintaResource;
   @Autowired
-  private KnowledgeGraphDAO knowledgeGraphDAO;
+  public KGSparqlDAO sparqlDAO;
+  @Autowired
+  public KGGremlinDAO gremlinDAO;
   @Autowired
   private CentralityMetricsService centralityMetricsService;
+
+  @PostConstruct
+  public void setUp() throws Exception {
+    musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
+  }
 
   @Test
   public void test_computePageRankForAllResources_mustReturnCorrespondingPageRank() {

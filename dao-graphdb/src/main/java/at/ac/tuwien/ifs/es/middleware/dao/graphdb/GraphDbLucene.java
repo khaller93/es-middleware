@@ -2,7 +2,11 @@ package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearchDAOFailedEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearchDAOReadyEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearchDAOUpdatedEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearchDAOUpdatingEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOUpdatedEvent;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import java.util.HashMap;
@@ -17,10 +21,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+/**
+ * This is an implementation of {@link KGFullTextSearchDAO} for GraphDB using the in-built lucene.
+ *
+ * @author Kevin Haller
+ * @version 1.0
+ * @since 1.0
+ */
 @Lazy
 @Component("InBuiltLucene")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
@@ -53,23 +66,26 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
       "PREFIX luc: <http://www.ontotext.com/owlim/lucene#>\n"
           + "INSERT DATA { <%s> luc:updateIndex _:b1 . }";
 
-  private KGSparqlDAO sparqlDAO;
+  private ApplicationContext context;
   private GraphDbLuceneConfig graphDbLuceneConfig;
 
+  private KGSparqlDAO sparqlDAO;
+
   @Autowired
-  public GraphDbLucene(KnowledgeGraphDAO knowledgeGraphDAO,
-      GraphDbLuceneConfig graphDbLuceneConfig) {
-    this.sparqlDAO = knowledgeGraphDAO.getSparqlDAO();
+  public GraphDbLucene(ApplicationContext context, GraphDbLuceneConfig graphDbLuceneConfig) {
+    this.context = context;
     this.graphDbLuceneConfig = graphDbLuceneConfig;
   }
 
   @PostConstruct
-  public void initialize() {
+  public void setUp() {
     if (graphDbLuceneConfig.shouldBeInitialized()) {
       logger.debug("The GraphDb Lucene index will be initialized.");
-      sparqlDAO
+      this.sparqlDAO
           .update(String.format(INSERT_INDEX_DATA_QUERY, graphDbLuceneConfig.getConfigTriples(),
               graphDbLuceneConfig.getLuceneIndexIRI()));
+    } else {
+      context.publishEvent(new FullTextSearchDAOReadyEvent(this));
     }
   }
 
@@ -122,4 +138,17 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
     sparqlDAO.update(String.format(BATCH_UPDATE_QUERY, graphDbLuceneConfig.getLuceneIndexIRI()));
   }
 
+  @EventListener
+  public void handleSPARQLDAOUpdated(SPARQLDAOUpdatedEvent updatedEvent) {
+    logger.info("The SPARQL DAO was updated, and lucene index will be updated now too.");
+    context.publishEvent(new FullTextSearchDAOUpdatingEvent(this));
+    try {
+      performBatchUpdateOfIndex();
+      context.publishEvent(new FullTextSearchDAOUpdatedEvent(this));
+    } catch (Exception e) {
+      context.publishEvent(
+          new FullTextSearchDAOFailedEvent(this, "Updating the lucene index failed.", e));
+      throw e;
+    }
+  }
 }

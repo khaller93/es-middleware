@@ -10,7 +10,9 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertTrue;
 
 import at.ac.tuwien.ifs.es.middleware.ExploratorySearchApplication;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import java.io.ByteArrayInputStream;
 import java.util.Collections;
@@ -65,13 +67,15 @@ public class SPARQLControllerTest {
   @Autowired
   private TestRestTemplate restTemplate;
   @Autowired
-  private KnowledgeGraphDAO knowledgeGraphDAO;
+  private KGSparqlDAO sparqlDAO;
+  @Autowired
+  private KGGremlinDAO gremlinDAO;
   @Rule
   public MusicPintaInstrumentsResource musicPintaResource;
 
   @PostConstruct
   public void setUpBean() {
-    this.musicPintaResource = new MusicPintaInstrumentsResource(knowledgeGraphDAO);
+    this.musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
   }
 
   @Test

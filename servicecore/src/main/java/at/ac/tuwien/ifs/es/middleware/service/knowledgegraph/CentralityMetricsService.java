@@ -35,7 +35,8 @@ public class CentralityMetricsService {
 
   private GremlinService gremlinService;
 
-  public CentralityMetricsService(@Autowired GremlinService gremlinService) {
+  @Autowired
+  public CentralityMetricsService(GremlinService gremlinService) {
     this.gremlinService = gremlinService;
   }
 

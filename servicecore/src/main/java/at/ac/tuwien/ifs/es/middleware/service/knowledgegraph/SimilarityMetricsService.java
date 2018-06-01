@@ -33,7 +33,8 @@ public class SimilarityMetricsService {
 
   private GremlinService gremlinService;
 
-  public SimilarityMetricsService(@Autowired GremlinService gremlinService) {
+  @Autowired
+  public SimilarityMetricsService(GremlinService gremlinService) {
     this.gremlinService = gremlinService;
   }
 

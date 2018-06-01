@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 
 /**
- * Instances of this class contain the configuration for a {@link GraphDbLucene} full-text-search
+ * Instances of this class contain the conf for a {@link GraphDbLucene} full-text-search
  * index.
  *
  * @author Kevin Haller
@@ -79,10 +79,10 @@ public class GraphDbLuceneConfig {
   private String scorer;
 
   /**
-   * Gets the configuration triples for {@link GraphDbLucene}. Those list of triple can be inserted
+   * Gets the conf triples for {@link GraphDbLucene}. Those list of triple can be inserted
    * into a GraphDB instance to configure the Lucene index.
    *
-   * @return the configuration triples for {@link GraphDbLucene}.
+   * @return the conf triples for {@link GraphDbLucene}.
    */
   public String getConfigTriples() {
     return new StringSubstitutor(ImmutableMap.<String, String>builder()

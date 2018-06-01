@@ -3,7 +3,7 @@ package at.ac.tuwien.ifs.es.middleware.dao.rdf4j;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.InMemoryGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import java.util.HashMap;
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
  * @since 1.0
  */
 @Lazy
-@Component("IndexedMemoryDB")
+@Component("IndexedInMemoryDAO")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implements
     KGFullTextSearchDAO {
@@ -60,9 +60,8 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
       "\n?resource a ?class .\nFILTER(?class in (%s)) .\n"
   };
 
-
   /**
-   * Creates a new {@link KnowledgeGraphDAO} in memory that is indexed.
+   * Creates a new {@link KnowledgeGraphDAOConfig} in memory that is indexed.
    */
   @Autowired
   public IndexedMemoryKnowledgeGraph(ApplicationContext context) {
@@ -113,15 +112,5 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
         "Query resulting from FTS call for {} with parameters (offset={}, limit={}, classes={}).",
         filledFtsQuery, offset, limit, classes);
     return ((SelectQueryResult) this.query(filledFtsQuery, true)).value();
-  }
-
-  @Override
-  public KGFullTextSearchDAO getFullTextSearchDAO() {
-    return this;
-  }
-
-  @Override
-  public KGGremlinDAO getGremlinDAO() {
-    return getApplicationContext().getBean("InMemoryGremlin", InMemoryGremlinDAO.class);
   }
 }

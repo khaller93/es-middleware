@@ -11,8 +11,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.InMemoryGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.IndexedMemoryKnowledgeGraph;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.MalformedSPARQLQueryException;
@@ -26,6 +28,7 @@ import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import org.apache.commons.rdf.api.Graph;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Literal;
@@ -42,28 +45,28 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- *
- *
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {MusicPintaInstrumentsResource.class,
-    KnowledgeGraphConfig.class, SimpleSPARQLService.class, IndexedMemoryKnowledgeGraph.class,
+@ContextConfiguration(classes = {SimpleSPARQLService.class, IndexedMemoryKnowledgeGraph.class,
     InMemoryGremlinDAO.class})
-@TestPropertySource(properties = {
-    "esm.db.choice=IndexedMemoryDB",
-    "esm.cache.enable=false"
-})
 public class SimpleSPARQLServiceTest {
 
   @Rule
-  @Autowired
   public MusicPintaInstrumentsResource musicPintaResource;
-
+  @Autowired
+  private KGSparqlDAO sparqlDAO;
+  @Autowired
+  private KGGremlinDAO gremlinDAO;
   @Autowired
   public SPARQLService sparqlService;
+
+  @PostConstruct
+  public void setUp() throws Exception {
+    musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
+  }
 
   @Test
   public void test_countQuery_ok_mustReturnValue() throws Exception {

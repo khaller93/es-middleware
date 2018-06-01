@@ -2,7 +2,6 @@ package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDAOUpdatedEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOReadyEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOUpdatedEvent;
@@ -31,11 +30,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Component;
 
 /**
- * This is a {@link KGGremlinDAO} in which data will be cloned from the {@link KnowledgeGraphDAO}.
- * It implements generic methods and expects simply a new clean {@link Graph} from the implementing
+ * This is a {@link KGGremlinDAO} in which data will be cloned from the {@link KGSparqlDAO}. It
+ * implements generic methods and expects simply a new clean {@link Graph} from the implementing
  * class to work.
  *
  * @author Kevin Haller
@@ -69,11 +67,11 @@ public abstract class AbstractClonedGremlinDAO implements KGGremlinDAO {
   /**
    * Creates a new {@link AbstractClonedGremlinDAO} with the given {@code knowledgeGraphDAO}.
    *
-   * @param knowledgeGraphDAO that shall be used.
+   * @param sparqlDAO that shall be used.
    */
   @Autowired
-  public AbstractClonedGremlinDAO(KnowledgeGraphDAO knowledgeGraphDAO) {
-    this.sparqlDAO = knowledgeGraphDAO.getSparqlDAO();
+  public AbstractClonedGremlinDAO(KGSparqlDAO sparqlDAO) {
+    this.sparqlDAO = sparqlDAO;
   }
 
   @Autowired
@@ -133,7 +131,7 @@ public abstract class AbstractClonedGremlinDAO implements KGGremlinDAO {
   }
 
   /**
-   * Constructs the in-memory graph and loads the statements from the {@link KnowledgeGraphDAO}.
+   * Constructs the in-memory graph and loads the statements from the {@link KGSparqlDAO}.
    */
   private Graph getGremlinGraphFromKnowledgeGraph() {
     logger.info("Starts to construct an in-memory graph.");

@@ -1,6 +1,5 @@
 package at.ac.tuwien.ifs.es.middleware.service.systemstatus;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.status.BackendServiceStatus;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation.AggregationOperator;
@@ -13,8 +12,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,15 +26,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class SystemStatusService {
 
-  private static final Logger logger = LoggerFactory.getLogger(SystemStatusService.class);
-
   private ExplorationFlowRegistry explorationFlowRegistry;
-  private KnowledgeGraphDAO knowledgeGraphDAO;
+  private BackendObserverService backendObserverService;
 
-  public SystemStatusService(@Autowired ExplorationFlowRegistry explorationFlowRegistry,
-      @Autowired KnowledgeGraphDAO knowledgeGraphDAO) {
+  @Autowired
+  public SystemStatusService(ExplorationFlowRegistry explorationFlowRegistry,
+      BackendObserverService backendObserverService) {
     this.explorationFlowRegistry = explorationFlowRegistry;
-    this.knowledgeGraphDAO = knowledgeGraphDAO;
+    this.backendObserverService = backendObserverService;
   }
 
   /**
@@ -80,13 +76,6 @@ public class SystemStatusService {
    * @return the health of the backend services.
    */
   public Map<String, BackendServiceStatus> checkHealthOfBackend() {
-    Map<String, BackendServiceStatus> eMaps = new HashMap<>();
-    if (knowledgeGraphDAO != null) {
-      //TODO: implement this method.
-    } else {
-      eMaps.put("sparql", BackendServiceStatus
-          .failed("The knowledge graph backend seems to be not configured correctly."));
-    }
-    return eMaps;
+    return backendObserverService.getBackendServiceStatusMap();
   }
 }

@@ -1,8 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.stardog;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
@@ -26,7 +25,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * This is an implementation of {@link KnowledgeGraphDAO} and {@link KGFullTextSearchDAO} for
+ * This is an implementation of {@link KnowledgeGraphDAOConfig} and {@link KGFullTextSearchDAO} for
  * Stardog using RDF4J.
  *
  * @author Kevin Haller
@@ -35,7 +34,7 @@ import org.springframework.stereotype.Component;
  * @since 1.0
  */
 @Lazy
-@Component("Stardog")
+@Component("StardogDAO")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class StardogKnowledgeGraphDAO extends RDF4JKnowledgeGraphDAO implements
     KGFullTextSearchDAO {
@@ -60,7 +59,7 @@ public class StardogKnowledgeGraphDAO extends RDF4JKnowledgeGraphDAO implements
   private StardogConfiguration stardogConfiguration;
 
   /**
-   * Creates a new Stardog DAO for {@link KnowledgeGraphDAO} and {@link KGFullTextSearchDAO}.
+   * Creates a new Stardog DAO for {@link KnowledgeGraphDAOConfig} and {@link KGFullTextSearchDAO}.
    *
    * @param stardogConfiguration that specifies properties for Stardog.
    */
@@ -106,16 +105,5 @@ public class StardogKnowledgeGraphDAO extends RDF4JKnowledgeGraphDAO implements
         .trace("Searching with '{}' for '{}' of classes {} with limit={}, offset={}.", searchQuery,
             keyword, classes, offset, limit);
     return ((SelectQueryResult) query(searchQuery, true)).value();
-  }
-
-  @Override
-  public KGFullTextSearchDAO getFullTextSearchDAO() {
-    return this;
-  }
-
-  @Override
-  public KGGremlinDAO getGremlinDAO() {
-    //TODO: Implement.
-    return null;
   }
 }

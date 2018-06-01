@@ -1,11 +1,11 @@
 package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
 import org.springframework.context.ApplicationEvent;
 
 /**
  * This event shall be triggered, when data has been changed in the underlying database and the
- * publishing {@link KnowledgeGraphDAO} has incorporated those changes. It is an {@link
+ * publishing {@link KnowledgeGraphDAOConfig} has incorporated those changes. It is an {@link
  * ApplicationEvent} that an {@link org.springframework.context.ApplicationListener} can listen to.
  * <p/>
  * //TODO: It would be nice, if such an update could also contain information about the type of changes (added, removed, updated statements).

@@ -9,7 +9,6 @@ import static org.hamcrest.Matchers.is;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import java.util.List;
@@ -25,9 +24,10 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 /**
- * This class implements generic tests for the SPARQL interface of {@link KnowledgeGraphDAO}s. The
- * method {@link AbstractMusicPintaGremlinTests#getKnowledgeGraphDAO()} must return the tested
- * {@link KnowledgeGraphDAO}.
+ * This class implements generic tests for the SPARQL interface of {@link KGGremlinDAO}s. The method
+ * {@link AbstractMusicPintaGremlinTests#getSparqlDAO()} must return the tested {@link KGSparqlDAO},
+ * {@link AbstractMusicPintaGremlinTests#getGremlinDAO()} must return the tested {@link
+ * KGGremlinDAO}.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -40,16 +40,20 @@ public abstract class AbstractMusicPintaGremlinTests {
   private KGGremlinDAO gremlinDAO;
 
   /**
-   * gets the {@link KnowledgeGraphDAO} that shall be tested.
+   * gets the {@link KGSparqlDAO} that shall be tested.
    */
-  public abstract KnowledgeGraphDAO getKnowledgeGraphDAO();
+  protected abstract KGSparqlDAO getSparqlDAO();
+
+  /**
+   * gets the {@link KGGremlinDAO} that shall be tested.
+   */
+  protected abstract KGGremlinDAO getGremlinDAO();
 
   @Before
   public void setUp() throws Throwable {
-    KnowledgeGraphDAO knowledgeGraphDAO = getKnowledgeGraphDAO();
-    this.sparqlDAO = knowledgeGraphDAO.getSparqlDAO();
-    this.gremlinDAO = knowledgeGraphDAO.getGremlinDAO();
-    this.musicPintaInstrumentsResource = new MusicPintaInstrumentsResource(knowledgeGraphDAO);
+    this.sparqlDAO = getSparqlDAO();
+    this.gremlinDAO = getGremlinDAO();
+    this.musicPintaInstrumentsResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
     this.musicPintaInstrumentsResource.before();
   }
 

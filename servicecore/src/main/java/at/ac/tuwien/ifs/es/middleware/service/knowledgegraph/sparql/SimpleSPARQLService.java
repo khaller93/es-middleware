@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.QueryResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +24,9 @@ public class SimpleSPARQLService implements SPARQLService {
 
   private KGSparqlDAO sparqlDAO;
 
-  public SimpleSPARQLService(@Autowired KnowledgeGraphDAO KnowledgeGraphDAO) {
-    this.sparqlDAO = KnowledgeGraphDAO.getSparqlDAO();
+  @Autowired
+  public SimpleSPARQLService(KGSparqlDAO sparqlDAO) {
+    this.sparqlDAO = sparqlDAO;
   }
 
   @Cacheable({"sparql"})

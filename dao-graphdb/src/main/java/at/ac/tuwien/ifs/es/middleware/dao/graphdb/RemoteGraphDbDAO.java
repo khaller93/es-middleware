@@ -1,5 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
 
+import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSetupException;
 import javax.annotation.PostConstruct;
 import org.eclipse.rdf4j.repository.http.HTTPRepository;
@@ -13,16 +14,17 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * An implementation of {@link GraphDbDAO} connecting to a remote GraphDB instance.
+ * An implementation of {@link RDF4JKnowledgeGraphDAO} connecting to a remote GraphDB instance.
  *
  * @author Kevin Haller
  * @version 1.0
+ * @see <a href="https://ontotext.com/products/graphdb/">Ontotext GraphDB</a>
  * @since 1.0
  */
 @Lazy
-@Component("RemoteGraphDB")
+@Component("RemoteGraphDAO")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-public class RemoteGraphDbDAO extends GraphDbDAO {
+public class RemoteGraphDbDAO extends RDF4JKnowledgeGraphDAO {
 
   @Value("${graphdb.address}")
   private String address;
@@ -30,7 +32,7 @@ public class RemoteGraphDbDAO extends GraphDbDAO {
   private String repositoryId;
 
   /**
-   * Creates a {@link GraphDbDAO} with the given location configuration.
+   * Creates a {@link RDF4JKnowledgeGraphDAO} with the given location conf.
    */
   @Autowired
   public RemoteGraphDbDAO(ApplicationContext context) throws KnowledgeGraphSetupException {

@@ -24,7 +24,8 @@ public class InformationContentService {
 
   private GremlinService gremlinService;
 
-  public InformationContentService(@Autowired GremlinService gremlinService) {
+  @Autowired
+  public InformationContentService(GremlinService gremlinService) {
     this.gremlinService = gremlinService;
   }
 

@@ -1,6 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOFailedEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSetupException;
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,16 +33,17 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * An implementation of {@link GraphDbDAO} connecting to an embedded GraphDB instance.
+ * An implementation of {@link RDF4JKnowledgeGraphDAO} connecting to an embedded GraphDB instance.
  *
  * @author Kevin Haller
  * @version 1.0
+ * @see <a href="https://ontotext.com/products/graphdb/">Ontotext GraphDB</a>
  * @since 1.0
  */
 @Lazy
-@Component("EmbeddedGraphDB")
+@Component("EmbeddedGraphDAO")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-public class EmbeddedGraphDbDAO extends GraphDbDAO {
+public class EmbeddedGraphDbDAO extends RDF4JKnowledgeGraphDAO {
 
   private RepositoryManager repositoryManager;
 
@@ -51,7 +53,8 @@ public class EmbeddedGraphDbDAO extends GraphDbDAO {
   private String repositoryConfig;
 
   /**
-   * Creates a {@link GraphDbDAO} with the given repository configuration and repository location.
+   * Creates a {@link RDF4JKnowledgeGraphDAO} with the given repository conf and repository
+   * location.
    */
   @Autowired
   public EmbeddedGraphDbDAO(ApplicationContext context) throws KnowledgeGraphSetupException {
@@ -75,14 +78,14 @@ public class EmbeddedGraphDbDAO extends GraphDbDAO {
    * Prepares the repository for the embedded GraphDB, using the given {@code repositoryConfig}.
    *
    * @param repositoryManager {@link RepositoryManager} that shall be used.
-   * @param repositoryConfig path to the configuration for the embedded GraphDB.
+   * @param repositoryConfig path to the conf for the embedded GraphDB.
    * @return {@link Repository} representing the embedded GraphDB.
    */
   private static Repository prepareRepository(RepositoryManager repositoryManager,
       String repositoryConfig) {
     if (repositoryConfig == null || repositoryConfig.isEmpty()) {
       throw new KnowledgeGraphSetupException(
-          "A 'graphdb.embedded.config.path' property must be given and point to the configuration file of the repository that should be built in an embedded GraphDB instance.");
+          "A 'graphdb.embedded.config.path' property must be given and point to the conf file of the repository that should be built in an embedded GraphDB instance.");
     }
     File repoConfigurationFile = new File(repositoryConfig);
     if (repoConfigurationFile.exists() && repoConfigurationFile.isFile()) {
@@ -91,25 +94,25 @@ public class EmbeddedGraphDbDAO extends GraphDbDAO {
         Resource repositoryNode = Models
             .subject(configModel.filter(null, RDF.TYPE, RepositoryConfigSchema.REPOSITORY))
             .orElseThrow(() -> new KnowledgeGraphSetupException(
-                String.format("The given configuration '%s' is invalid.", repositoryConfig)));
+                String.format("The given conf '%s' is invalid.", repositoryConfig)));
         Literal repoId = Models.objectLiteral(
             configModel.filter(repositoryNode, RepositoryConfigSchema.REPOSITORYID, null))
             .orElseThrow(() -> new KnowledgeGraphSetupException(
                 String.format(
-                    "The repository id (%s) is missing in the configuration '%s' is invalid.",
+                    "The repository id (%s) is missing in the conf '%s' is invalid.",
                     RepositoryConfigSchema.REPOSITORYID, repositoryConfig)));
         repositoryManager.addRepositoryConfig(RepositoryConfig.create(configModel, repositoryNode));
         return repositoryManager.getRepository(repoId.getLabel());
       } catch (IOException | RDFParseException | UnsupportedRDFormatException e) {
         throw new KnowledgeGraphSetupException(
             String
-                .format("The given configuration file '%s' could not be read in: %s",
+                .format("The given conf file '%s' could not be read in: %s",
                     repositoryConfig, e.getMessage()));
       }
     } else {
       throw new KnowledgeGraphSetupException(
           String.format(
-              "The 'graphdb.embedded.config.path' property '%s' must point to the configuration file of the repository.",
+              "The 'graphdb.embedded.config.path' property '%s' must point to the conf file of the repository.",
               repositoryConfig));
     }
   }

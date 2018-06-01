@@ -1,8 +1,5 @@
 package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.QueryResult;
-
 /**
  * An instance of this interface represents a SPARQL interface to a certain knowledge graph. This
  * DAO provides the ability to query the graph using SPARQL.
@@ -11,7 +8,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.sparql.QueryResult;
  * @version 1.0
  * @since 1.0
  */
-public interface KnowledgeGraphDAO {
+public interface KnowledgeGraphDAOConfig {
 
   /**
    * Gets the {@link KGSparqlDAO} for this knowledge graph.

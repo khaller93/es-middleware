@@ -1,5 +1,10 @@
 package at.ac.tuwien.ifs.es.middleware.dto.status;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * This DTO represents the status of a certain backend service.
  *
@@ -9,18 +14,31 @@ package at.ac.tuwien.ifs.es.middleware.dto.status;
  */
 public class BackendServiceStatus {
 
-  public enum STATUS {OK, FAILED}
+  public enum STATUS {INITIATING, READY, UPDATING, FAILED}
 
+  @JsonProperty("status")
   private STATUS status;
+  @JsonProperty("error")
+  @JsonInclude(Include.NON_NULL)
   private String errorMessage;
 
-  private BackendServiceStatus(STATUS status, String errorMessage) {
+  @JsonCreator
+  private BackendServiceStatus(@JsonProperty("status") STATUS status,
+      @JsonProperty("error") String errorMessage) {
     this.status = status;
     this.errorMessage = errorMessage;
   }
 
-  public static BackendServiceStatus ok() {
-    return new BackendServiceStatus(STATUS.OK, null);
+  public static BackendServiceStatus initiating() {
+    return new BackendServiceStatus(STATUS.INITIATING, null);
+  }
+
+  public static BackendServiceStatus ready() {
+    return new BackendServiceStatus(STATUS.READY, null);
+  }
+
+  public static BackendServiceStatus updating() {
+    return new BackendServiceStatus(STATUS.UPDATING, null);
   }
 
   public static BackendServiceStatus failed(String errorMessage) {

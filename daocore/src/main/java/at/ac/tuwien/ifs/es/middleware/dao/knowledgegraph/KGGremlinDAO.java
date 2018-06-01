@@ -23,7 +23,7 @@ import org.apache.tinkerpop.gremlin.structure.Graph.Features;
  * recover, and move to {@code ready} again, also triggering the corresponding event.
  * <p/>
  * The DAO can not only directly communicate with the underlying database, but rely on another DAO
- * like {@link KnowledgeGraphDAO}. This is the case for the {@link InMemoryGremlinDAO}
+ * like {@link KnowledgeGraphDAOConfig}. This is the case for the {@link InMemoryGremlinDAO}
  * implementation of this interface.
  *
  * @author Kevin Haller

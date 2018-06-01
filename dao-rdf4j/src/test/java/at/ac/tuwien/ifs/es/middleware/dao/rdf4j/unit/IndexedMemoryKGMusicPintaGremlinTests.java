@@ -1,7 +1,9 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j.unit;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.InMemoryGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.IndexedMemoryKnowledgeGraph;
 import at.ac.tuwien.ifs.es.middleware.testutil.AbstractMusicPintaGremlinTests;
 import org.junit.runner.RunWith;
@@ -25,11 +27,18 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class IndexedMemoryKGMusicPintaGremlinTests extends AbstractMusicPintaGremlinTests {
 
   @Autowired
-  private KnowledgeGraphDAO knowledgeGraphDAO;
+  private KGSparqlDAO sparqlDAO;
+  @Autowired
+  private KGGremlinDAO gremlinDAO;
+
 
   @Override
-  public KnowledgeGraphDAO getKnowledgeGraphDAO() {
-    return knowledgeGraphDAO;
+  protected KGSparqlDAO getSparqlDAO() {
+    return sparqlDAO;
   }
 
+  @Override
+  protected KGGremlinDAO getGremlinDAO() {
+    return gremlinDAO;
+  }
 }

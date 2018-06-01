@@ -10,7 +10,9 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 
 import at.ac.tuwien.ifs.es.middleware.ExploratorySearchApplication;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
@@ -52,13 +54,15 @@ public class ExploratoryControllerMusicPintaFTSTest {
   @Autowired
   private ObjectMapper payloadMapper;
   @Autowired
-  private KnowledgeGraphDAO knowledgeGraphDAO;
+  private KGSparqlDAO sparqlDAO;
+  @Autowired
+  private KGGremlinDAO gremlinDAO;
   @Rule
   public MusicPintaInstrumentsResource musicPintaResource;
 
   @PostConstruct
   public void setUpBean() {
-    this.musicPintaResource = new MusicPintaInstrumentsResource(knowledgeGraphDAO);
+    this.musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
   }
 
   @Test
