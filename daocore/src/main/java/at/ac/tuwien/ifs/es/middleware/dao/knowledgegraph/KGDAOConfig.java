@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Primary;
  * @version 1.0
  * @since 1.0
  */
+@Primary
 @Configuration
 public class KGDAOConfig implements KnowledgeGraphDAOConfig {
 
@@ -26,22 +27,22 @@ public class KGDAOConfig implements KnowledgeGraphDAOConfig {
     this.config = context.getBean(choice,KnowledgeGraphDAOConfig.class);
   }
 
-  @Bean
   @Primary
+  @Bean
   @Override
   public KGSparqlDAO getSparqlDAO() {
     return config.getSparqlDAO();
   }
 
-  @Bean
   @Primary
+  @Bean
   @Override
   public KGFullTextSearchDAO getFullTextSearchDAO() {
     return config.getFullTextSearchDAO();
   }
 
-  @Bean
   @Primary
+  @Bean
   @Override
   public KGGremlinDAO getGremlinDAO() {
     return config.getGremlinDAO();

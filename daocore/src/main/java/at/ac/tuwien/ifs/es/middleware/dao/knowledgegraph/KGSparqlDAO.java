@@ -1,6 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.*;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.QueryResult;
 
@@ -49,4 +50,12 @@ public interface KGSparqlDAO {
    * successfully.
    */
   void update(String query) throws KnowledgeGraphSPARQLException;
+
+  /**
+   * Gets the current {@link KGDAOStatus} of this DAO.
+   *
+   * @return current {@link KGDAOStatus} of this DAO.
+   */
+  KGDAOStatus getSPARQLStatus();
+
 }

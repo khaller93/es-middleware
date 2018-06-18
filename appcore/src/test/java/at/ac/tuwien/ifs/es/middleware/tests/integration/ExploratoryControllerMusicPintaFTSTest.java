@@ -43,9 +43,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ExploratorySearchApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-    "esm.db.choice=IndexedMemoryDB",
-    "esm.fts.choice=IndexedMemoryDB",
-    "esm.cache.enable=false"
+    "esm.db.choice=IndexedMemoryDB"
 })
 public class ExploratoryControllerMusicPintaFTSTest {
 

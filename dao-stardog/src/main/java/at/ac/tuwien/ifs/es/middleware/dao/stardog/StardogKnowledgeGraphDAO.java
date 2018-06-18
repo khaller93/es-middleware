@@ -6,6 +6,10 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOReadyStatus;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +62,8 @@ public class StardogKnowledgeGraphDAO extends RDF4JKnowledgeGraphDAO implements
 
   private StardogConfiguration stardogConfiguration;
 
+  private KGDAOStatus ftsStatus;
+
   /**
    * Creates a new Stardog DAO for {@link KnowledgeGraphDAOConfig} and {@link KGFullTextSearchDAO}.
    *
@@ -68,6 +74,7 @@ public class StardogKnowledgeGraphDAO extends RDF4JKnowledgeGraphDAO implements
       ApplicationContext context) {
     super(context);
     this.stardogConfiguration = stardogConfiguration;
+    this.ftsStatus = new KGDAOInitStatus();
   }
 
   @PostConstruct
@@ -76,7 +83,17 @@ public class StardogKnowledgeGraphDAO extends RDF4JKnowledgeGraphDAO implements
         stardogConfiguration.getSPARQLEndpointURL());
     sparqlRepository.setUsernameAndPassword(stardogConfiguration.getUsername(),
         stardogConfiguration.getPassword());
-    this.init(sparqlRepository);
+    try {
+      this.init(sparqlRepository);
+      this.ftsStatus = new KGDAOReadyStatus();
+    } catch (Exception e){
+      this.ftsStatus = new KGDAOFailedStatus("Setting up the full-text-search failed.", e);
+    }
+  }
+
+  @Override
+  public KGDAOStatus getFTSStatus() {
+    return ftsStatus;
   }
 
   @Override

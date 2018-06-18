@@ -3,6 +3,7 @@ package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,4 +35,5 @@ public class InMemoryGremlinDAO extends AbstractClonedGremlinDAO {
   public Graph newGraphInstance() {
     return TinkerGraph.open();
   }
+
 }

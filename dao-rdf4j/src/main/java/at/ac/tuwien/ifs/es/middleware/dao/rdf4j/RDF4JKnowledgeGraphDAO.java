@@ -12,6 +12,10 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.util.RDF4JAskQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.util.RDF4JGraphQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.util.RDF4JSelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.QueryResult;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOReadyStatus;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.locks.Lock;
@@ -58,8 +62,11 @@ public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO {
   private Repository repository;
   private ApplicationContext applicationContext;
 
+  private KGDAOStatus status;
+
   public RDF4JKnowledgeGraphDAO(ApplicationContext applicationContext) {
     this.applicationContext = applicationContext;
+    this.status = new KGDAOInitStatus();
   }
 
   /**
@@ -76,9 +83,11 @@ public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO {
       applicationContext
           .publishEvent(
               new SPARQLDAOFailedEvent(this, "Initialization of triplestore failed.", re));
+      status = new KGDAOFailedStatus("Initialization of triplestore failed.", re);
       throw re;
     }
     applicationContext.publishEvent(new SPARQLDAOReadyEvent(this));
+    this.status = new KGDAOReadyStatus();
   }
 
   /**
@@ -88,6 +97,11 @@ public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO {
    */
   protected void init(Sail sail) {
     this.init(new SailRepository(sail));
+  }
+
+  @Override
+  public KGDAOStatus getSPARQLStatus() {
+    return status;
   }
 
   /**

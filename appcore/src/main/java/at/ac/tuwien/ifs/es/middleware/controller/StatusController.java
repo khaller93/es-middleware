@@ -1,8 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.controller;
 
 import at.ac.tuwien.ifs.es.middleware.SystemInfo;
-import at.ac.tuwien.ifs.es.middleware.dto.status.BackendServiceStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.Beat;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import at.ac.tuwien.ifs.es.middleware.service.systemstatus.SystemStatusService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -56,7 +56,7 @@ public class StatusController {
   @ApiResponses({
       @ApiResponse(code = 200, message = "")
   })
-  public Map<String, BackendServiceStatus> getHealthOfBackend() {
+  public Map<String, KGDAOStatus> getHealthOfBackend() {
     return systemStatusService.checkHealthOfBackend();
   }
 

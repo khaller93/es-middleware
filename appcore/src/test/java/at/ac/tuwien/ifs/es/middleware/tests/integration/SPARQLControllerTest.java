@@ -12,7 +12,6 @@ import static org.junit.Assert.assertTrue;
 import at.ac.tuwien.ifs.es.middleware.ExploratorySearchApplication;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import java.io.ByteArrayInputStream;
 import java.util.Collections;
@@ -58,9 +57,7 @@ import org.springframework.util.MultiValueMap;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ExploratorySearchApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-    "esm.db.choice=IndexedMemoryDB",
-    "esm.fts.choice=IndexedMemoryDB",
-    "esm.cache.enable=false"
+    "esm.db.choice=IndexedMemoryDB"
 })
 public class SPARQLControllerTest {
 

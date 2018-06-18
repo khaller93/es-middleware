@@ -12,12 +12,25 @@ import org.springframework.context.ApplicationEvent;
  */
 public class GremlinDAOFailedEvent extends ApplicationEvent {
 
+  private String message;
+  private Exception exception;
+
   /**
    * Create a new ApplicationEvent.
    *
    * @param source the object on which the event initially occurred (never {@code null})
    */
-  public GremlinDAOFailedEvent(Object source) {
+  public GremlinDAOFailedEvent(Object source, String message, Exception exception) {
     super(source);
+    this.message = message;
+    this.exception = exception;
+  }
+
+  public String getMessage() {
+    return message;
+  }
+
+  public Exception getException() {
+    return exception;
   }
 }

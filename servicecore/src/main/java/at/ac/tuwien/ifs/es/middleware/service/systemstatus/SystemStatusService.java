@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.service.systemstatus;
 
-import at.ac.tuwien.ifs.es.middleware.dto.status.BackendServiceStatus;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation.AggregationOperator;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.AcquisitionOperator;
@@ -75,7 +75,7 @@ public class SystemStatusService {
    *
    * @return the health of the backend services.
    */
-  public Map<String, BackendServiceStatus> checkHealthOfBackend() {
+  public Map<String, KGDAOStatus> checkHealthOfBackend() {
     return backendObserverService.getBackendServiceStatusMap();
   }
 }

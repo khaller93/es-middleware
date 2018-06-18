@@ -6,6 +6,10 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.InMemoryGremlin
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOReadyStatus;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,12 +64,15 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
       "\n?resource a ?class .\nFILTER(?class in (%s)) .\n"
   };
 
+  private KGDAOStatus ftsStatus;
+
   /**
    * Creates a new {@link KnowledgeGraphDAOConfig} in memory that is indexed.
    */
   @Autowired
   public IndexedMemoryKnowledgeGraph(ApplicationContext context) {
     super(context);
+    this.ftsStatus = new KGDAOInitStatus();
   }
 
   @PostConstruct
@@ -73,7 +80,17 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
     LuceneSail luceneSail = new LuceneSail();
     luceneSail.setParameter(LuceneSail.LUCENE_RAMDIR_KEY, "true");
     luceneSail.setBaseSail(new MemoryStore());
-    this.init(luceneSail);
+    try {
+      this.init(luceneSail);
+      this.ftsStatus = new KGDAOReadyStatus();
+    } catch (Exception e) {
+      this.ftsStatus = new KGDAOFailedStatus("Setting up the full-text-search was not possible.", e);
+    }
+  }
+
+  @Override
+  public KGDAOStatus getFTSStatus() {
+    return ftsStatus;
   }
 
   /**

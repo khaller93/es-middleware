@@ -1,15 +1,16 @@
 package at.ac.tuwien.ifs.es.middleware.service.systemstatus;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOFailedEvent;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOReadyEvent;
-import at.ac.tuwien.ifs.es.middleware.dto.status.BackendServiceStatus;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 /**
@@ -30,38 +31,16 @@ public class BackendObserverService {
   public static final String FULLTEXTSEARCH_DAO = "dao.fulltextsearch";
   public static final String Gremlin_DAO = "dao.gremlin";
 
-  private Map<String, BackendServiceStatus> backendServiceStatusMap = new HashMap<>();
+  private KGSparqlDAO sparqlDAO;
+  private KGFullTextSearchDAO fullTextSearchDAO;
+  private KGGremlinDAO gremlinDAO;
 
-  public BackendObserverService() {
-    backendServiceStatusMap.put(SPARQL_DAO, BackendServiceStatus.initiating());
-    backendServiceStatusMap.put(FULLTEXTSEARCH_DAO, BackendServiceStatus.initiating());
-    backendServiceStatusMap.put(Gremlin_DAO, BackendServiceStatus.initiating());
-  }
-
-  @EventListener
-  public void handleSparqlDAOReady(SPARQLDAOReadyEvent event) {
-    logger.info("Detected a state change to 'READY' of SPARQL DAO {}.", event.getSource());
-    backendServiceStatusMap.put(SPARQL_DAO, BackendServiceStatus.ready());
-  }
-
-  @EventListener
-  public void handleSparqlDAOFailed(SPARQLDAOFailedEvent event) {
-    logger
-        .info("Detected a state change to 'FAILED' of SPARQL DAO {}. Error '{}' with exception {}.",
-            event.getSource(), event.getMessage(), event.getException());
-    backendServiceStatusMap.put(SPARQL_DAO, BackendServiceStatus.failed(event.getMessage()));
-  }
-
-  @EventListener
-  public void handleSparqlDAOUpdating(SPARQLDAOFailedEvent event) {
-    logger.info("Detected a state change to 'UPDATING' of SPARQL DAO {}.", event.getSource());
-    backendServiceStatusMap.put(SPARQL_DAO, BackendServiceStatus.updating());
-  }
-
-  @EventListener
-  public void handleSparqlDAOUpdated(SPARQLDAOFailedEvent event) {
-    logger.info("Detected a state change to 'UPDATED' of SPARQL DAO {}.", event.getSource());
-    backendServiceStatusMap.put(SPARQL_DAO, BackendServiceStatus.ready());
+  @Autowired
+  public BackendObserverService(KGSparqlDAO sparqlDAO, KGFullTextSearchDAO fullTextSearchDAO,
+      KGGremlinDAO gremlinDAO) {
+    this.sparqlDAO = sparqlDAO;
+    this.fullTextSearchDAO = fullTextSearchDAO;
+    this.gremlinDAO = gremlinDAO;
   }
 
   /**
@@ -69,7 +48,11 @@ public class BackendObserverService {
    *
    * @return the currently known status of each DAO in form of a map.
    */
-  public Map<String, BackendServiceStatus> getBackendServiceStatusMap() {
+  public Map<String, KGDAOStatus> getBackendServiceStatusMap() {
+    Map<String, KGDAOStatus> backendServiceStatusMap = new HashMap<>();
+    backendServiceStatusMap.put(SPARQL_DAO, sparqlDAO.getSPARQLStatus());
+    backendServiceStatusMap.put(FULLTEXTSEARCH_DAO, fullTextSearchDAO.getFTSStatus());
+    backendServiceStatusMap.put(Gremlin_DAO, gremlinDAO.getGremlinStatus());
     return backendServiceStatusMap;
   }
 }

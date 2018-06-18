@@ -7,6 +7,10 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOR
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOUpdatedEvent;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOReadyStatus;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOUpdatingStatus;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
 
 /**
  * This is a {@link KGGremlinDAO} in which data will be cloned from the {@link KGSparqlDAO}. It
@@ -40,7 +45,8 @@ import org.springframework.context.event.EventListener;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractClonedGremlinDAO implements KGGremlinDAO {
+@Component
+public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDAO {
 
   private static final Logger logger = LoggerFactory.getLogger(InMemoryGremlinDAO.class);
 
@@ -64,6 +70,8 @@ public abstract class AbstractClonedGremlinDAO implements KGGremlinDAO {
 
   private Consumer<GremlinDAOUpdatedEvent> updateTriggerFunction;
 
+  private KGDAOStatus status;
+
   /**
    * Creates a new {@link AbstractClonedGremlinDAO} with the given {@code knowledgeGraphDAO}.
    *
@@ -72,6 +80,7 @@ public abstract class AbstractClonedGremlinDAO implements KGGremlinDAO {
   @Autowired
   public AbstractClonedGremlinDAO(KGSparqlDAO sparqlDAO) {
     this.sparqlDAO = sparqlDAO;
+    this.status = new KGDAOInitStatus();
   }
 
   @Autowired
@@ -109,24 +118,17 @@ public abstract class AbstractClonedGremlinDAO implements KGGremlinDAO {
   }
 
   @Override
+  public KGDAOStatus getGremlinStatus() {
+    return status;
+  }
+
+  @Override
   public Features getFeatures() {
     graphLock.readLock().lock();
     try {
       return graph.features();
     } finally {
       graphLock.readLock().unlock();
-    }
-  }
-
-  @PreDestroy
-  public void tearDown() {
-    try {
-      if (graph != null) {
-        graph.close();
-      }
-      threadPool.shutdown();
-    } catch (Exception e) {
-      logger.error("Failed to close the InMemoryGremlin graph. {}", e.getMessage());
     }
   }
 
@@ -165,6 +167,16 @@ public abstract class AbstractClonedGremlinDAO implements KGGremlinDAO {
   }
 
   /**
+   * Sets a listener for {@link GremlinDAOUpdatedEvent}s. The given argument can be {@code null},
+   * but then the previous set listener will be removed.
+   *
+   * @param listener that shall be called if the {@link KGGremlinDAO} has updated.
+   */
+  public void setUpdateListenerFunction(Consumer<GremlinDAOUpdatedEvent> listener) {
+    this.updateTriggerFunction = listener;
+  }
+
+  /**
    * This is a {@link Callable} that computes a new graph.
    */
   private class GraphConstruction implements Runnable {
@@ -177,6 +189,7 @@ public abstract class AbstractClonedGremlinDAO implements KGGremlinDAO {
 
     @Override
     public void run() {
+      AbstractClonedGremlinDAO.this.status = new KGDAOUpdatingStatus();
       Graph newGraph = getGremlinGraphFromKnowledgeGraph();
       graphLock.writeLock().lock();
       try {
@@ -198,20 +211,23 @@ public abstract class AbstractClonedGremlinDAO implements KGGremlinDAO {
         } catch (Exception e) {
           logger.error("Gremlin graph could not be closed correctly. {}", e.getMessage());
         }
+        AbstractClonedGremlinDAO.this.status = new KGDAOReadyStatus();
       } finally {
         graphLock.writeLock().unlock();
       }
     }
   }
 
-  /**
-   * Sets a listener for {@link GremlinDAOUpdatedEvent}s. The given argument can be {@code null},
-   * but then the previous set listener will be removed.
-   *
-   * @param listener that shall be called if the {@link KGGremlinDAO} has updated.
-   */
-  public void setUpdateListenerFunction(Consumer<GremlinDAOUpdatedEvent> listener) {
-    this.updateTriggerFunction = listener;
+  @PreDestroy
+  public void tearDown() {
+    try {
+      if (graph != null) {
+        graph.close();
+      }
+      threadPool.shutdown();
+    } catch (Exception e) {
+      logger.error("Failed to close the InMemoryGremlin graph. {}", e.getMessage());
+    }
   }
 
 }

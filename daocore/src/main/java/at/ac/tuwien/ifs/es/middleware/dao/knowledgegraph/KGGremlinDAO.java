@@ -2,6 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.*;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.InMemoryGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Graph.Features;
 
@@ -45,5 +46,12 @@ public interface KGGremlinDAO {
    * @return the graph features of this Gremlin DAO.
    */
   Features getFeatures();
+
+  /**
+   * Gets the current {@link KGDAOStatus} of this DAO.
+   *
+   * @return current {@link KGDAOStatus} of this DAO.
+   */
+  KGDAOStatus getGremlinStatus();
 
 }

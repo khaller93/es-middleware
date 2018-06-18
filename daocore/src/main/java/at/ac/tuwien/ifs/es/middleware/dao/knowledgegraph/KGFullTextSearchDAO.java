@@ -1,6 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.*;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
 import java.util.Collections;
 import java.util.List;
@@ -80,5 +81,12 @@ public interface KGFullTextSearchDAO {
    */
   List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
       Integer offset, Integer limit) throws KnowledgeGraphDAOException;
+
+  /**
+   * Gets the current {@link KGDAOStatus} of this DAO.
+   *
+   * @return current {@link KGDAOStatus} of this DAO.
+   */
+  KGDAOStatus getFTSStatus();
 
 }

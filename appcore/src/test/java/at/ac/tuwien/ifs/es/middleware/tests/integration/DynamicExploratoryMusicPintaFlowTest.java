@@ -50,6 +50,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
@@ -61,10 +62,8 @@ import org.springframework.test.context.junit4.SpringRunner;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ExploratorySearchApplication.class,
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-    "esm.db.choice=IndexedMemoryDB",
-    "esm.fts.choice=IndexedMemoryDB"
-})
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(properties = {"esm.db.choice=IndexedMemoryDB"})
 public class DynamicExploratoryMusicPintaFlowTest {
 
   @Autowired
@@ -83,7 +82,7 @@ public class DynamicExploratoryMusicPintaFlowTest {
     this.musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
   }
 
-  private static Map<String, String> jsonTestMap = new HashMap<>();
+  private final static Map<String, String> jsonTestMap = new HashMap<>();
 
   @BeforeClass
   public static void setUpClass() throws Exception {
