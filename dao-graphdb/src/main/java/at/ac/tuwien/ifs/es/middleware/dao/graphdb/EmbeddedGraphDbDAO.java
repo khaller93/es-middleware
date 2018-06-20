@@ -3,8 +3,6 @@ package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOFailedEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSetupException;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

@@ -53,8 +53,13 @@ public class CentralityMetricsServiceTest {
   private CentralityMetricsService centralityMetricsService;
 
   @PostConstruct
-  public void setUp() throws Exception {
+  public void setUpInstance() throws Exception {
     musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
+  }
+
+  @Before
+  public void setUp() throws InterruptedException {
+    musicPintaResource.waitForAllDAOsBeingReady();
   }
 
   @Test

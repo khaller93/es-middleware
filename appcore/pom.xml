@@ -55,6 +55,11 @@
       <artifactId>middleware.dto</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.dao-janusgraph</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <!-- Testing for DAO -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>

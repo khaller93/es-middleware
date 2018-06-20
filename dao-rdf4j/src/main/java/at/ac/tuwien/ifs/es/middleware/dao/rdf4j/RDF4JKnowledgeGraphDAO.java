@@ -16,6 +16,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOReadyStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.locks.Lock;
@@ -55,9 +56,10 @@ public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO {
 
   private Lock updateLock = new ReentrantLock();
 
-  @Value("${esm.db.updateInterval:5000}")
+  @Value("${esm.db.updateInterval:15000}")
   private long updateInterval;
-  private Timer timer;
+  private Timer timer = new Timer();
+  private NotificationTask notificationTask;
 
   private Repository repository;
   private ApplicationContext applicationContext;
@@ -117,7 +119,7 @@ public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO {
   public QueryResult query(String queryString, boolean includeInferred)
       throws KnowledgeGraphSPARQLException {
     logger
-        .debug("Query {} was requested to be executed. Inference={}", queryString, includeInferred);
+        .debug("Query {} was requested to be executed. Inference={}", queryString.replaceAll("\\n", "\\n"), includeInferred);
     try (RepositoryConnection con = repository.getConnection()) {
       Query query = con.prepareQuery(QueryLanguage.SPARQL, queryString);
       query.setIncludeInferred(includeInferred);
@@ -145,33 +147,33 @@ public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO {
 
   @Override
   public void update(String query) throws KnowledgeGraphSPARQLException {
-    logger.debug("Update {} was requested to be executed", query);
+    logger.debug("Update {} was requested to be executed", query.replaceAll("\\n", "\\n"));
     try (RepositoryConnection con = repository.getConnection()) {
       con.prepareUpdate(query).execute();
       updateLock.lock();
       try {
-        if (timer == null) {
-          timer = new Timer();
-          logger.debug("Scheduled a new update task for time {}.", updateInterval);
-          timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-              updateLock.lock();
-              try {
-                logger.debug("The scheduled update task has been executed.");
-                applicationContext.publishEvent(new SPARQLDAOUpdatedEvent(this));
-                timer = null;
-              } finally {
-                updateLock.unlock();
-              }
-            }
-          }, updateInterval);
+        if (notificationTask == null) {
+          notificationTask = new NotificationTask();
+          timer.schedule(notificationTask, updateInterval);
+        } else {
+          //TODO:reschedule.
         }
       } finally {
         updateLock.unlock();
       }
     } catch (RDF4JException e) {
       throw new SPARQLExecutionException(e);
+    }
+  }
+
+  private class NotificationTask extends TimerTask {
+
+    @Override
+    public void run() {
+      logger.debug("Scheduled a new update task. Interval: {}", updateInterval);
+      applicationContext.publishEvent(new SPARQLDAOUpdatedEvent(RDF4JKnowledgeGraphDAO.this));
+      RDF4JKnowledgeGraphDAO.this.notificationTask = null;
+      this.cancel();
     }
   }
 

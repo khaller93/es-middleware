@@ -3,6 +3,7 @@ package at.ac.tuwien.ifs.es.middleware.service.knowledgegraph;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,8 +42,8 @@ public class InformationContentService {
     return gremlinService.traversal().V()
         .union(__.inE("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").inV(),
             __.as("c").out("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
-                .V("http://www.w3.org/2000/01/rdf-schema#Class").select("c")).dedup().toList()
-        .stream().map(v -> new Resource(BlankOrIRIJsonUtil.valueOf((String) v.id())))
+                .V().hasLabel("http://www.w3.org/2000/01/rdf-schema#Class").select("c")).dedup().toList()
+        .stream().map(v -> new Resource(BlankOrIRIJsonUtil.valueOf(v.label())))
         .collect(Collectors.toList());
   }
 
@@ -60,13 +61,20 @@ public class InformationContentService {
   @Cacheable("gremlin")
   public Map<Resource, Double> getInformationContentForClasses() {
     GraphTraversalSource g = gremlinService.traversal();
-    Long total = g.V(getAllClasses().stream().map(Resource::getId).toArray())
+    /* total number */
+    List<Resource> allClasses = getAllClasses();
+    if(allClasses.isEmpty()){
+      return Collections.emptyMap();
+    }
+    String[] addClassLabels = allClasses.stream().skip(1).map(Resource::getId).toArray(String[]::new);
+    Long total = g.V().hasLabel(allClasses.get(0).getId(), addClassLabels)
         .in("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").dedup().count().next();
+    /* number per class */
     Map<Object, Object> classInstancesMap = g
-        .V(getAllClasses().stream().map(Resource::getId).toArray()).until(
+        .V().hasLabel(allClasses.get(0).getId(), addClassLabels).until(
             __.or(__.not(__.in("http://www.w3.org/2000/01/rdf-schema#subClassOf")),
                 __.cyclicPath()))
-        .repeat(__.in("http://www.w3.org/2000/01/rdf-schema#subClassOf")).group().by(__.id())
+        .repeat(__.in("http://www.w3.org/2000/01/rdf-schema#subClassOf")).group().by(__.label())
         .by(__.in("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").dedup().count()).next();
     return classInstancesMap.entrySet().stream().collect(
         Collectors.toMap(e -> new Resource(BlankOrIRIJsonUtil.valueOf((String) e.getKey())),

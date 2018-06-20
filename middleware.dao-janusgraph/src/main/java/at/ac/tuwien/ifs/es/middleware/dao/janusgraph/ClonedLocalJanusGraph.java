@@ -12,6 +12,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 /**
  * This is an implementation of {@link AbstractClonedGremlinDAO} using a local JanusGraph instance
@@ -23,7 +24,7 @@ import org.springframework.stereotype.Component;
  * @since 1.0
  */
 @Lazy
-@Component("LocalSyncingJanusGraph")
+@Repository("LocalSyncingJanusGraph")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
 
@@ -38,6 +39,6 @@ public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
   @Override
   public Graph newGraphInstance() {
     return JanusGraphFactory.build().set("storage.backend", "berkeleyje")
-        .set("storage.directory", new File(janusGraphDir).toURI()).open();
+        .set("storage.directory", new File(janusGraphDir).getAbsolutePath()).open();
   }
 }

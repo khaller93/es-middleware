@@ -3,15 +3,18 @@ package at.ac.tuwien.ifs.es.middleware.dao.janusgraph;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.AbstractClonedGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.InMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.IndexedMemoryKnowledgeGraph;
 import at.ac.tuwien.ifs.es.middleware.testutil.AbstractMusicPintaGremlinTests;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import javax.annotation.PostConstruct;
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -24,7 +27,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     ClonedLocalJanusGraph.class
 })
 @TestPropertySource(properties = {
-    "janusgraph.dir=janusgraph/"
+    "esm.db.choice=IndexedMemoryDB",
+    "esm.db.gremlin.choice=LocalSyncingJanusGraph",
+    "janusgraph.dir=janusgraph/",
 })
 public class ClonedLocalJanusGraphTest extends AbstractMusicPintaGremlinTests {
 

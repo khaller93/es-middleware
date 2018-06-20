@@ -1,5 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.service.knowledgegraph;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDAOUpdatedEvent;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
@@ -7,9 +8,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.Pop;
 import org.apache.tinkerpop.gremlin.process.traversal.Scope;
+import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -17,7 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 /**
@@ -40,6 +45,12 @@ public class CentralityMetricsService {
     this.gremlinService = gremlinService;
   }
 
+  @EventListener
+  public void onApplicationEvent(GremlinDAOUpdatedEvent event) {
+    logger.debug("Recognized an Gremlin update event {}.", event);
+
+  }
+
   /**
    * Gets the page rank of all resources in the maintained knowledge graph.
    *
@@ -58,17 +69,22 @@ public class CentralityMetricsService {
   @Cacheable("gremlin")
   public Map<Resource, Double> getPageRank(List<Resource> classes) {
     logger.debug("Computes page rank metric for {}.", classes.isEmpty() ? "all" : classes);
+    Traversal<?, ?> untilTraversal;
+    if(classes.isEmpty()){
+      untilTraversal = __.cyclicPath();
+    } else {
+      String[] classIds = classes.stream().skip(1).map(Resource::getId).toArray(String[]::new);
+      untilTraversal = __.or(__.hasLabel(classes.get(0).getId(), classIds), __.cyclicPath());
+    }
     GraphTraversal<Vertex, Vertex> g;
     if (!classes.isEmpty()) {
       g = gremlinService.traversal().withComputer().V().as("c")
-          .out("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").until(__.or(
-              __.hasId(classes.stream().map(Resource::getId).toArray()),
-              __.cyclicPath()))
+          .out("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").until(untilTraversal)
           .repeat(__.out("http://www.w3.org/2000/01/rdf-schema#subClassOf")).select("c");
     } else {
       g = gremlinService.traversal().withComputer().V().pageRank();
     }
-    Map<Object, Object> pageRankMap = g.pageRank().group().by(__.id()).by(
+    Map<Object, Object> pageRankMap = g.pageRank().group().by(__.label()).by(
         __.values("gremlin.pageRankVertexProgram.pageRank")).next();
     Map<Resource, Double> returnMap = new HashMap<>();
     for (Map.Entry<Object, Object> entry : pageRankMap.entrySet()) {

@@ -44,13 +44,11 @@ public abstract class AbstractMusicPintaSPARQLTests {
 
   private MusicPintaInstrumentsResource musicPintaInstrumentsResource;
   private KGSparqlDAO sparqlDAO;
-  private KGGremlinDAO gremlinDAO;
 
   @Before
   public void setUp() throws Throwable {
     this.sparqlDAO = getSparqlDAO();
-    this.gremlinDAO = getGremlinDAO();
-    this.musicPintaInstrumentsResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
+    this.musicPintaInstrumentsResource = new MusicPintaInstrumentsResource(sparqlDAO, getGremlinDAO());
     this.musicPintaInstrumentsResource.before();
   }
 

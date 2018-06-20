@@ -72,4 +72,10 @@ public class InformationContentServiceTest {
     System.out.println(">>>" + informationContentForClasses.entrySet());
   }
 
+  @Test
+  public void name() {
+    System.out.println(
+        gremlinDAO.traversal().V().inE("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").inV()
+            .iterate().toStream().collect(Collectors.toList()));
+  }
 }

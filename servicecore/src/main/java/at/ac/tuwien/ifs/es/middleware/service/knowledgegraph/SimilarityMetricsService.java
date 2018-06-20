@@ -50,8 +50,8 @@ public class SimilarityMetricsService {
     Map<ResourcePair, Integer> distanceMap = new HashMap<>();
     for (ResourcePair pair : resourcePairs) {
       logger.info("Went into {}", pair);
-      GraphTraversal<Vertex, Path> distance = gremlinService.traversal().V(pair.getFirst().getId())
-          .until(__.hasId(pair.getSecond().getId())).repeat(__.both().dedup().simplePath()).path()
+      GraphTraversal<Vertex, Path> distance = gremlinService.traversal().V().hasLabel(pair.getFirst().getId())
+          .until(__.hasLabel(pair.getSecond().getId())).repeat(__.both().dedup().simplePath()).path()
           .limit(1);
       //TODO: Detect non-path.
       if (distance.hasNext()) {

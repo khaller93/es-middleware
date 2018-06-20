@@ -3,6 +3,7 @@ package at.ac.tuwien.ifs.es.middleware.dao.graphdb.conf;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.SPARQLSyncingGremlinDAO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 
@@ -17,6 +18,8 @@ public abstract class GraphDbConfig implements KnowledgeGraphDAOConfig {
 
   @Value("${graphdb.fts.choice:#{null}}")
   private String fullTextSearchChoice;
+  @Value("${esm.db.gremlin.choice:#{null}}")
+  private String gremlinChoice;
 
   private ApplicationContext context;
 
@@ -39,7 +42,9 @@ public abstract class GraphDbConfig implements KnowledgeGraphDAOConfig {
 
   @Override
   public KGGremlinDAO getGremlinDAO() {
-    return getContext().getBean("InMemoryGremlin", KGGremlinDAO.class);
+    return context.getBean(
+        gremlinChoice != null && !gremlinChoice.isEmpty() ? gremlinChoice : "InMemoryGremlin",
+        SPARQLSyncingGremlinDAO.class);
   }
 
 }

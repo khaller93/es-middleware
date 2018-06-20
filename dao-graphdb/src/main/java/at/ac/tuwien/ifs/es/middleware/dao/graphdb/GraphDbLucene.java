@@ -7,6 +7,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearc
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearchDAOUpdatedEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearchDAOUpdatingEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOUpdatedEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
@@ -25,6 +26,7 @@ import javax.annotation.PreDestroy;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.text.StringSubstitutor;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,9 +99,10 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
     if (graphDbLuceneConfig.shouldBeInitialized()) {
       logger.debug("The GraphDb Lucene index will be initialized.");
       threadPool.submit(() -> {
-        try {
-          sparqlDAO
-              .update(String.format(INSERT_INDEX_DATA_QUERY, graphDbLuceneConfig.getConfigTriples(),
+        try (RepositoryConnection con = ((RDF4JKnowledgeGraphDAO) sparqlDAO).getRepository()
+            .getConnection()) {
+          con.prepareUpdate(
+              String.format(INSERT_INDEX_DATA_QUERY, graphDbLuceneConfig.getConfigTriples(),
                   graphDbLuceneConfig.getLuceneIndexIRI()));
           context.publishEvent(new FullTextSearchDAOReadyEvent(GraphDbLucene.this));
           this.status = new KGDAOReadyStatus();
@@ -167,7 +170,16 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
    */
   private void performBatchUpdateOfIndex() {
     logger.debug("Batch updating the lucene index for '{}'.", graphDbLuceneConfig.getName());
-    sparqlDAO.update(String.format(BATCH_UPDATE_QUERY, graphDbLuceneConfig.getLuceneIndexIRI()));
+    try (RepositoryConnection con = ((RDF4JKnowledgeGraphDAO) sparqlDAO).getRepository()
+        .getConnection()) {
+      con.prepareUpdate(String.format(BATCH_UPDATE_QUERY, graphDbLuceneConfig.getLuceneIndexIRI()));
+    } catch (Exception e) {
+      logger.error("Error while updating the Lucene update. {}", e.getMessage());
+      context.publishEvent(new FullTextSearchDAOFailedEvent(GraphDbLucene.this,
+          "Initializing the GraphDb Lucene index failed.", e));
+      this.status = new KGDAOFailedStatus("Updating the GraphDb Lucene index failed.", e);
+      throw e;
+    }
   }
 
   @EventListener

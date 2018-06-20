@@ -44,7 +44,7 @@ public class IndexedMemoryKnowledgeGraphConfig implements KnowledgeGraphDAOConfi
   @Override
   public KGGremlinDAO getGremlinDAO() {
     return context.getBean(
-        gremlinChoice != null && gremlinChoice.isEmpty() ? gremlinChoice : "InMemoryGremlin",
+        gremlinChoice != null && !gremlinChoice.isEmpty() ? gremlinChoice : "InMemoryGremlin",
         SPARQLSyncingGremlinDAO.class);
   }
 }
