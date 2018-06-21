@@ -1,34 +1,32 @@
 package at.ac.tuwien.ifs.es.middleware.service.integration.knowledegraph;
 
 import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.InMemoryGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.IndexedMemoryKnowledgeGraph;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.CentralityMetricsService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.SimpleGremlinService;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
@@ -39,17 +37,21 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 1.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {SimpleGremlinService.class, CentralityMetricsService.class,
-    IndexedMemoryKnowledgeGraph.class, InMemoryGremlinDAO.class})
+@ContextConfiguration(classes = {SimpleGremlinService.class,
+    IndexedMemoryKnowledgeGraph.class, InMemoryGremlinDAO.class, CentralityCacheManagerStub.class})
 public class CentralityMetricsServiceTest {
 
   @Rule
   public MusicPintaInstrumentsResource musicPintaResource;
   @Autowired
-  public KGSparqlDAO sparqlDAO;
+  private KGSparqlDAO sparqlDAO;
   @Autowired
-  public KGGremlinDAO gremlinDAO;
+  private KGGremlinDAO gremlinDAO;
   @Autowired
+  private GremlinService gremlinService;
+  @Autowired
+  private CacheManager cacheManager;
+
   private CentralityMetricsService centralityMetricsService;
 
   @PostConstruct
@@ -60,14 +62,19 @@ public class CentralityMetricsServiceTest {
   @Before
   public void setUp() throws InterruptedException {
     musicPintaResource.waitForAllDAOsBeingReady();
+    centralityMetricsService = new CentralityMetricsService(gremlinService, cacheManager);
   }
 
   @Test
   public void test_computePageRankForAllResources_mustReturnCorrespondingPageRank() {
-    Map<Resource, Double> pageRankMap = centralityMetricsService
-        .getPageRank(Collections.emptyList());
-    List<Entry<Resource, Double>> resourceList = pageRankMap.entrySet().stream()
-        .sorted((e1, e2) -> -Double.compare(e1.getValue(), e2.getValue()))
+    centralityMetricsService.computePageRank();
+    List<Resource> resources = ((SelectQueryResult) sparqlDAO
+        .query("SELECT distinct ?resource WHERE { {?resource ?p1 ?o} UNION {?s ?p2 ?resource} . FILTER(isIRI(?resource))}",
+            false)).value().stream().map(r -> new Resource((BlankNodeOrIRI) r.get("resource")))
+        .collect(Collectors.toList());
+    List<Pair<Resource, Double>> resourceList = resources.stream().map(
+        resource -> new ImmutablePair<>(resource, centralityMetricsService.getPageRankOf(resource)))
+        .sorted((e1, e2) -> -Double.compare(e1.getRight(), e2.getRight()))
         .collect(Collectors.toList());
     assertThat("Instrument class must be in the top 10.", resourceList.stream().limit(10)
             .map(r -> r.getKey().getId()).collect(Collectors.toList()),
@@ -75,25 +82,42 @@ public class CentralityMetricsServiceTest {
   }
 
   @Test
-  public void test_computePageRankForInstruments_mustReturnCorrespondingPageRank() {
-    List<Resource> classes = Stream
-        .of("http://purl.org/ontology/mo/Instrument", "http://purl.org/ontology/mo/Performance")
-        .map(r -> new Resource(BlankOrIRIJsonUtil.valueOf(r))).collect(Collectors.toList());
-    Map<Resource, Double> pageRankMap = centralityMetricsService.getPageRank(classes);
-    List<Entry<Resource, Double>> resourceList = pageRankMap.entrySet().stream()
-        .sorted((e1, e2) -> -Double.compare(e1.getValue(), e2.getValue()))
+  public void test_computeDegreeMetrics_mustReturnAResult() {
+    centralityMetricsService.computeDegree();
+    List<Resource> resources = ((SelectQueryResult) sparqlDAO
+        .query("SELECT distinct ?resource WHERE { {?resource ?p1 ?o} UNION {?s ?p2 ?resource} . FILTER(isIRI(?resource))}",
+            false)).value().stream().map(r -> new Resource((BlankNodeOrIRI) r.get("resource")))
         .collect(Collectors.toList());
-    assertThat(resourceList.stream().limit(25)
+    List<Pair<Resource, Long>> resourceList = resources.stream().map(
+        resource -> new ImmutablePair<>(resource, centralityMetricsService.getDegreeOf(resource)))
+        .sorted((e1, e2) -> -Double.compare(e1.getRight(), e2.getRight()))
+        .collect(Collectors.toList());
+    assertThat("'Percussion instruments' must be in the top 10.", resourceList.stream().limit(10)
             .map(r -> r.getKey().getId()).collect(Collectors.toList()),
-        hasItems("http://dbtune.org/musicbrainz/resource/instrument/14"));
+        hasItem("http://dbtune.org/musicbrainz/resource/instrument/124"));
   }
 
   @Test
-  public void test_computePageRankForUnknownClass_mustReturnEmptyMap() {
-    Map<Resource, Double> pageRankMap = centralityMetricsService
-        .getPageRank(
-            Collections.singletonList(new Resource(BlankOrIRIJsonUtil.valueOf("test://unknown"))));
-    assertThat(pageRankMap.entrySet(), hasSize(0));
+  @Ignore
+  public void test_computeBetweeness_mustReturnAResult() {
+    centralityMetricsService.computeDegree();
+    List<Resource> resources = ((SelectQueryResult) sparqlDAO
+        .query("SELECT distinct ?resource WHERE { {?resource ?p1 ?o} UNION {?s ?p2 ?resource} . FILTER(isIRI(?resource))}",
+            false)).value().stream().map(r -> new Resource((BlankNodeOrIRI) r.get("resource")))
+        .collect(Collectors.toList());
+    List<Pair<Resource, Long>> resourceList = resources.stream().map(
+        resource -> new ImmutablePair<>(resource, centralityMetricsService.getDegreeOf(resource)))
+        .sorted((e1, e2) -> -Double.compare(e1.getRight(), e2.getRight()))
+        .collect(Collectors.toList());
+    assertThat("'Percussion instruments' must be in the top 10.", resourceList.stream().limit(10)
+            .map(r -> r.getKey().getId()).collect(Collectors.toList()),
+        hasItem("http://dbtune.org/musicbrainz/resource/instrument/124"));
   }
 
+  @Test
+  @Ignore
+  public void test_computeCloseness_mustReturnAResult() {
+    //Map<Resource, Long> closenessCentrality = centralityMetricsService.getClosenessCentrality();
+    ///assertThat(closenessCentrality.values(), hasSize(greaterThan(0)));
+  }
 }

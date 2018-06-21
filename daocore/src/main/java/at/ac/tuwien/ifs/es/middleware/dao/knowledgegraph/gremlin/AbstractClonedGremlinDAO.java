@@ -24,6 +24,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import javax.annotation.PostConstruct;
@@ -36,6 +37,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSo
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Graph.Features;
 import org.apache.tinkerpop.gremlin.structure.T;
+import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty.Cardinality;
 import org.slf4j.Logger;
@@ -67,6 +69,8 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
       + "OFFSET ${offset}\n"
       + "LIMIT ${limit}";
 
+  private Lock graphLock = new ReentrantLock();
+
   /* status of the this gremlin DAO */
   private KGDAOStatus status;
   /* event publisher */
@@ -97,7 +101,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
 
   @PostConstruct
   public void setUp() {
-    this.graph = newGraphInstance();
+    this.graph = initGraphInstance();
   }
 
   @Autowired
@@ -106,11 +110,22 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
   }
 
   /**
-   * This method should return an instance of a {@link Graph}.
+   * This method should return an instance of a {@link Graph}. This is going to be called at most
+   * once.
    *
    * @return a new instance of a {@link Graph}.
    */
-  public abstract Graph newGraphInstance();
+  protected abstract Graph initGraphInstance();
+
+  @Override
+  public Transaction getTransaction() {
+    return graph.tx();
+  }
+
+  @Override
+  public Lock getLock() {
+    return graphLock;
+  }
 
   @EventListener
   public void onSPARQLReadyEvent(SPARQLDAOReadyEvent event) {
@@ -189,7 +204,9 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
       boolean transactionSupported = getFeatures().graph().supportsTransactions();
       int offset = 0;
       if (transactionSupported) {
-        //  graph.tx().open();
+        graph.tx().open();
+      } else {
+        getLock().lock();
       }
       try {
         applicationEventPublisher
@@ -212,24 +229,21 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
           logger.info("Loaded {} statements from the knowledge graph {}.", offset + values.size(),
               sparqlDAO.getClass().getSimpleName());
           offset += LOAD_LIMIT;
-          //  System.out.println(">>>>>>>>>> F <<<<<<<<<<<<");
         } while (!values.isEmpty() && values.size() == LOAD_LIMIT
             && currentTimestamp.get() < issuedTimestamp);
-        //System.out.println(">>>>>>>>>> C:" + currentTimestamp.get() + " I:" +issuedTimestamp);
         if (currentTimestamp.get() < issuedTimestamp) {
           currentTimestamp.accumulateAndGet(issuedTimestamp,
               (current, updated) -> current <= updated ? updated : current);
-          // System.out.println(">>>>>>>>>> C:" + currentTimestamp.get() + " N:" + newestDatatimestamp.get());
           if (currentTimestamp.get() == newestDatatimestamp.get()) {
             applicationEventPublisher.publishEvent(eventForSuccess);
             AbstractClonedGremlinDAO.this.status = new KGDAOReadyStatus();
-            if(updatedListener != null && (eventForSuccess instanceof GremlinDAOUpdatedEvent)){
+            if (updatedListener != null && (eventForSuccess instanceof GremlinDAOUpdatedEvent)) {
               updatedListener.accept(eventForSuccess);
             }
           }
           deleteOldData();
           if (transactionSupported) {
-            // graph.tx().commit();
+            graph.tx().commit();
           }
         }
       } catch (Exception e) {
@@ -241,11 +255,13 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
         AbstractClonedGremlinDAO.this.status = new KGDAOFailedStatus(
             "Updating the Gremlin graph failed.", e);
         if (transactionSupported) {
-          // graph.tx().rollback();
+          graph.tx().rollback();
         }
       } finally {
         if (transactionSupported) {
-          // graph.tx().close();
+          graph.tx().close();
+        } else {
+          getLock().unlock();
         }
       }
     }
@@ -253,22 +269,26 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
     private void deleteOldData() {
       boolean transactionSupported = getFeatures().graph().supportsTransactions();
       if (transactionSupported) {
-        //  graph.tx().open();
+        graph.tx().open();
+      } else {
+        getLock().lock();
       }
       long cT = currentTimestamp.get();
       try {
         graph.traversal().V().has("version", P.lt(cT)).drop().iterate();
         graph.traversal().E().has("version", P.lt(cT)).drop().iterate();
         if (transactionSupported) {
-          // graph.tx().commit();
+          graph.tx().commit();
         }
       } catch (Exception e) {
         if (transactionSupported) {
-          // graph.tx().rollback();
+          graph.tx().rollback();
         }
       } finally {
         if (transactionSupported) {
-          // graph.tx().close();
+          graph.tx().close();
+        } else {
+          getLock().unlock();
         }
       }
     }

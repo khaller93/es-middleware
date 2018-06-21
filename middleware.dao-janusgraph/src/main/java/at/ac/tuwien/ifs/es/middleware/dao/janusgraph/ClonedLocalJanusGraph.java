@@ -5,6 +5,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.AbstractClonedG
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import java.io.File;
 import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.janusgraph.core.JanusGraphFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,7 +38,7 @@ public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
   }
 
   @Override
-  public Graph newGraphInstance() {
+  public Graph initGraphInstance() {
     return JanusGraphFactory.build().set("storage.backend", "berkeleyje")
         .set("storage.directory", new File(janusGraphDir).getAbsolutePath()).open();
   }

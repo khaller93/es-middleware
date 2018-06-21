@@ -3,8 +3,10 @@ package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.*;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.InMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
+import java.util.concurrent.locks.Lock;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Graph.Features;
+import org.apache.tinkerpop.gremlin.structure.Transaction;
 
 /**
  * This interface provides methods for traversing the knowledge graph using Gremlin.
@@ -39,6 +41,21 @@ public interface KGGremlinDAO {
    * @return {@link GraphTraversalSource} for traversing the knowledge graph.
    */
   GraphTraversalSource traversal();
+
+  /**
+   * Gets a {@link Transaction} for this Gremlin DAO.
+   *
+   * @return a {@link Transaction} for this Gremlin DAO.
+   */
+  Transaction getTransaction();
+
+  /**
+   * Gets a lock for accessing this Gremlin DAO. This lock can be used for Gremlin DAOs that have no
+   * support for transaction.
+   *
+   * @return a lock for accessing this Gremlin DAO.
+   */
+  Lock getLock();
 
   /**
    * Gets the graph features of this Gremlin DAO.

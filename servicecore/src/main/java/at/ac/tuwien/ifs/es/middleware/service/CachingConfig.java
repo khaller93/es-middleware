@@ -17,7 +17,9 @@ public class CachingConfig {
     SimpleCacheManager cacheManager = new SimpleCacheManager();
     cacheManager.setCaches(Arrays.asList(
         new ConcurrentMapCache("sparql"),
-        new ConcurrentMapCache("gremlin")));
+        new ConcurrentMapCache("fts"),
+        new ConcurrentMapCache("centrality"),
+        new ConcurrentMapCache("similarity")));
     return cacheManager;
   }
 
