@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
  * @since 1.0
  */
 @Lazy
-@Component("IndexedInMemoryDAO")
+@Component("IndexedMemoryKnowledgeGraph")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implements
     KGFullTextSearchDAO {

@@ -4,6 +4,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDA
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDAOUpdatedEvent;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.event.PageRankUpdatedEvent;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import java.time.Instant;
 import java.util.HashMap;
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -50,12 +52,15 @@ public class CentralityMetricsService {
   private ExecutorService threadPool;
   private GremlinService gremlinService;
   private CacheManager cacheManager;
+  private ApplicationEventPublisher applicationEventPublisher;
 
   @Autowired
-  public CentralityMetricsService(GremlinService gremlinService, CacheManager cacheManager) {
+  public CentralityMetricsService(GremlinService gremlinService, CacheManager cacheManager,
+      ApplicationEventPublisher applicationEventPublisher) {
     this.gremlinService = gremlinService;
     this.cacheManager = cacheManager;
     this.threadPool = Executors.newCachedThreadPool();
+    this.applicationEventPublisher = applicationEventPublisher;
   }
 
   @EventListener
@@ -65,7 +70,6 @@ public class CentralityMetricsService {
   }
 
   @EventListener
-  @CacheEvict(value = "centrality", allEntries = true)
   public void onApplicationEvent(GremlinDAOUpdatedEvent event) {
     logger.debug("Recognized an Gremlin update event {}.", event);
     updateMetrics();
@@ -142,6 +146,7 @@ public class CentralityMetricsService {
         gremlinService.getLock().unlock();
       }
     }
+    applicationEventPublisher.publishEvent(new PageRankUpdatedEvent(CentralityMetricsService.this));
     logger.info("Page rank issued on {} computed on {}.", issueTimestamp, Instant.now());
   }
 

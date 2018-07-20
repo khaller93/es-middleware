@@ -9,7 +9,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.InMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.IndexedMemoryKnowledgeGraph;
+import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.conf.IndexedMemoryKnowledgeGraphConfig;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.request.DynamicExplorationFlowRequest;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlow;
@@ -35,13 +37,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {SimpleSPARQLService.class,
     IndexedMemoryKnowledgeGraph.class, DynamicExplorationFlowFactory.class,
     ExplorationFlowRegistry.class, FullTextSearch.class,
-    ResourceDescriber.class, SimpleFullTextSearchService.class, ObjectMapper.class})
+    ResourceDescriber.class, SimpleFullTextSearchService.class, ObjectMapper.class,
+    KGDAOConfig.class, IndexedMemoryKnowledgeGraphConfig.class, InMemoryGremlinDAO.class})
+@TestPropertySource(properties = {"esm.db.choice=IndexedMemoryDB"})
 public class DynamicExplorationFlowFactoryMusicPintaTest {
 
   @Autowired

@@ -18,21 +18,6 @@
   </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.dao-graphdb</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.dao-rdf4j</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.dao-stardog</artifactId>
-      <version>${project.version}</version>
-    </dependency>
     <!-- Springfox swagger -->
     <dependency>
       <groupId>io.springfox</groupId>
@@ -44,7 +29,12 @@
       <artifactId>springfox-swagger-ui</artifactId>
       <version>${springfox.swagger.version}</version>
     </dependency>
-    <!-- ESM Modules -->
+    <!-- Exploratory Search Service Dependencies -->
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.dao-rdf4j</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.servicecore</artifactId>
@@ -53,11 +43,6 @@
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.dto</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.dao-janusgraph</artifactId>
       <version>${project.version}</version>
     </dependency>
     <!-- Testing for DAO -->
@@ -76,7 +61,7 @@
   </dependencies>
 
   <build>
-    <finalName>middleware-app-${project.version}</finalName>
+    <finalName>exploratory-search-service-${project.version}</finalName>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
@@ -87,9 +72,10 @@
         <artifactId>dockerfile-maven-plugin</artifactId>
         <version>${docker.spotify.plugin.version}</version>
         <configuration>
-          <repository>${docker.image.prefix}/middleware-app</repository>
+          <repository>${docker.image.prefix}/exploratory-search-service</repository>
+          <tag>${project.version}</tag>
           <buildArgs>
-            <JAR_FILE>target/middleware-app-${project.version}.jar</JAR_FILE>
+            <JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
           </buildArgs>
         </configuration>
       </plugin>

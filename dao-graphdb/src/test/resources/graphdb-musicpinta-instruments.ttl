@@ -20,7 +20,7 @@
             owlim:entity-id-size  "32" ;
             owlim:repository-type "file-repository" ;
             owlim:ruleset "rdfsplus-optimized" ;
-            owlim:storage-folder "musicpinta-instruments-storage" ;
+            owlim:storage-folder "storage" ;
  
             owlim:enable-context-index "false" ;
 

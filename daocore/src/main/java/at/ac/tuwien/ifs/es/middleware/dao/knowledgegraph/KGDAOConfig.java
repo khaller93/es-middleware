@@ -1,6 +1,5 @@
 package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
 
-import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -16,7 +15,6 @@ import org.springframework.context.annotation.Primary;
  * @version 1.0
  * @since 1.0
  */
-@Primary
 @Configuration
 public class KGDAOConfig implements KnowledgeGraphDAOConfig {
 
@@ -27,22 +25,23 @@ public class KGDAOConfig implements KnowledgeGraphDAOConfig {
     this.config = context.getBean(choice,KnowledgeGraphDAOConfig.class);
   }
 
-  @Primary
   @Bean
+  @Primary
   @Override
   public KGSparqlDAO getSparqlDAO() {
     return config.getSparqlDAO();
   }
 
-  @Primary
   @Bean
+  @Primary
   @Override
   public KGFullTextSearchDAO getFullTextSearchDAO() {
     return config.getFullTextSearchDAO();
   }
 
-  @Primary
+
   @Bean
+  @Primary
   @Override
   public KGGremlinDAO getGremlinDAO() {
     return config.getGremlinDAO();

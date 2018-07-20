@@ -6,15 +6,17 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.0.2.RELEASE</version>
+    <version>2.0.3.RELEASE</version>
   </parent>
   <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
   <artifactId>middleware</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>Exploratory Search Middleware (multi-module)</name>
-  <description>tbd</description>
+  <name>Exploratory Search Microservice (multi-module)</name>
+  <description>
+    This micro service enables methods for exploratory search in a certain knowledge graph.
+  </description>
 
   <organization>
     <name>Vienna University of Technology, IFS</name>
@@ -36,21 +38,21 @@
     <tinkerpop.version>3.3.2</tinkerpop.version>
     <commons-rdf.version>0.5.0</commons-rdf.version>
     <guava.version>24.1-jre</guava.version>
-    <docker.spotify.plugin.version>1.4.0</docker.spotify.plugin.version>
+    <docker.spotify.plugin.version>1.4.3</docker.spotify.plugin.version>
     <docker.image.prefix>ess</docker.image.prefix>
   </properties>
 
   <modules>
+    <module>appcore</module>
+    <module>servicecore</module>
     <module>daocore</module>
     <module>dto</module>
-    <module>servicecore</module>
-    <module>appcore</module>
     <module>dao-rdf4j</module>
     <module>dao-graphdb</module>
     <module>dao-blazegraph</module>
-    <module>testutil</module>
     <module>dao-stardog</module>
-    <module>middleware.dao-janusgraph</module>
+    <module>dao-janusgraph</module>
+    <module>testutil</module>
   </modules>
 
   <dependencies>

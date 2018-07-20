@@ -19,6 +19,7 @@ public class CachingConfig {
         new ConcurrentMapCache("sparql"),
         new ConcurrentMapCache("fts"),
         new ConcurrentMapCache("centrality"),
+        new ConcurrentMapCache("information-content"),
         new ConcurrentMapCache("similarity")));
     return cacheManager;
   }

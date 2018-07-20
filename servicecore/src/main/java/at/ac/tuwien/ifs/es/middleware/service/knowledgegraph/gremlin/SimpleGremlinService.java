@@ -6,6 +6,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSo
 import org.apache.tinkerpop.gremlin.structure.Graph.Features;
 import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,7 @@ public class SimpleGremlinService implements GremlinService{
   private KGGremlinDAO gremlinDAO;
 
   @Autowired
-  public SimpleGremlinService(KGGremlinDAO gremlinDAO) {
+  public SimpleGremlinService(@Qualifier("getGremlinDAO") KGGremlinDAO gremlinDAO) {
     this.gremlinDAO = gremlinDAO;
   }
 

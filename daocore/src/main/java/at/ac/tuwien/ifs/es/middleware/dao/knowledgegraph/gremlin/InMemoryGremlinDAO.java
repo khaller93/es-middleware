@@ -12,6 +12,7 @@ import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
@@ -34,7 +35,7 @@ public class InMemoryGremlinDAO extends AbstractClonedGremlinDAO {
 
 
   @Autowired
-  public InMemoryGremlinDAO(KGSparqlDAO sparqlDAO) {
+  public InMemoryGremlinDAO(@Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO) {
     super(sparqlDAO);
   }
 

@@ -11,6 +11,9 @@
 
   <artifactId>middleware.dao-rdf4j</artifactId>
 
+  <name>DAO RDF4J</name>
+  <description>RDF4J framework used to implement the DAO Core.</description>
+
   <dependencies>
     <!-- RDF framework -->
     <dependency>

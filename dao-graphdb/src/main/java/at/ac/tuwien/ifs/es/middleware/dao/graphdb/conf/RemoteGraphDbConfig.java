@@ -3,6 +3,7 @@ package at.ac.tuwien.ifs.es.middleware.dao.graphdb.conf;
 import at.ac.tuwien.ifs.es.middleware.dao.graphdb.RemoteGraphDbDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -19,8 +20,10 @@ import org.springframework.stereotype.Component;
 public class RemoteGraphDbConfig extends GraphDbConfig {
 
   @Autowired
-  public RemoteGraphDbConfig(ApplicationContext context) {
-    super(context);
+  public RemoteGraphDbConfig(ApplicationContext context,
+      @Value("${graphdb.fts.choice:#{null}}") String fullTextSearchChoice,
+      @Value("${esm.db.gremlin.choice:#{null}}") String gremlinChoice) {
+    super(context, fullTextSearchChoice, gremlinChoice);
   }
 
   @Override

@@ -30,6 +30,7 @@ import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
@@ -85,7 +86,7 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
   private KGDAOStatus status;
 
   @Autowired
-  public GraphDbLucene(ApplicationContext context, KGSparqlDAO sparqlDAO,
+  public GraphDbLucene(ApplicationContext context, @Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO,
       GraphDbLuceneConfig graphDbLuceneConfig) {
     this.context = context;
     this.sparqlDAO = sparqlDAO;

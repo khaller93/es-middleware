@@ -13,9 +13,12 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus.CODE;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.Literal;
+import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Element;
@@ -41,7 +44,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 public abstract class AbstractMusicPintaGremlinTests {
 
-  private static final Logger logger = LoggerFactory.getLogger(AbstractMusicPintaGremlinTests.class);
+  private static final Logger logger = LoggerFactory
+      .getLogger(AbstractMusicPintaGremlinTests.class);
 
   private MusicPintaInstrumentsResource musicPintaInstrumentsResource;
   private KGSparqlDAO sparqlDAO;
@@ -61,7 +65,8 @@ public abstract class AbstractMusicPintaGremlinTests {
   public void setUp() throws Throwable {
     this.sparqlDAO = getSparqlDAO();
     this.gremlinDAO = getGremlinDAO();
-    this.musicPintaInstrumentsResource = new MusicPintaInstrumentsResource(sparqlDAO, getGremlinDAO());
+    this.musicPintaInstrumentsResource = new MusicPintaInstrumentsResource(sparqlDAO,
+        getGremlinDAO());
     this.musicPintaInstrumentsResource.before();
     this.musicPintaInstrumentsResource.waitForAllDAOsBeingReady();
   }
@@ -74,7 +79,8 @@ public abstract class AbstractMusicPintaGremlinTests {
   @Test(timeout = 120000)
   public void test_getResource_mustBeInGremlinGraph() throws Exception {
     assertThat(gremlinDAO.traversal()
-        .V().hasLabel("http://dbtune.org/musicbrainz/resource/instrument/132").toList(), hasSize(1));
+            .V().hasLabel("http://dbtune.org/musicbrainz/resource/instrument/132").toList(),
+        hasSize(1));
   }
 
   @Test(timeout = 120000)
@@ -102,30 +108,16 @@ public abstract class AbstractMusicPintaGremlinTests {
   public void test_getCountIndividuals_mustReturnCorrectNumber() throws Exception {
     long totalResourceNumber = Long.parseLong(((Literal) ((SelectQueryResult) sparqlDAO
         .query("SELECT (count(DISTINCT ?s) AS ?cnt) WHERE {\n"
-            + "  {?s ?p ?o}\n"
-            + "  UNION\n"
-            + "  {?z ?b ?s}\n"
-            + "  FILTER(!isLiteral(?s))\n"
+            + "   {\n"
+            + "        ?s ?p ?o .\n"
+            + "    } UNION {\n"
+            + "        ?z ?b ?s .\n"
+            + "    }\n"
+            + "    FILTER(isIRI(?s)) .\n"
             + "}", true)).value().get(0).get("cnt")).getLexicalForm());
     assertThat("Each resource (not-literal) must be represented as vertex in the gremlin graph.",
         gremlinDAO.traversal().V().dedup().count().next(),
         is(equalTo(totalResourceNumber)));
-  }
-
-  @Test(timeout = 120000)
-  @Ignore
-  public void test_countAllClassesWithInstances_mustReturnCorrectNumber() throws Exception {
-    List<String> classesWithInstancesSPARQL = (((SelectQueryResult) sparqlDAO
-        .query("select DISTINCT ?clazz { \n"
-            + " ?s a ?clazz\n"
-            + "}", true)).value()).stream()
-        .map(r -> BlankOrIRIJsonUtil.stringValue((BlankNodeOrIRI) r.get("clazz")))
-        .collect(Collectors.toList());
-    List<Vertex> classesWithInstancesGremlin = gremlinDAO.traversal().V()
-        .outE("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").inV().dedup().toList();
-    assertThat(
-        classesWithInstancesGremlin.stream().map(v -> (String) v.id()).collect(Collectors.toList()),
-        containsInAnyOrder(classesWithInstancesSPARQL));
   }
 
   @Test(timeout = 120000)
@@ -135,8 +127,9 @@ public abstract class AbstractMusicPintaGremlinTests {
     List<Vertex> classes = g.V()
         .union(__.inE("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").inV(),
             __.as("c").out("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
-                .V().hasLabel("http://www.w3.org/2000/01/rdf-schema#Class").select("c")).dedup().toList();
-    List<String> classStrings = classes.stream().map(v -> v.label())
+                .V().hasLabel("http://www.w3.org/2000/01/rdf-schema#Class").select("c")).dedup()
+        .toList();
+    List<String> classStrings = classes.stream().map(Element::label)
         .collect(Collectors.toList());
     assertThat(classStrings, hasItems("http://purl.org/ontology/mo/Instrument",
         "http://purl.org/ontology/mo/Performance"));

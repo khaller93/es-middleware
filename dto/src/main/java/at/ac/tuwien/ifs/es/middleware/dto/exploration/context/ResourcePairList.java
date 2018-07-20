@@ -1,5 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.context;
 
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -27,7 +28,7 @@ import java.util.stream.Stream;
  * @version 1.0
  * @since 1.0
  */
-public class ResourcePairList extends AbstractExplorationContext<ResourcePair> {
+public class ResourcePairList extends AbstractExplorationContext<ResourcePair> implements IterableResourcesContext {
 
   @JsonProperty(value = "pairs")
   private List<ResourcePair> pairs;
@@ -77,6 +78,31 @@ public class ResourcePairList extends AbstractExplorationContext<ResourcePair> {
   @Override
   public Set<Characteristics> characteristics() {
     return Collections.unmodifiableSet(new HashSet<>());
+  }
+
+  @Override
+  public Iterator<Resource> getResourceIterator() {
+    return asResourceSet().iterator();
+  }
+
+  @Override
+  public List<Resource> asResourceList() {
+    List<Resource> resources = new LinkedList<>();
+    for(ResourcePair p : pairs){
+      resources.add(p.getFirst());
+      resources.add(p.getSecond());
+    }
+    return resources;
+  }
+
+  @Override
+  public Set<Resource> asResourceSet() {
+    Set<Resource> resources = new HashSet<>();
+    for(ResourcePair p : pairs){
+      resources.add(p.getFirst());
+      resources.add(p.getSecond());
+    }
+    return resources;
   }
 
   /**

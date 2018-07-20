@@ -8,6 +8,7 @@ import java.util.Map;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
@@ -29,7 +30,8 @@ public class SimpleFullTextSearchService implements FullTextSearchService {
   private KGFullTextSearchDAO fullTextSearchDAO;
 
   @Autowired
-  public SimpleFullTextSearchService(KGFullTextSearchDAO fullTextSearchDAO) {
+  public SimpleFullTextSearchService(
+      @Qualifier("getFullTextSearchDAO") KGFullTextSearchDAO fullTextSearchDAO) {
     this.fullTextSearchDAO = fullTextSearchDAO;
   }
 

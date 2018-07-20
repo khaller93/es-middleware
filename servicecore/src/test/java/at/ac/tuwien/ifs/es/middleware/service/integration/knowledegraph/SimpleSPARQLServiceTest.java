@@ -16,6 +16,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.InMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.IndexedMemoryKnowledgeGraph;
+import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.conf.IndexedMemoryKnowledgeGraphConfig;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.MalformedSPARQLQueryException;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.AskQueryResult;
@@ -40,6 +41,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -51,14 +53,17 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {SimpleSPARQLService.class, IndexedMemoryKnowledgeGraph.class,
-    InMemoryGremlinDAO.class})
+    InMemoryGremlinDAO.class, KGDAOConfig.class, IndexedMemoryKnowledgeGraphConfig.class})
+@TestPropertySource(properties = {"esm.db.choice=IndexedMemoryDB"})
 public class SimpleSPARQLServiceTest {
 
   @Rule
   public MusicPintaInstrumentsResource musicPintaResource;
   @Autowired
+  @Qualifier("getSparqlDAO")
   private KGSparqlDAO sparqlDAO;
   @Autowired
+  @Qualifier("getGremlinDAO")
   private KGGremlinDAO gremlinDAO;
   @Autowired
   public SPARQLService sparqlService;

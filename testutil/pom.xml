@@ -11,6 +11,9 @@
 
   <artifactId>middleware.testutil</artifactId>
 
+  <name>Test Utils</name>
+  <description>Utils for testing this microservice.</description>
+
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>

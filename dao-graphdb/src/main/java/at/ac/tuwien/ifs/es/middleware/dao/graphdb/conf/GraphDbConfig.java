@@ -1,8 +1,10 @@
 package at.ac.tuwien.ifs.es.middleware.dao.graphdb.conf;
 
+import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbLucene;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.InMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.SPARQLSyncingGremlinDAO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -16,14 +18,15 @@ import org.springframework.context.ApplicationContext;
  */
 public abstract class GraphDbConfig implements KnowledgeGraphDAOConfig {
 
-  @Value("${graphdb.fts.choice:#{null}}")
   private String fullTextSearchChoice;
-  @Value("${esm.db.gremlin.choice:#{null}}")
   private String gremlinChoice;
 
   private ApplicationContext context;
 
-  public GraphDbConfig(ApplicationContext context) {
+  public GraphDbConfig(ApplicationContext context, String fullTextSearchChoice,
+      String gremlinChoice) {
+    this.fullTextSearchChoice = fullTextSearchChoice;
+    this.gremlinChoice = gremlinChoice;
     this.context = context;
   }
 
@@ -33,18 +36,21 @@ public abstract class GraphDbConfig implements KnowledgeGraphDAOConfig {
 
   @Override
   public KGFullTextSearchDAO getFullTextSearchDAO() {
-    if (fullTextSearchChoice == null) {
-      return getContext().getBean("InBuiltLucene", KGFullTextSearchDAO.class);
+    /*if (fullTextSearchChoice == null || fullTextSearchChoice.isEmpty()) {
+      return getContext().getBean(GraphDbLucene.class);
     } else {
       return getContext().getBean(fullTextSearchChoice, KGFullTextSearchDAO.class);
-    }
+    }*/
+    return null;
   }
 
   @Override
   public KGGremlinDAO getGremlinDAO() {
-    return context.getBean(
-        gremlinChoice != null && !gremlinChoice.isEmpty() ? gremlinChoice : "InMemoryGremlin",
-        SPARQLSyncingGremlinDAO.class);
+    if (gremlinChoice == null || gremlinChoice.isEmpty()) {
+      return getContext().getBean(InMemoryGremlinDAO.class);
+    } else {
+      return getContext().getBean(gremlinChoice, SPARQLSyncingGremlinDAO.class);
+    }
   }
 
 }

@@ -13,10 +13,6 @@
 
   <name>DAO Core</name>
 
-  <properties>
-
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.apache.commons</groupId>

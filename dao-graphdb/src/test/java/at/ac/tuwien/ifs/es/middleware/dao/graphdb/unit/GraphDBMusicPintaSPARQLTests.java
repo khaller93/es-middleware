@@ -2,6 +2,8 @@ package at.ac.tuwien.ifs.es.middleware.dao.graphdb.unit;
 
 import at.ac.tuwien.ifs.es.middleware.dao.graphdb.EmbeddedGraphDbDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbLucene;
+import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbLuceneConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.graphdb.conf.EmbeddedGraphDbConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
@@ -16,6 +18,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -30,19 +33,25 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {EmbeddedGraphDbDAO.class, InMemoryGremlinDAO.class,
-    GraphDbLucene.class})
+    GraphDbLucene.class, KGDAOConfig.class, EmbeddedGraphDbConfig.class,
+    GraphDbLuceneConfig.class})
 @TestPropertySource(properties = {
-    "graphdb.embedded.location=graphdb/",
-    "graphdb.embedded.config.path=graphdb/conf/graphdb-musicpinta-instruments.ttl"
+    "esm.db.choice=EmbeddedGraphDB",
+    "esm.db.gremlin.choice=InMemoryGremlin",
+    "graphdb.embedded.location=db/",
+    "graphdb.embedded.config.path=db/conf/graphdb-musicpinta-instruments.ttl"
 })
+@Ignore
 public class GraphDBMusicPintaSPARQLTests extends AbstractMusicPintaSPARQLTests {
 
   @Autowired
+  @Qualifier("getSparqlDAO")
   private KGSparqlDAO sparqlDAO;
   @Autowired
+  @Qualifier("getGremlinDAO")
   private KGGremlinDAO gremlinDAO;
 
-  private static final File graphDbDir = new File("graphdb/");
+  private static final File graphDbDir = new File("db");
 
   @BeforeClass
   public static void setUpClass() throws IOException {

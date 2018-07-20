@@ -30,6 +30,7 @@ import java.util.function.Consumer;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
+import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
@@ -51,6 +52,8 @@ import org.springframework.context.event.EventListener;
  * This is a {@link KGGremlinDAO} in which data will be cloned from the {@link KGSparqlDAO}. It
  * implements generic methods and expects simply a new clean {@link Graph} from the implementing
  * class to work.
+ * <p/>
+ * This implementation ignores blank nodes in the knowledge graph.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -64,7 +67,6 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
 
   private static final String ALL_STATEMENTS_QUERY = "SELECT DISTINCT ?s ?p ?o WHERE {\n"
       + "  ?s ?p ?o .\n"
-      + "  FILTER (!isLiteral(?o)) .\n"
       + "}\n"
       + "OFFSET ${offset}\n"
       + "LIMIT ${limit}";
@@ -219,12 +221,20 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
           values = ((SelectQueryResult) sparqlDAO
               .query(new StringSubstitutor(valuesMap).replace(ALL_STATEMENTS_QUERY), true)).value();
           for (Map<String, RDFTerm> row : values) {
-            /* Prepare subject vertex */
-            Vertex sVertex = getVertex(recognizedNodes, (BlankNodeOrIRI) row.get("s"));
-            Vertex oVertex = getVertex(recognizedNodes, (BlankNodeOrIRI) row.get("o"));
-            BlankNodeOrIRI property = (BlankNodeOrIRI) row.get("p");
-            sVertex.addEdge(BlankOrIRIJsonUtil.stringValue(property), oVertex, "version",
-                issuedTimestamp);
+            Vertex sVertex = null, oVertex = null;
+            RDFTerm subject = row.get("s");
+            if (subject instanceof IRI) {
+              sVertex = getVertex(recognizedNodes, (IRI) row.get("s"));
+            }
+            RDFTerm object = row.get("o");
+            if (object instanceof IRI) {
+              oVertex = getVertex(recognizedNodes, (IRI) object);
+            }
+            if (sVertex != null && oVertex != null) {
+              BlankNodeOrIRI property = (BlankNodeOrIRI) row.get("p");
+              sVertex.addEdge(BlankOrIRIJsonUtil.stringValue(property), oVertex, "version",
+                  issuedTimestamp);
+            }
           }
           logger.info("Loaded {} statements from the knowledge graph {}.", offset + values.size(),
               sparqlDAO.getClass().getSimpleName());
@@ -241,7 +251,6 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
               updatedListener.accept(eventForSuccess);
             }
           }
-          deleteOldData();
           if (transactionSupported) {
             graph.tx().commit();
           }
@@ -263,6 +272,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
         } else {
           getLock().unlock();
         }
+        deleteOldData();
       }
     }
 
@@ -306,7 +316,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
       }
       threadPool.shutdown();
     } catch (Exception e) {
-      logger.error("Failed to close the InMemoryGremlin graph. {}", e.getMessage());
+      logger.error("Failed to close the Gremlin graph DAO. {}", e.getMessage());
     }
   }
 

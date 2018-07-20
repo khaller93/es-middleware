@@ -9,7 +9,7 @@ package at.ac.tuwien.ifs.es.middleware;
  */
 public final class SystemInfo {
 
-  public static final String MIDDLEWARE_NAME = "Exploratory Search Middleware";
+  public static final String MIDDLEWARE_NAME = "Exploratory Search Service";
   public static final String MIDDLEWARE_VERSION = "1.0.0-SNAPSHOT";
 
 }

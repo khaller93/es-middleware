@@ -5,6 +5,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.QueryResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
@@ -25,7 +26,7 @@ public class SimpleSPARQLService implements SPARQLService {
   private KGSparqlDAO sparqlDAO;
 
   @Autowired
-  public SimpleSPARQLService(KGSparqlDAO sparqlDAO) {
+  public SimpleSPARQLService(@Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO) {
     this.sparqlDAO = sparqlDAO;
   }
 

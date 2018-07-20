@@ -3,10 +3,12 @@ package at.ac.tuwien.ifs.es.middleware.service.integration.knowledegraph;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.InMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.IndexedMemoryKnowledgeGraph;
+import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.conf.IndexedMemoryKnowledgeGraphConfig;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.CentralityMetricsService;
@@ -25,8 +27,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.CacheManager;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
@@ -38,19 +43,25 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {SimpleGremlinService.class,
-    IndexedMemoryKnowledgeGraph.class, InMemoryGremlinDAO.class, CentralityCacheManagerStub.class})
+    IndexedMemoryKnowledgeGraph.class, InMemoryGremlinDAO.class, CentralityCacheManagerStub.class,
+    KGDAOConfig.class, IndexedMemoryKnowledgeGraphConfig.class})
+@TestPropertySource(properties = {"esm.db.choice=IndexedMemoryDB"})
 public class CentralityMetricsServiceTest {
 
   @Rule
   public MusicPintaInstrumentsResource musicPintaResource;
   @Autowired
+  @Qualifier("getSparqlDAO")
   private KGSparqlDAO sparqlDAO;
   @Autowired
+  @Qualifier("getGremlinDAO")
   private KGGremlinDAO gremlinDAO;
   @Autowired
   private GremlinService gremlinService;
   @Autowired
   private CacheManager cacheManager;
+  @Autowired
+  private ApplicationContext applicationContext;
 
   private CentralityMetricsService centralityMetricsService;
 
@@ -62,14 +73,16 @@ public class CentralityMetricsServiceTest {
   @Before
   public void setUp() throws InterruptedException {
     musicPintaResource.waitForAllDAOsBeingReady();
-    centralityMetricsService = new CentralityMetricsService(gremlinService, cacheManager);
+    centralityMetricsService = new CentralityMetricsService(gremlinService, cacheManager,
+        applicationContext);
   }
 
   @Test
   public void test_computePageRankForAllResources_mustReturnCorrespondingPageRank() {
     centralityMetricsService.computePageRank();
     List<Resource> resources = ((SelectQueryResult) sparqlDAO
-        .query("SELECT distinct ?resource WHERE { {?resource ?p1 ?o} UNION {?s ?p2 ?resource} . FILTER(isIRI(?resource))}",
+        .query(
+            "SELECT distinct ?resource WHERE { {?resource ?p1 ?o} UNION {?s ?p2 ?resource} . FILTER(isIRI(?resource))}",
             false)).value().stream().map(r -> new Resource((BlankNodeOrIRI) r.get("resource")))
         .collect(Collectors.toList());
     List<Pair<Resource, Double>> resourceList = resources.stream().map(
@@ -85,7 +98,8 @@ public class CentralityMetricsServiceTest {
   public void test_computeDegreeMetrics_mustReturnAResult() {
     centralityMetricsService.computeDegree();
     List<Resource> resources = ((SelectQueryResult) sparqlDAO
-        .query("SELECT distinct ?resource WHERE { {?resource ?p1 ?o} UNION {?s ?p2 ?resource} . FILTER(isIRI(?resource))}",
+        .query(
+            "SELECT distinct ?resource WHERE { {?resource ?p1 ?o} UNION {?s ?p2 ?resource} . FILTER(isIRI(?resource))}",
             false)).value().stream().map(r -> new Resource((BlankNodeOrIRI) r.get("resource")))
         .collect(Collectors.toList());
     List<Pair<Resource, Long>> resourceList = resources.stream().map(
@@ -102,7 +116,8 @@ public class CentralityMetricsServiceTest {
   public void test_computeBetweeness_mustReturnAResult() {
     centralityMetricsService.computeDegree();
     List<Resource> resources = ((SelectQueryResult) sparqlDAO
-        .query("SELECT distinct ?resource WHERE { {?resource ?p1 ?o} UNION {?s ?p2 ?resource} . FILTER(isIRI(?resource))}",
+        .query(
+            "SELECT distinct ?resource WHERE { {?resource ?p1 ?o} UNION {?s ?p2 ?resource} . FILTER(isIRI(?resource))}",
             false)).value().stream().map(r -> new Resource((BlankNodeOrIRI) r.get("resource")))
         .collect(Collectors.toList());
     List<Pair<Resource, Long>> resourceList = resources.stream().map(
@@ -112,12 +127,5 @@ public class CentralityMetricsServiceTest {
     assertThat("'Percussion instruments' must be in the top 10.", resourceList.stream().limit(10)
             .map(r -> r.getKey().getId()).collect(Collectors.toList()),
         hasItem("http://dbtune.org/musicbrainz/resource/instrument/124"));
-  }
-
-  @Test
-  @Ignore
-  public void test_computeCloseness_mustReturnAResult() {
-    //Map<Resource, Long> closenessCentrality = centralityMetricsService.getClosenessCentrality();
-    ///assertThat(closenessCentrality.values(), hasSize(greaterThan(0)));
   }
 }
