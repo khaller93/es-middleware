@@ -157,12 +157,12 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
     if (classes == null || classes.isEmpty()) {
       return "";
     } else if (classes.size() == 1) {
-      return String.format(FTS_CLASSES_FILTER[0],
+      return String.format("?resource a/rdfs:subClassOf* %s .",
           BlankOrIRIJsonUtil.stringForSPARQLResourceOf(classes.get(0)));
     } else {
-      return String.format(FTS_CLASSES_FILTER[1],
-          classes.stream().map(BlankOrIRIJsonUtil::stringForSPARQLResourceOf)
-              .collect(Collectors.joining(",")));
+      return classes.stream().map(clazz -> String.format("{?resource a/rdfs:subClassOf* %s}",
+          BlankOrIRIJsonUtil.stringForSPARQLResourceOf(clazz)))
+          .collect(Collectors.joining("\nUNION\n"));
     }
   }
 
