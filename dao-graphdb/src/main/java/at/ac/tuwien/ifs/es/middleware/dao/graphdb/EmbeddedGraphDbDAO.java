@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
  * @since 1.0
  */
 @Lazy
-@Component("EmbeddedGraphDAO")
+@Component
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class EmbeddedGraphDbDAO extends RDF4JKnowledgeGraphDAO {
 

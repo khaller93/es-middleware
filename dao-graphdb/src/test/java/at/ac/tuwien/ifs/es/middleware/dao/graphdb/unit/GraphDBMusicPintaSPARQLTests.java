@@ -2,7 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.dao.graphdb.unit;
 
 import at.ac.tuwien.ifs.es.middleware.dao.graphdb.EmbeddedGraphDbDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbLucene;
-import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbLuceneConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.graphdb.conf.GraphDbLuceneConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.graphdb.conf.EmbeddedGraphDbConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;

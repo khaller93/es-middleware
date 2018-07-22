@@ -27,7 +27,6 @@ public class EmbeddedGraphDbConfig extends GraphDbConfig {
     super(context, fullTextSearchChoice, gremlinChoice);
   }
 
-  @Bean
   @Override
   public KGSparqlDAO getSparqlDAO() {
     return getContext().getBean(EmbeddedGraphDbDAO.class);

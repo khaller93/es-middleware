@@ -1,5 +1,6 @@
-package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
+package at.ac.tuwien.ifs.es.middleware.dao.graphdb.conf;
 
+import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbLucene;
 import com.google.common.collect.ImmutableMap;
 import java.util.Collections;
 import java.util.List;

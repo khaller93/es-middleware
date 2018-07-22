@@ -36,12 +36,11 @@ public abstract class GraphDbConfig implements KnowledgeGraphDAOConfig {
 
   @Override
   public KGFullTextSearchDAO getFullTextSearchDAO() {
-    /*if (fullTextSearchChoice == null || fullTextSearchChoice.isEmpty()) {
+    if (fullTextSearchChoice == null || fullTextSearchChoice.isEmpty()) {
       return getContext().getBean(GraphDbLucene.class);
     } else {
       return getContext().getBean(fullTextSearchChoice, KGFullTextSearchDAO.class);
-    }*/
-    return null;
+    }
   }
 
   @Override

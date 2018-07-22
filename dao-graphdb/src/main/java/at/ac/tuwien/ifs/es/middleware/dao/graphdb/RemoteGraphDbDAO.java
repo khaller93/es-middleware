@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
  * @since 1.0
  */
 @Lazy
-@Component("RemoteGraphDAO")
+@Component
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class RemoteGraphDbDAO extends RDF4JKnowledgeGraphDAO {
 

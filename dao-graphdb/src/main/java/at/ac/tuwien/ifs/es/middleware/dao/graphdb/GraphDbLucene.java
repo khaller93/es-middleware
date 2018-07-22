@@ -1,5 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
 
+import at.ac.tuwien.ifs.es.middleware.dao.graphdb.conf.GraphDbLuceneConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearchDAOFailedEvent;
