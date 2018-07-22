@@ -1,6 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.integration.knowledegraph;
 
 import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
@@ -15,12 +16,18 @@ import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.CentralityMetricsSe
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.SimpleGremlinService;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
+import org.apache.commons.rdf.api.IRI;
+import org.apache.commons.rdf.api.Literal;
+import org.apache.commons.rdf.api.RDFTerm;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -106,9 +113,22 @@ public class CentralityMetricsServiceTest {
         resource -> new ImmutablePair<>(resource, centralityMetricsService.getDegreeOf(resource)))
         .sorted((e1, e2) -> -Double.compare(e1.getRight(), e2.getRight()))
         .collect(Collectors.toList());
-    assertThat("'Percussion instruments' must be in the top 10.", resourceList.stream().limit(10)
-            .map(r -> r.getKey().getId()).collect(Collectors.toList()),
-        hasItem("http://dbtune.org/musicbrainz/resource/instrument/124"));
+    List<Map<String, RDFTerm>> result = ((SelectQueryResult) sparqlDAO
+        .query("select ?o (count(*) as ?c) where { \n"
+            + "    ?s ?p ?o .\n"
+            + "    FILTER (isIRI(?o)) .\n"
+            + "}\n"
+            + "GROUP BY ?o\n"
+            + "ORDER BY DESC(?c)\n"
+            + "LIMIT 10", true)).value();
+    List<Long> sparqlDegreeCount = new LinkedList<>();
+    List<Long> gremlinDegreeCount = new LinkedList<>();
+    for (Map<String, RDFTerm> row : result) {
+      sparqlDegreeCount.add(Long.parseLong(((Literal) row.get("c")).getLexicalForm()));
+      gremlinDegreeCount
+          .add(centralityMetricsService.getDegreeOf(new Resource((IRI) row.get("o"))));
+    }
+    assertThat(gremlinDegreeCount, hasItems(sparqlDegreeCount.toArray(new Long[0])));
   }
 
   @Test
