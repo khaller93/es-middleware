@@ -58,25 +58,36 @@
       <version>2.6</version>
       <scope>test</scope>
     </dependency>
+    <!-- External modules -->
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.dao-blazegraph</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.dao-stardog</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.dao-graphdb</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.dao-janusgraph</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
   <build>
-    <finalName>exploratory-search-service-${project.version}</finalName>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>com.spotify</groupId>
-        <artifactId>dockerfile-maven-plugin</artifactId>
-        <version>${docker.spotify.plugin.version}</version>
         <configuration>
-          <repository>${docker.image.prefix}/exploratory-search-service</repository>
-          <tag>${project.version}</tag>
-          <buildArgs>
-            <JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
-          </buildArgs>
+          <layout>ZIP</layout>
         </configuration>
       </plugin>
     </plugins>

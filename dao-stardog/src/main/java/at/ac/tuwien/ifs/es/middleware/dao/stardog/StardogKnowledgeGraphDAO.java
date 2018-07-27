@@ -2,7 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.dao.stardog;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
-import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
@@ -38,9 +38,9 @@ import org.springframework.stereotype.Component;
  * @since 1.0
  */
 @Lazy
-@Component("StardogDAO")
+@Component("RemoteStardog")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-public class StardogKnowledgeGraphDAO extends RDF4JKnowledgeGraphDAO implements
+public class StardogKnowledgeGraphDAO extends RDF4JSparqlDAO implements
     KGFullTextSearchDAO {
 
   private static final Logger logger = LoggerFactory.getLogger(StardogKnowledgeGraphDAO.class);
@@ -60,29 +60,29 @@ public class StardogKnowledgeGraphDAO extends RDF4JKnowledgeGraphDAO implements
       "\n?resource a ?class .\nFILTER(?class in (%s)) .\n"
   };
 
-  private StardogConfiguration stardogConfiguration;
+  private StardogConfig stardogConfig;
 
   private KGDAOStatus ftsStatus;
 
   /**
    * Creates a new Stardog DAO for {@link KnowledgeGraphDAOConfig} and {@link KGFullTextSearchDAO}.
    *
-   * @param stardogConfiguration that specifies properties for Stardog.
+   * @param stardogConfig that specifies properties for Stardog.
    */
   @Autowired
-  public StardogKnowledgeGraphDAO(StardogConfiguration stardogConfiguration,
+  public StardogKnowledgeGraphDAO(StardogConfig stardogConfig,
       ApplicationContext context) {
     super(context);
-    this.stardogConfiguration = stardogConfiguration;
+    this.stardogConfig = stardogConfig;
     this.ftsStatus = new KGDAOInitStatus();
   }
 
   @PostConstruct
   public void setUp() {
     SPARQLRepository sparqlRepository = new SPARQLRepository(
-        stardogConfiguration.getSPARQLEndpointURL());
-    sparqlRepository.setUsernameAndPassword(stardogConfiguration.getUsername(),
-        stardogConfiguration.getPassword());
+        stardogConfig.getSPARQLEndpointURL());
+    sparqlRepository.setUsernameAndPassword(stardogConfig.getUsername(),
+        stardogConfig.getPassword());
     try {
       this.init(sparqlRepository);
       this.ftsStatus = new KGDAOReadyStatus();

@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -34,18 +35,23 @@ import org.springframework.stereotype.Component;
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
 
-  @Value("${janusgraph.dir}")
-  private String janusGraphDir;
-
   @Autowired
-  public ClonedLocalJanusGraph(@Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO) {
-    super(sparqlDAO);
+  public ClonedLocalJanusGraph(ApplicationContext context,
+      @Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO,
+      @Value("${janusgraph.dir}") String janusGraphDir) {
+    super(context, sparqlDAO);
+    this.setGraph(initGraphInstance(janusGraphDir));
   }
 
-  @Override
-  public Graph initGraphInstance() {
+  private Graph initGraphInstance(String janusGraphDir) {
     JanusGraph graph = JanusGraphFactory.build().set("storage.backend", "berkeleyje")
+        .set("storage.transactions", true)
         .set("storage.directory", new File(janusGraphDir).getAbsolutePath()).open();
+    JanusGraphManagement mgmt = graph.openManagement();
+    Iterable<PropertyKey> relationTypes = mgmt.getRelationTypes(PropertyKey.class);
+    for (PropertyKey key : relationTypes) {
+      System.out.println(">>>" + key);
+    }
     return graph;
   }
 }

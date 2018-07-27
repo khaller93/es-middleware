@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOFailedEvent;
-import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSetupException;
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,6 +24,8 @@ import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParseException;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -33,7 +35,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * An implementation of {@link RDF4JKnowledgeGraphDAO} connecting to an embedded GraphDB instance.
+ * An implementation of {@link RDF4JSparqlDAO} connecting to an embedded GraphDB instance.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -41,29 +43,38 @@ import org.springframework.stereotype.Component;
  * @since 1.0
  */
 @Lazy
-@Component
+@Component("EmbeddedGraphDB")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-public class EmbeddedGraphDbDAO extends RDF4JKnowledgeGraphDAO {
+public class EmbeddedGraphDbDAO extends RDF4JSparqlDAO implements GraphDbSparqlDAO {
+
+  private static final Logger logger = LoggerFactory.getLogger(EmbeddedGraphDbDAO.class);
 
   private RepositoryManager repositoryManager;
 
-  @Value("${graphdb.embedded.location}")
-  private String location;
-  @Value("${graphdb.embedded.config.path}")
-  private String repositoryConfig;
-
   /**
-   * Creates a {@link RDF4JKnowledgeGraphDAO} with the given repository conf and repository
-   * location.
+   * Creates a {@link RDF4JSparqlDAO} with the given repository conf and repository location.
    */
   @Autowired
-  public EmbeddedGraphDbDAO(ApplicationContext context) throws KnowledgeGraphSetupException {
+  public EmbeddedGraphDbDAO(ApplicationContext context,
+      @Value("${graphdb.embedded.location}") String location,
+      @Value("${graphdb.embedded.config.path}") String repositoryConfig)
+      throws KnowledgeGraphSetupException {
     super(context);
-  }
-
-  @PostConstruct
-  public void setUp() {
-    this.repositoryManager = new LocalRepositoryManager(new File(location));
+    File locationFile = new File(location);
+    if (!locationFile.exists()) {
+      boolean createdDirs = locationFile.mkdirs();
+      if (createdDirs) {
+        logger
+            .trace("Directories created for embedded GraphDB '{}'.",
+                locationFile.getAbsolutePath());
+      } else {
+        logger
+            .trace("Directories could not be created for embedded GraphDB '{}'.",
+                locationFile.getAbsolutePath());
+      }
+    }
+    /* setup embedded GraphDB */
+    this.repositoryManager = new LocalRepositoryManager(locationFile);
     try {
       this.repositoryManager.initialize();
       this.init(prepareRepository(repositoryManager, repositoryConfig));

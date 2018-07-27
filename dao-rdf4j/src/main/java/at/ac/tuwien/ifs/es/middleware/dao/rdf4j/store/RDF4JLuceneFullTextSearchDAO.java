@@ -1,49 +1,40 @@
-package at.ac.tuwien.ifs.es.middleware.dao.rdf4j;
+package at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.InMemoryGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.LuceneIndexedRDF4JSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSetupException;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOReadyStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.text.StringSubstitutor;
-import org.eclipse.rdf4j.sail.lucene.LuceneSail;
-import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * This class is an implementation of {@link RDF4JKnowledgeGraphDAO}. This class can be used for
- * testing the overlying services without starting a standalone triplestore instance.
- *
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
  */
 @Lazy
-@Component("IndexedMemoryKnowledgeGraph")
+@Component("RDF4JLucene")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implements
-    KGFullTextSearchDAO {
+public class RDF4JLuceneFullTextSearchDAO implements KGFullTextSearchDAO {
 
-  private final static Logger logger = LoggerFactory.getLogger(IndexedMemoryKnowledgeGraph.class);
+  private static final Logger logger = LoggerFactory.getLogger(RDF4JLuceneFullTextSearchDAO.class);
 
   private final static String FTS_QUERY =
       "PREFIX search: <http://www.openrdf.org/contrib/lucenesail#>\n"
@@ -59,38 +50,19 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
           + "${offset}\n"
           + "${limit}\n";
 
-  private final static String[] FTS_CLASSES_FILTER = new String[]{
-      "\n?resource a %s .\n",
-      "\n?resource a ?class .\nFILTER(?class in (%s)) .\n"
-  };
+  private KGDAOStatus status;
+  private KGSparqlDAO sparqlDAO;
 
-  private KGDAOStatus ftsStatus;
-
-  /**
-   * Creates a new {@link KnowledgeGraphDAOConfig} in memory that is indexed.
-   */
   @Autowired
-  public IndexedMemoryKnowledgeGraph(ApplicationContext context) {
-    super(context);
-    this.ftsStatus = new KGDAOInitStatus();
-  }
-
-  @PostConstruct
-  public void setUp() {
-    LuceneSail luceneSail = new LuceneSail();
-    luceneSail.setParameter(LuceneSail.LUCENE_RAMDIR_KEY, "true");
-    luceneSail.setBaseSail(new MemoryStore());
-    try {
-      this.init(luceneSail);
-      this.ftsStatus = new KGDAOReadyStatus();
-    } catch (Exception e) {
-      this.ftsStatus = new KGDAOFailedStatus("Setting up the full-text-search was not possible.", e);
+  public RDF4JLuceneFullTextSearchDAO(@Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO) {
+    this.sparqlDAO = sparqlDAO;
+    if (!(sparqlDAO instanceof LuceneIndexedRDF4JSparqlDAO)) {
+      throw new KnowledgeGraphSetupException(
+          String.format(
+              "The given SPARQL DAO must be indexed with Lucene and implement the '%s' interface.",
+              RDF4JLuceneFullTextSearchDAO.class.getName()));
     }
-  }
-
-  @Override
-  public KGDAOStatus getFTSStatus() {
-    return ftsStatus;
+    status = new KGDAOReadyStatus();
   }
 
   /**
@@ -104,12 +76,12 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
     if (classes == null || classes.isEmpty()) {
       return "";
     } else if (classes.size() == 1) {
-      return String.format(FTS_CLASSES_FILTER[0],
+      return String.format("?resource a/rdfs:subClassOf* %s .",
           BlankOrIRIJsonUtil.stringForSPARQLResourceOf(classes.get(0)));
     } else {
-      return String.format(FTS_CLASSES_FILTER[1],
-          classes.stream().map(BlankOrIRIJsonUtil::stringForSPARQLResourceOf)
-              .collect(Collectors.joining(", ")));
+      return classes.stream().map(clazz -> String.format("{?resource a/rdfs:subClassOf* %s}",
+          BlankOrIRIJsonUtil.stringForSPARQLResourceOf(clazz)))
+          .collect(Collectors.joining("\nUNION\n"));
     }
   }
 
@@ -125,9 +97,11 @@ public class IndexedMemoryKnowledgeGraph extends RDF4JKnowledgeGraphDAO implemen
     valueMap.put("offset", offset != null ? "OFFSET " + offset.toString() : "");
     valueMap.put("limit", limit != null ? "LIMIT " + limit.toString() : "");
     String filledFtsQuery = new StringSubstitutor(valueMap).replace(FTS_QUERY);
-    logger.trace(
-        "Query resulting from FTS call for {} with parameters (offset={}, limit={}, classes={}).",
-        filledFtsQuery, offset, limit, classes);
-    return ((SelectQueryResult) this.query(filledFtsQuery, true)).value();
+    return ((SelectQueryResult) sparqlDAO.query(filledFtsQuery, true)).value();
+  }
+
+  @Override
+  public KGDAOStatus getFTSStatus() {
+    return status;
   }
 }

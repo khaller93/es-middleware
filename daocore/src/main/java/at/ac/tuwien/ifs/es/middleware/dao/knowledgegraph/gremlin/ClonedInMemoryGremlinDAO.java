@@ -14,6 +14,7 @@ import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -29,19 +30,14 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
  * @since 1.0
  */
 @Lazy
-@Component("InMemoryGremlin")
+@Component("ClonedInMemoryGremlin")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-public class InMemoryGremlinDAO extends AbstractClonedGremlinDAO {
-
+public class ClonedInMemoryGremlinDAO extends AbstractClonedGremlinDAO {
 
   @Autowired
-  public InMemoryGremlinDAO(@Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO) {
-    super(sparqlDAO);
+  public ClonedInMemoryGremlinDAO(ApplicationContext context,
+      @Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO) {
+    super(context, sparqlDAO);
+    this.setGraph(TinkerGraph.open());
   }
-
-  @Override
-  public Graph initGraphInstance() {
-    return TinkerGraph.open();
-  }
-
 }

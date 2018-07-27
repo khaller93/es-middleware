@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.*;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.InMemoryGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import java.util.concurrent.locks.Lock;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
@@ -26,7 +26,7 @@ import org.apache.tinkerpop.gremlin.structure.Transaction;
  * recover, and move to {@code ready} again, also triggering the corresponding event.
  * <p/>
  * The DAO can not only directly communicate with the underlying database, but rely on another DAO
- * like {@link KnowledgeGraphDAOConfig}. This is the case for the {@link InMemoryGremlinDAO}
+ * like {@link KnowledgeGraphDAOConfig}. This is the case for the {@link ClonedInMemoryGremlinDAO}
  * implementation of this interface.
  *
  * @author Kevin Haller

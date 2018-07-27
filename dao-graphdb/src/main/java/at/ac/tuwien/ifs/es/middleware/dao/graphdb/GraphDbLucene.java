@@ -1,6 +1,5 @@
 package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
 
-import at.ac.tuwien.ifs.es.middleware.dao.graphdb.conf.GraphDbLuceneConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearchDAOFailedEvent;
@@ -8,7 +7,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearc
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearchDAOUpdatedEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearchDAOUpdatingEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOUpdatedEvent;
-import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
@@ -47,7 +46,7 @@ import org.springframework.stereotype.Component;
  * @since 1.0
  */
 @Lazy
-@Component("InBuiltLucene")
+@Component("GraphDBLucene")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class GraphDbLucene implements KGFullTextSearchDAO {
 
@@ -78,7 +77,7 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
       "PREFIX luc: <http://www.ontotext.com/owlim/lucene#>\n"
           + "INSERT DATA { <%s> luc:updateIndex _:b1 . }";
 
-  private ExecutorService threadPool = Executors.newCachedThreadPool();
+  private ExecutorService threadPool;
 
   private ApplicationContext context;
   private KGSparqlDAO sparqlDAO;
@@ -92,16 +91,16 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
     this.context = context;
     this.sparqlDAO = sparqlDAO;
     this.graphDbLuceneConfig = graphDbLuceneConfig;
+    this.threadPool = Executors.newCachedThreadPool();
     this.status = new KGDAOInitStatus();
   }
 
   @PostConstruct
   public void setUp() {
-    this.threadPool = Executors.newCachedThreadPool();
     if (graphDbLuceneConfig.shouldBeInitialized()) {
       logger.debug("The GraphDb Lucene index will be initialized.");
       threadPool.submit(() -> {
-        try (RepositoryConnection con = ((RDF4JKnowledgeGraphDAO) sparqlDAO).getRepository()
+        try (RepositoryConnection con = ((RDF4JSparqlDAO) sparqlDAO).getRepository()
             .getConnection()) {
           con.prepareUpdate(
               String.format(INSERT_INDEX_DATA_QUERY, graphDbLuceneConfig.getConfigTriples(),
@@ -172,7 +171,7 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
    */
   private void performBatchUpdateOfIndex() {
     logger.debug("Batch updating the lucene index for '{}'.", graphDbLuceneConfig.getName());
-    try (RepositoryConnection con = ((RDF4JKnowledgeGraphDAO) sparqlDAO).getRepository()
+    try (RepositoryConnection con = ((RDF4JSparqlDAO) sparqlDAO).getRepository()
         .getConnection()) {
       con.prepareUpdate(String.format(BATCH_UPDATE_QUERY, graphDbLuceneConfig.getLuceneIndexIRI()));
     } catch (Exception e) {

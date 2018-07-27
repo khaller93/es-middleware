@@ -27,7 +27,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.IRI;
@@ -44,6 +43,7 @@ import org.apache.tinkerpop.gremlin.structure.VertexProperty.Cardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
@@ -54,6 +54,10 @@ import org.springframework.context.event.EventListener;
  * class to work.
  * <p/>
  * This implementation ignores blank nodes in the knowledge graph.
+ * <p/>
+ * In order to use this DAO, the graph to use must be set by the implementing class by calling the
+ * method {@link AbstractClonedGremlinDAO#setGraph(Graph)}. This is best done in the constructor of
+ * the implementing class.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -71,14 +75,15 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
       + "OFFSET ${offset}\n"
       + "LIMIT ${limit}";
 
+  /* application context */
+  private ApplicationContext applicationContext;
+  /* thread pool for spanning syncing operations */
+  private ExecutorService threadPool = Executors.newCachedThreadPool();
+  /* lock for controlling syncing operations */
   private Lock graphLock = new ReentrantLock();
 
   /* status of the this gremlin DAO */
   private KGDAOStatus status;
-  /* event publisher */
-  private ApplicationEventPublisher applicationEventPublisher;
-  /* synchronisation tools */
-  private ExecutorService threadPool = Executors.newCachedThreadPool();
   /* SPARQL from which data shall be cloned */
   private KGSparqlDAO sparqlDAO;
   /* storing graph data */
@@ -93,31 +98,23 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
   /**
    * Creates a new {@link AbstractClonedGremlinDAO} with the given {@code knowledgeGraphDAO}.
    *
+   * @param applicationContext to publish the events.
    * @param sparqlDAO that shall be used.
    */
-  @Autowired
-  public AbstractClonedGremlinDAO(KGSparqlDAO sparqlDAO) {
+  public AbstractClonedGremlinDAO(ApplicationContext applicationContext, KGSparqlDAO sparqlDAO) {
+    this.applicationContext = applicationContext;
     this.sparqlDAO = sparqlDAO;
     this.status = new KGDAOInitStatus();
   }
 
-  @PostConstruct
-  public void setUp() {
-    this.graph = initGraphInstance();
-  }
-
-  @Autowired
-  public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-    this.applicationEventPublisher = applicationEventPublisher;
-  }
-
   /**
-   * This method should return an instance of a {@link Graph}. This is going to be called at most
-   * once.
+   * Sets the graph that shall be used for this gremlin dao.
    *
-   * @return a new instance of a {@link Graph}.
+   * @param graph that shall be used for this gremlin dao.
    */
-  protected abstract Graph initGraphInstance();
+  protected void setGraph(Graph graph) {
+    this.graph = graph;
+  }
 
   @Override
   public Transaction getTransaction() {
@@ -200,7 +197,9 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
 
     @Override
     public void run() {
-      logger.info("Starts to construct an in-memory graph with {}.", issuedTimestamp);
+      logger.info("Starts to construct an '{}' graph with {}.",
+          AbstractClonedGremlinDAO.this.getClass().getSimpleName(),
+          issuedTimestamp);
       Map<BlankNodeOrIRI, Vertex> recognizedNodes = new HashMap<>();
       List<Map<String, RDFTerm>> values;
       boolean transactionSupported = getFeatures().graph().supportsTransactions();
@@ -211,7 +210,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
         getLock().lock();
       }
       try {
-        applicationEventPublisher
+        applicationContext
             .publishEvent(new GremlinDAOUpdatingEvent(AbstractClonedGremlinDAO.this));
         AbstractClonedGremlinDAO.this.status = new KGDAOUpdatingStatus();
         do {
@@ -245,7 +244,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
           currentTimestamp.accumulateAndGet(issuedTimestamp,
               (current, updated) -> current <= updated ? updated : current);
           if (currentTimestamp.get() == newestDatatimestamp.get()) {
-            applicationEventPublisher.publishEvent(eventForSuccess);
+            applicationContext.publishEvent(eventForSuccess);
             AbstractClonedGremlinDAO.this.status = new KGDAOReadyStatus();
             if (updatedListener != null && (eventForSuccess instanceof GremlinDAOUpdatedEvent)) {
               updatedListener.accept(eventForSuccess);
@@ -258,7 +257,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
       } catch (Exception e) {
         e.printStackTrace();
         logger.error("An exception occurred while loading the graph. {}", e.getMessage());
-        applicationEventPublisher
+        applicationContext
             .publishEvent(new GremlinDAOFailedEvent(AbstractClonedGremlinDAO.this,
                 "Updating the Gremlin graph failed.", e));
         AbstractClonedGremlinDAO.this.status = new KGDAOFailedStatus(
@@ -267,9 +266,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
           graph.tx().rollback();
         }
       } finally {
-        if (transactionSupported) {
-          graph.tx().close();
-        } else {
+        if (!transactionSupported) {
           getLock().unlock();
         }
         deleteOldData();

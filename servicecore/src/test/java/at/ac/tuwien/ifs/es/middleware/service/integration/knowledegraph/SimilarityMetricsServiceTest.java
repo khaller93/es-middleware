@@ -6,11 +6,11 @@ import static org.hamcrest.Matchers.is;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.InMemoryGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
-import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.IndexedMemoryKnowledgeGraph;
-import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.conf.IndexedMemoryKnowledgeGraphConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
@@ -48,10 +48,16 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 1.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {SimpleGremlinService.class, IndexedMemoryKnowledgeGraph.class,
-    InMemoryGremlinDAO.class, SimpleSPARQLService.class, CentralityCacheManagerStub.class,
-    KGDAOConfig.class, IndexedMemoryKnowledgeGraphConfig.class})
-@TestPropertySource(properties = {"esm.db.choice=IndexedMemoryDB"})
+@ContextConfiguration(classes = {SimpleGremlinService.class,
+    RDF4JMemoryStoreWithLuceneSparqlDAO.class,
+    ClonedInMemoryGremlinDAO.class, SimpleSPARQLService.class, CentralityCacheManagerStub.class,
+    KGDAOConfig.class, RDF4JDAOConfig.class, RDF4JLuceneFullTextSearchDAO.class,})
+@TestPropertySource(properties = {
+    "esm.db.choice=RDF4J",
+    "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
+    "esm.db.fts.choice=RDF4JLucene",
+    "esm.db.gremlin.choice=ClonedInMemoryGremlin"
+})
 public class SimilarityMetricsServiceTest {
 
   @Rule

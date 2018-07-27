@@ -1,7 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOFailedEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOReadyEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOUpdatedEvent;
@@ -16,11 +15,13 @@ import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOReadyStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
-import java.util.Date;
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import javax.annotation.PreDestroy;
 import org.eclipse.rdf4j.RDF4JException;
 import org.eclipse.rdf4j.query.BooleanQuery;
 import org.eclipse.rdf4j.query.GraphQuery;
@@ -42,17 +43,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 
 /**
- * This class implements the generic methods of {@link KnowledgeGraphDAOConfig} using the RDF4J
- * framework.
+ * This class implements {@link KGSparqlDAO} using the RDF4J framework. It requires from the
+ * implementing class to pass the {@link Repository} or {@link Sail} representing the connection
+ * information to the triplestore.
  *
  * @author Kevin Haller
  * @version 1.0
  * @see <a href="http://rdf4j.org/">RDF4J</a>
  * @since 1.0
  */
-public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO {
+public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
 
-  private static final Logger logger = LoggerFactory.getLogger(RDF4JKnowledgeGraphDAO.class);
+  private static final Logger logger = LoggerFactory.getLogger(RDF4JSparqlDAO.class);
 
   private Lock updateLock = new ReentrantLock();
 
@@ -66,13 +68,13 @@ public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO {
 
   private KGDAOStatus status;
 
-  public RDF4JKnowledgeGraphDAO(ApplicationContext applicationContext) {
+  public RDF4JSparqlDAO(ApplicationContext applicationContext) {
     this.applicationContext = applicationContext;
     this.status = new KGDAOInitStatus();
   }
 
   /**
-   * Initializes a new {@link RDF4JKnowledgeGraphDAO} with the given {@link Repository}.
+   * Initializes a new {@link RDF4JSparqlDAO} with the given {@link Repository}.
    *
    * @param repository {@link Repository} that shall be initialized.
    */
@@ -93,7 +95,7 @@ public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO {
   }
 
   /**
-   * Initializes a new {@link RDF4JKnowledgeGraphDAO} with the given {@link Sail}.
+   * Initializes a new {@link RDF4JSparqlDAO} with the given {@link Sail}.
    *
    * @param sail {@link Sail} that shall be initialized.
    */
@@ -119,7 +121,8 @@ public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO {
   public QueryResult query(String queryString, boolean includeInferred)
       throws KnowledgeGraphSPARQLException {
     logger
-        .trace("Query {} was requested to be executed. Inference={}", queryString.replaceAll("\\n", "\\n"), includeInferred);
+        .trace("Query {} was requested to be executed. Inference={}",
+            queryString.replaceAll("\\n", "\\\\n"), includeInferred);
     try (RepositoryConnection con = repository.getConnection()) {
       Query query = con.prepareQuery(QueryLanguage.SPARQL, queryString);
       query.setIncludeInferred(includeInferred);
@@ -147,7 +150,7 @@ public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO {
 
   @Override
   public void update(String query) throws KnowledgeGraphSPARQLException {
-    logger.trace("Update {} was requested to be executed", query.replaceAll("\\n", "\\n"));
+    logger.trace("Update {} was requested to be executed", query.replaceAll("\\n", "\\\\n"));
     try (RepositoryConnection con = repository.getConnection()) {
       con.prepareUpdate(query).execute();
       updateLock.lock();
@@ -171,18 +174,27 @@ public abstract class RDF4JKnowledgeGraphDAO implements KGSparqlDAO {
     @Override
     public void run() {
       logger.debug("Scheduled a new update task. Interval: {}", updateInterval);
-      applicationContext.publishEvent(new SPARQLDAOUpdatedEvent(RDF4JKnowledgeGraphDAO.this));
-      RDF4JKnowledgeGraphDAO.this.notificationTask = null;
+      applicationContext.publishEvent(new SPARQLDAOUpdatedEvent(RDF4JSparqlDAO.this));
+      RDF4JSparqlDAO.this.notificationTask = null;
       this.cancel();
     }
   }
 
   /**
-   * Gets the repository used by this {@link RDF4JKnowledgeGraphDAO}.
+   * Gets the repository used by this {@link RDF4JSparqlDAO}.
    *
-   * @return the repository used by this {@link RDF4JKnowledgeGraphDAO}.
+   * @return the repository used by this {@link RDF4JSparqlDAO}.
    */
   public Repository getRepository() {
     return repository;
+  }
+
+
+  @PreDestroy
+  @Override
+  public void close() throws Exception {
+    if (repository != null) {
+      repository.shutDown();
+    }
   }
 }

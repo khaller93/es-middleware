@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Lazy;
  */
 @Lazy
 @Configuration
-public class StardogConfiguration {
+public class StardogConfig {
 
   @Value("${stardog.address}")
   private String address;

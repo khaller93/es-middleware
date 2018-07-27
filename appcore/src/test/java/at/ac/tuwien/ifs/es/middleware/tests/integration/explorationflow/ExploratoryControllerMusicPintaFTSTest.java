@@ -45,8 +45,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ExploratorySearchApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-    "esm.db.choice=IndexedMemoryDB",
-    "esm.db.gremlin.choice=InMemoryGremlin"
+    "esm.db.choice=RDF4J",
+    "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
+    "esm.db.fts.choice=RDF4JLucene",
+    "esm.db.gremlin.choice=ClonedInMemoryGremlin"
 })
 public class ExploratoryControllerMusicPintaFTSTest {
 
