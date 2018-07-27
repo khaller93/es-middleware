@@ -53,6 +53,7 @@
     <module>dao-stardog</module>
     <module>dao-janusgraph</module>
     <module>testutil</module>
+    <module>dockerutil</module>
   </modules>
 
   <dependencies>
@@ -68,5 +69,24 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <finalName>${project.artifactId}</finalName>
+    <plugins>
+      <plugin>
+        <groupId>com.spotify</groupId>
+        <artifactId>dockerfile-maven-plugin</artifactId>
+        <version>${docker.spotify.plugin.version}</version>
+        <configuration>
+          <repository>${docker.image.prefix}/exploratory-search-service</repository>
+          <tag>${project.version}</tag>
+          <skip>true</skip>
+          <buildArgs>
+            <JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
+          </buildArgs>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
