@@ -14,7 +14,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.CentralityMetricsService;
+import at.ac.tuwien.ifs.es.middleware.service.centrality.CentralityMetricsService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.InformationContentService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimilarityMetricsService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;

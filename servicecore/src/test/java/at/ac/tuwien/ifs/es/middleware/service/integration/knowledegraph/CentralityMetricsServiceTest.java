@@ -13,7 +13,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLucene
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.CentralityMetricsService;
+import at.ac.tuwien.ifs.es.middleware.service.centrality.CentralityMetricsService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.SimpleGremlinService;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
@@ -42,7 +42,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * This class implements integration test cases for {@link at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.CentralityMetricsService}.
+ * This class implements integration test cases for {@link CentralityMetricsService}.
  *
  * @author Kevin Haller
  * @version 1.0

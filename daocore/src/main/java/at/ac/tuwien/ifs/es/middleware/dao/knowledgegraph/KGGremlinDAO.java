@@ -36,26 +36,11 @@ import org.apache.tinkerpop.gremlin.structure.Transaction;
 public interface KGGremlinDAO {
 
   /**
-   * Returns the ability to traversal the knowledge graph.
+   * Gets the current {@link KGDAOStatus} of this DAO.
    *
-   * @return {@link GraphTraversalSource} for traversing the knowledge graph.
+   * @return current {@link KGDAOStatus} of this DAO.
    */
-  GraphTraversalSource traversal();
-
-  /**
-   * Gets a {@link Transaction} for this Gremlin DAO.
-   *
-   * @return a {@link Transaction} for this Gremlin DAO.
-   */
-  Transaction getTransaction();
-
-  /**
-   * Gets a lock for accessing this Gremlin DAO. This lock can be used for Gremlin DAOs that have no
-   * support for transaction.
-   *
-   * @return a lock for accessing this Gremlin DAO.
-   */
-  Lock getLock();
+  KGDAOStatus getGremlinStatus();
 
   /**
    * Gets the graph features of this Gremlin DAO.
@@ -65,10 +50,36 @@ public interface KGGremlinDAO {
   Features getFeatures();
 
   /**
-   * Gets the current {@link KGDAOStatus} of this DAO.
+   * Returns the ability to traversal the knowledge graph.
    *
-   * @return current {@link KGDAOStatus} of this DAO.
+   * @return {@link GraphTraversalSource} for traversing the knowledge graph.
    */
-  KGDAOStatus getGremlinStatus();
+  GraphTraversalSource traversal();
+
+  /**
+   * If the used gremlin backend supports transactions, the the call of this method will start a new
+   * transaction for the current thread. If no transactions are supported, you can expect only a
+   * serialized access to the backend.
+   */
+  void lock();
+
+  /**
+   * Commits the changes, if the gremlin backend supports transactions. Otherwise, this method is
+   * expected to do nothing.
+   */
+  void commit();
+
+  /**
+   * Rollbacks the made changes in the opened transaction for gremlin backend that support
+   * transactions. Otherwise, this method is expected to do nothing.
+   */
+  void rollback();
+
+  /**
+   * If the used gremlin backend supports transactions and there is an open transaction, this
+   * transaction will be closed. If no transaction is supported, a call of this method allows
+   * another thread to lock this gremlin DAO.
+   */
+  void unlock();
 
 }

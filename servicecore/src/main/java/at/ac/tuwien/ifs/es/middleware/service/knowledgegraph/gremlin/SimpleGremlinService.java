@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 @Lazy
 @Primary
 @Service
-public class SimpleGremlinService implements GremlinService{
+public class SimpleGremlinService implements GremlinService {
 
   private KGGremlinDAO gremlinDAO;
 
@@ -41,17 +41,27 @@ public class SimpleGremlinService implements GremlinService{
   }
 
   @Override
-  public Transaction getTransaction() {
-    return gremlinDAO.getTransaction();
-  }
-
-  @Override
-  public Lock getLock() {
-    return gremlinDAO.getLock();
-  }
-
-  @Override
   public Features getFeatures() {
     return gremlinDAO.getFeatures();
+  }
+
+  @Override
+  public void lock() {
+    gremlinDAO.lock();
+  }
+
+  @Override
+  public void commit() {
+    gremlinDAO.commit();
+  }
+
+  @Override
+  public void rollback() {
+    gremlinDAO.rollback();
+  }
+
+  @Override
+  public void unlock() {
+    gremlinDAO.unlock();
   }
 }

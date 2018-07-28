@@ -5,6 +5,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDA
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.service.centrality.CentralityMetricsService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.event.InformationContentUpdatedEvent;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.event.PageRankUpdatedEvent;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
@@ -119,11 +120,7 @@ public class SimilarityMetricsService {
     if (similarityCache == null) {
       throw new IllegalStateException("The cache for similarity metrics is not available.");
     }
-    if (gremlinService.areTransactionsSupported()) {
-      gremlinService.getTransaction().open();
-    } else {
-      gremlinService.getLock().lock();
-    }
+    gremlinService.lock();
     try {
       Map<ResourcePair, List<Resource>> subsumers = getLeastCommonSubsumer();
       GraphTraversalSource g = gremlinService.traversal();
@@ -149,17 +146,13 @@ public class SimilarityMetricsService {
             }
           });
     } finally {
-      if (gremlinService.areTransactionsSupported()) {
-        gremlinService.getTransaction().close();
-      } else {
-        gremlinService.getLock().unlock();
-      }
+      gremlinService.unlock();
     }
     logger.info("Resnik similarity measurement issued on {} computed on {}.", issueTimestamp,
         Instant.now());
   }
 
-  public  <T> Map<ResourcePair, T> getCentralityMetricValueOf(METRIC metric,
+  public <T> Map<ResourcePair, T> getCentralityMetricValueOf(METRIC metric,
       List<ResourcePair> resourcePairs, Class<T> clazz) {
     if (resourcePairs == null) {
       throw new IllegalArgumentException("The given pair list must not be null.");
@@ -175,7 +168,7 @@ public class SimilarityMetricsService {
     return m;
   }
 
-  public  <T> T getCentralityMetricValueOf(METRIC metric, ResourcePair resourcePair,
+  public <T> T getCentralityMetricValueOf(METRIC metric, ResourcePair resourcePair,
       Class<T> clazz) {
     if (resourcePair == null) {
       throw new IllegalArgumentException("The given pair must not be null.");
@@ -187,7 +180,7 @@ public class SimilarityMetricsService {
     return similarityCache.get(SimilarityKey.of(metric, resourcePair), clazz);
   }
 
-  public Map<ResourcePair, Double> geICPRValuesOf(List<ResourcePair> resourcePairs){
+  public Map<ResourcePair, Double> geICPRValuesOf(List<ResourcePair> resourcePairs) {
     return getCentralityMetricValueOf(METRIC.ICPR, resourcePairs, Double.class);
   }
 
@@ -201,11 +194,7 @@ public class SimilarityMetricsService {
     if (similarityCache == null) {
       throw new IllegalStateException("The cache for similarity metrics is not available.");
     }
-    if (gremlinService.areTransactionsSupported()) {
-      gremlinService.getTransaction().open();
-    } else {
-      gremlinService.getLock().lock();
-    }
+    gremlinService.lock();
     Map<ResourcePair, List<Resource>> subsumers = getLeastCommonSubsumer();
     try {
       GraphTraversalSource g = gremlinService.traversal();
@@ -231,17 +220,13 @@ public class SimilarityMetricsService {
             }
           });
     } finally {
-      if (gremlinService.areTransactionsSupported()) {
-        gremlinService.getTransaction().close();
-      } else {
-        gremlinService.getLock().unlock();
-      }
+      gremlinService.unlock();
     }
     logger.info("Distance similarity measurement issued on {} computed on {}.", issueTimestamp,
         Instant.now());
   }
 
-  public Map<ResourcePair, Double> getResnikValuesOf(List<ResourcePair> resourcePairs){
+  public Map<ResourcePair, Double> getResnikValuesOf(List<ResourcePair> resourcePairs) {
     return getCentralityMetricValueOf(METRIC.RESNIK, resourcePairs, Double.class);
   }
 
@@ -255,11 +240,7 @@ public class SimilarityMetricsService {
     if (similarityCache == null) {
       throw new IllegalStateException("The cache for similarity metrics is not available.");
     }
-    if (gremlinService.areTransactionsSupported()) {
-      gremlinService.getTransaction().open();
-    } else {
-      gremlinService.getLock().lock();
-    }
+    gremlinService.lock();
     try {
       GraphTraversalSource g = gremlinService.traversal();
       g.V().as("a").V().as("b").select("a", "b").forEachRemaining(
@@ -287,11 +268,7 @@ public class SimilarityMetricsService {
             }
           });
     } finally {
-      if (gremlinService.areTransactionsSupported()) {
-        gremlinService.getTransaction().close();
-      } else {
-        gremlinService.getLock().unlock();
-      }
+      gremlinService.unlock();
     }
     logger.info("Distance similarity measurement issued on {} computed on {}.", issueTimestamp,
         Instant.now());

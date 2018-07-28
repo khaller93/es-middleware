@@ -69,8 +69,20 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
 
   private static final int LOAD_LIMIT = 10000;
 
-  private static final String ALL_STATEMENTS_QUERY = "SELECT DISTINCT ?s ?p ?o WHERE {\n"
-      + "  ?s ?p ?o .\n"
+  private static final String ALL_RESOURCE_IRIS_QUERY = "SELECT DISTINCT ?resource WHERE {\n"
+      + "    {?resource ?p1 _:o1}\n"
+      + "     UNION\n"
+      + "    {\n"
+      + "        _:o2 ?p2 ?resource .\n"
+      + "        FILTER (isIRI(?resource)) .\n"
+      + "    } \n"
+      + "}\n"
+      + "OFFSET ${offset}\n"
+      + "LIMIT ${limit}";
+
+  private static final String ALL_STATEMENTS_QUERY = "SELECT ?s ?p ?o WHERE {\n"
+      + "    ?s ?p ?o .\n"
+      + "    FILTER(isIRI(?s) && isIRI(?o)) .\n"
       + "}\n"
       + "OFFSET ${offset}\n"
       + "LIMIT ${limit}";
@@ -88,6 +100,8 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
   private KGSparqlDAO sparqlDAO;
   /* storing graph data */
   private Graph graph;
+  /* whether transactions are supported by the graph */
+  private boolean transactionSupported = false;
   /* current timestamp for the most current, integrated data */
   private AtomicLong currentTimestamp = new AtomicLong(0);
   /* timestamp of latest submitted changes of data */
@@ -114,16 +128,6 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
    */
   protected void setGraph(Graph graph) {
     this.graph = graph;
-  }
-
-  @Override
-  public Transaction getTransaction() {
-    return graph.tx();
-  }
-
-  @Override
-  public Lock getLock() {
-    return graphLock;
   }
 
   @EventListener
@@ -164,6 +168,40 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
     return graph.features();
   }
 
+  @Override
+  public void lock() {
+    if (transactionSupported) {
+      graph.tx().open();
+    } else {
+      graphLock.lock();
+    }
+  }
+
+  @Override
+  public void commit() {
+    if (transactionSupported) {
+      graph.tx().commit();
+    }
+  }
+
+  @Override
+  public void rollback() {
+    if (transactionSupported) {
+      graph.tx().rollback();
+    }
+  }
+
+  @Override
+  public void unlock() {
+    if (transactionSupported) {
+      if (graph.tx().isOpen()) {
+        graph.tx().close();
+      }
+    } else {
+      graphLock.unlock();
+    }
+  }
+
   /**
    * This is a {@link Callable} that computes a new graph.
    */
@@ -177,21 +215,52 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
       this.eventForSuccess = eventForSuccess;
     }
 
-    public Vertex getVertex(Map<BlankNodeOrIRI, Vertex> cache, BlankNodeOrIRI node) {
-      if (!cache.containsKey(node)) {
-        String sIRI = BlankOrIRIJsonUtil.stringValue(node);
-        Iterator<Vertex> vertexIt = Collections.<Vertex>emptyList().iterator();  //todo: reimplement
-        if (vertexIt.hasNext()) {
-          Vertex v = vertexIt.next();
-          v.property(Cardinality.set, "version", issuedTimestamp);
-          return v;
-        } else {
-          Vertex v = graph.addVertex(T.label, sIRI, "version", issuedTimestamp);
-          cache.put(node, v);
-          return v;
-        }
-      } else {
-        return cache.get(node);
+    /**
+     * Fetches all the resources (IRI) ignoring blank nodes and assigns a vertex to each of them.
+     *
+     * @return the map of vertices covering all known resources (IRI).
+     */
+    private Map<BlankNodeOrIRI, Vertex> fetchVertices() {
+      Map<BlankNodeOrIRI, Vertex> cache = new HashMap<>();
+      AbstractClonedGremlinDAO.this.lock();
+      try {
+        List<Map<String, RDFTerm>> values;
+        int offset = 0;
+        do {
+          Map<String, String> valuesMap = new HashMap<>();
+          valuesMap.put("offset", String.valueOf(offset));
+          valuesMap.put("limit", String.valueOf(LOAD_LIMIT));
+          values = ((SelectQueryResult) sparqlDAO
+              .query(new StringSubstitutor(valuesMap).replace(ALL_RESOURCE_IRIS_QUERY), true))
+              .value();
+          if (values != null) {
+            for (Map<String, RDFTerm> row : values) {
+              BlankNodeOrIRI node = (IRI) row.get("resource");
+              String sIRI = BlankOrIRIJsonUtil.stringValue(node);
+              Iterator<Vertex> vertexIt = Collections.<Vertex>emptyList()
+                  .iterator();  //todo: reimplement
+              if (vertexIt.hasNext()) {
+                Vertex v = vertexIt.next();
+                v.property(Cardinality.set, "version", issuedTimestamp);
+                cache.put(node, v);
+              } else {
+                Vertex v = graph.addVertex(T.label, sIRI, "version", issuedTimestamp);
+                cache.put(node, v);
+              }
+            }
+          } else {
+            break;
+          }
+          offset += LOAD_LIMIT;
+        } while (!values.isEmpty() && values.size() == LOAD_LIMIT
+            && AbstractClonedGremlinDAO.this.currentTimestamp.get() < issuedTimestamp);
+        AbstractClonedGremlinDAO.this.commit();
+        return cache;
+      } catch (Exception e) {
+        AbstractClonedGremlinDAO.this.rollback();
+        throw e;
+      } finally {
+        AbstractClonedGremlinDAO.this.unlock();
       }
     }
 
@@ -200,19 +269,16 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
       logger.info("Starts to construct an '{}' graph with {}.",
           AbstractClonedGremlinDAO.this.getClass().getSimpleName(),
           issuedTimestamp);
-      Map<BlankNodeOrIRI, Vertex> recognizedNodes = new HashMap<>();
-      List<Map<String, RDFTerm>> values;
-      boolean transactionSupported = getFeatures().graph().supportsTransactions();
-      int offset = 0;
-      if (transactionSupported) {
-        graph.tx().open();
-      } else {
-        getLock().lock();
-      }
+      /* updating the gremlin status */
+      applicationContext
+          .publishEvent(new GremlinDAOUpdatingEvent(AbstractClonedGremlinDAO.this));
+      AbstractClonedGremlinDAO.this.status = new KGDAOUpdatingStatus();
+      /* prepare the vertex map by fetching all resources (IRI) */
+      Map<BlankNodeOrIRI, Vertex> vertexMap = fetchVertices();
+      AbstractClonedGremlinDAO.this.lock();
       try {
-        applicationContext
-            .publishEvent(new GremlinDAOUpdatingEvent(AbstractClonedGremlinDAO.this));
-        AbstractClonedGremlinDAO.this.status = new KGDAOUpdatingStatus();
+        List<Map<String, RDFTerm>> values;
+        int offset = 0;
         do {
           Map<String, String> valuesMap = new HashMap<>();
           valuesMap.put("offset", String.valueOf(offset));
@@ -220,20 +286,24 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
           values = ((SelectQueryResult) sparqlDAO
               .query(new StringSubstitutor(valuesMap).replace(ALL_STATEMENTS_QUERY), true)).value();
           for (Map<String, RDFTerm> row : values) {
-            Vertex sVertex = null, oVertex = null;
-            RDFTerm subject = row.get("s");
-            if (subject instanceof IRI) {
-              sVertex = getVertex(recognizedNodes, (IRI) row.get("s"));
+            BlankNodeOrIRI subject = (BlankNodeOrIRI) row.get("s");
+            BlankNodeOrIRI property = (BlankNodeOrIRI) row.get("p");
+            BlankNodeOrIRI object = (BlankNodeOrIRI) row.get("o");
+            if (!vertexMap.containsKey(subject)) {
+              logger.warn(
+                  "The edge for '<{}> <{}> <{}>' could not be created, '{}' is missing in the vertex map.",
+                  subject, property, object, subject);
+              continue;
             }
-            RDFTerm object = row.get("o");
-            if (object instanceof IRI) {
-              oVertex = getVertex(recognizedNodes, (IRI) object);
+            Vertex subjectVertex = vertexMap.get(subject);
+            if (!vertexMap.containsKey(object)) {
+              logger.warn(
+                  "The edge for '<{}> <{}> <{}>' could not be created, '{}' is missing in the vertex map.",
+                  subject, property, object, object);
             }
-            if (sVertex != null && oVertex != null) {
-              BlankNodeOrIRI property = (BlankNodeOrIRI) row.get("p");
-              sVertex.addEdge(BlankOrIRIJsonUtil.stringValue(property), oVertex, "version",
-                  issuedTimestamp);
-            }
+            Vertex objectVertex = vertexMap.get(object);
+            subjectVertex.addEdge(BlankOrIRIJsonUtil.stringValue(property), objectVertex, "version",
+                issuedTimestamp);
           }
           logger.info("Loaded {} statements from the knowledge graph {}.", offset + values.size(),
               sparqlDAO.getClass().getSimpleName());
@@ -250,36 +320,25 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
               updatedListener.accept(eventForSuccess);
             }
           }
-          if (transactionSupported) {
-            graph.tx().commit();
-          }
+          AbstractClonedGremlinDAO.this.commit();
         }
       } catch (Exception e) {
-        e.printStackTrace();
         logger.error("An exception occurred while loading the graph. {}", e.getMessage());
         applicationContext
             .publishEvent(new GremlinDAOFailedEvent(AbstractClonedGremlinDAO.this,
                 "Updating the Gremlin graph failed.", e));
         AbstractClonedGremlinDAO.this.status = new KGDAOFailedStatus(
             "Updating the Gremlin graph failed.", e);
-        if (transactionSupported) {
-          graph.tx().rollback();
-        }
+        AbstractClonedGremlinDAO.this.rollback();
       } finally {
-        if (!transactionSupported) {
-          getLock().unlock();
-        }
+        AbstractClonedGremlinDAO.this.unlock();
         deleteOldData();
       }
     }
 
     private void deleteOldData() {
       boolean transactionSupported = getFeatures().graph().supportsTransactions();
-      if (transactionSupported) {
-        graph.tx().open();
-      } else {
-        getLock().lock();
-      }
+      AbstractClonedGremlinDAO.this.lock();
       long cT = currentTimestamp.get();
       try {
         graph.traversal().V().has("version", P.lt(cT)).drop().iterate();
@@ -287,16 +346,12 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
         if (transactionSupported) {
           graph.tx().commit();
         }
+        AbstractClonedGremlinDAO.this.commit();
       } catch (Exception e) {
-        if (transactionSupported) {
-          graph.tx().rollback();
-        }
+        AbstractClonedGremlinDAO.this.rollback();
+        throw e;
       } finally {
-        if (transactionSupported) {
-          graph.tx().close();
-        } else {
-          getLock().unlock();
-        }
+        AbstractClonedGremlinDAO.this.unlock();
       }
     }
   }

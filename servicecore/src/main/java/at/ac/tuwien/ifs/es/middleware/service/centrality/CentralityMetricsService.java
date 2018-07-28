@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.service.knowledgegraph;
+package at.ac.tuwien.ifs.es.middleware.service.centrality;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDAOReadyEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDAOUpdatedEvent;
@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -125,11 +124,7 @@ public class CentralityMetricsService {
     if (centralityCache == null) {
       throw new IllegalStateException("The cache for centrality metrics is not available.");
     }
-    if (gremlinService.areTransactionsSupported()) {
-      gremlinService.getTransaction().open();
-    } else {
-      gremlinService.getLock().lock();
-    }
+    gremlinService.lock();
     try {
       GraphTraversal<Vertex, Vertex> g = gremlinService.traversal().withComputer().V().pageRank();
       Map<Object, Object> pageRankMap = g.pageRank().group().by(__.label()).by(
@@ -140,11 +135,7 @@ public class CentralityMetricsService {
             entry.getValue());
       }
     } finally {
-      if (gremlinService.areTransactionsSupported()) {
-        gremlinService.getTransaction().close();
-      } else {
-        gremlinService.getLock().unlock();
-      }
+      gremlinService.unlock();
     }
     applicationEventPublisher.publishEvent(new PageRankUpdatedEvent(CentralityMetricsService.this));
     logger.info("Page rank issued on {} computed on {}.", issueTimestamp, Instant.now());
@@ -172,11 +163,7 @@ public class CentralityMetricsService {
     if (centralityCache == null) {
       throw new IllegalStateException("The cache for centrality metrics is not available.");
     }
-    if (gremlinService.areTransactionsSupported()) {
-      gremlinService.getTransaction().open();
-    } else {
-      gremlinService.getLock().lock();
-    }
+    gremlinService.lock();
     try {
       GraphTraversal<Vertex, Vertex> g = gremlinService.traversal().withComputer().V();
       GraphTraversal<Vertex, Map<String, Object>> resourceDegreesTraversal = g
@@ -189,11 +176,7 @@ public class CentralityMetricsService {
             node.get("degree"));
       }
     } finally {
-      if (gremlinService.areTransactionsSupported()) {
-        gremlinService.getTransaction().close();
-      } else {
-        gremlinService.getLock().unlock();
-      }
+      gremlinService.unlock();
     }
     logger.info("Degree metric issued on {} computed on {}.", issueTimestamp, Instant.now());
   }
@@ -219,11 +202,7 @@ public class CentralityMetricsService {
     if (centralityCache == null) {
       throw new IllegalStateException("The cache for centrality metrics is not available.");
     }
-    if (gremlinService.areTransactionsSupported()) {
-      gremlinService.getTransaction().open();
-    } else {
-      gremlinService.getLock().lock();
-    }
+    gremlinService.lock();
     try {
       GraphTraversal<Vertex, Map<String, Object>> traversal = gremlinService.traversal().withSack(0)
           .V()
@@ -243,11 +222,7 @@ public class CentralityMetricsService {
         //TODO: Implement
       }
     } finally {
-      if (gremlinService.areTransactionsSupported()) {
-        gremlinService.getTransaction().close();
-      } else {
-        gremlinService.getLock().unlock();
-      }
+      gremlinService.unlock();
     }
     logger.info("Betweeness metric issued on {} computed on {}.", issueTimestamp, Instant.now());
   }
@@ -273,11 +248,7 @@ public class CentralityMetricsService {
     if (centralityCache == null) {
       throw new IllegalStateException("The cache for centrality metrics is not available.");
     }
-    if (gremlinService.areTransactionsSupported()) {
-      gremlinService.getTransaction().open();
-    } else {
-      gremlinService.getLock().lock();
-    }
+    gremlinService.lock();
     try {
       logger.debug("Computes closeness centrality metric.");
       GraphTraversal<Vertex, Map<Object, Object>> resultTraversal = gremlinService.traversal()
@@ -296,11 +267,7 @@ public class CentralityMetricsService {
         //TODO: Implement
       }
     } finally {
-      if (gremlinService.areTransactionsSupported()) {
-        gremlinService.getTransaction().close();
-      } else {
-        gremlinService.getLock().unlock();
-      }
+      gremlinService.unlock();
     }
   }
 

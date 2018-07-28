@@ -128,11 +128,7 @@ public class InformationContentService {
     if (icCache == null) {
       throw new IllegalStateException("The cache for centrality metrics is not available.");
     }
-    if (gremlinService.areTransactionsSupported()) {
-      gremlinService.getTransaction().open();
-    } else {
-      gremlinService.getLock().lock();
-    }
+    gremlinService.lock();
     try {
       List<Resource> allClasses = getAllClasses();
       if (!allClasses.isEmpty()) {
@@ -162,11 +158,7 @@ public class InformationContentService {
                 .collect(Collectors.toList()));
       }
     } finally {
-      if (gremlinService.areTransactionsSupported()) {
-        gremlinService.getTransaction().close();
-      } else {
-        gremlinService.getLock().unlock();
-      }
+      gremlinService.unlock();
     }
     applicationEventPublisher
         .publishEvent(new InformationContentUpdatedEvent(InformationContentService.this));
