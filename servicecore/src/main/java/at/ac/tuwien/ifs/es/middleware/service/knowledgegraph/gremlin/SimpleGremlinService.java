@@ -1,10 +1,9 @@
 package at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
-import java.util.concurrent.locks.Lock;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Graph.Features;
-import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
@@ -63,5 +62,10 @@ public class SimpleGremlinService implements GremlinService {
   @Override
   public void unlock() {
     gremlinDAO.unlock();
+  }
+
+  @Override
+  public PGS getPropertyGraphSchema() {
+    return gremlinDAO.getPropertyGraphSchema();
   }
 }

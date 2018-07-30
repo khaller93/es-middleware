@@ -1,5 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import java.util.concurrent.locks.Lock;
 import org.apache.tinkerpop.gremlin.process.computer.GraphComputer;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
@@ -62,4 +63,13 @@ public interface GremlinService {
    * another thread to lock this gremlin DAO.
    */
   void unlock();
+
+  /**
+   * Gets the property graph schema for representing the RDF data. The returned schema must not be
+   * null.
+   *
+   * @return the property graph schema for representing the RDF data. The returned schema must not
+   * be null.
+   */
+  PGS getPropertyGraphSchema();
 }

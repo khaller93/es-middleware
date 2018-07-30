@@ -2,11 +2,10 @@ package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.*;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
-import java.util.concurrent.locks.Lock;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Graph.Features;
-import org.apache.tinkerpop.gremlin.structure.Transaction;
 
 /**
  * This interface provides methods for traversing the knowledge graph using Gremlin.
@@ -81,5 +80,14 @@ public interface KGGremlinDAO {
    * another thread to lock this gremlin DAO.
    */
   void unlock();
+
+  /**
+   * Gets the property graph schema for representing the RDF data. The returned schema must not be
+   * null.
+   *
+   * @return the property graph schema for representing the RDF data. The returned schema must not
+   * be null.
+   */
+  PGS getPropertyGraphSchema();
 
 }

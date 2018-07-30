@@ -9,28 +9,17 @@ import static org.hamcrest.Matchers.is;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus.CODE;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.Literal;
-import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
-import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * This class implements generic tests for the SPARQL interface of {@link KGGremlinDAO}s. The method
@@ -44,12 +33,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 public abstract class AbstractMusicPintaGremlinTests {
 
-  private static final Logger logger = LoggerFactory
-      .getLogger(AbstractMusicPintaGremlinTests.class);
-
   private MusicPintaInstrumentsResource musicPintaInstrumentsResource;
   private KGSparqlDAO sparqlDAO;
   private KGGremlinDAO gremlinDAO;
+
+  private PGS schema;
 
   /**
    * gets the {@link KGSparqlDAO} that shall be tested.
@@ -69,6 +57,7 @@ public abstract class AbstractMusicPintaGremlinTests {
         getGremlinDAO());
     this.musicPintaInstrumentsResource.before();
     this.musicPintaInstrumentsResource.waitForAllDAOsBeingReady();
+    this.schema = gremlinDAO.getPropertyGraphSchema();
   }
 
   @After
@@ -79,16 +68,19 @@ public abstract class AbstractMusicPintaGremlinTests {
   @Test(timeout = 120000)
   public void test_getResource_mustBeInGremlinGraph() throws Exception {
     assertThat(gremlinDAO.traversal()
-            .V().hasLabel("http://dbtune.org/musicbrainz/resource/instrument/132").toList(),
-        hasSize(1));
+        .V().has(schema.iri().identifierAsString(),
+            "http://dbtune.org/musicbrainz/resource/instrument/132").toList(), hasSize(1));
   }
 
   @Test(timeout = 120000)
   public void test_getCategoriesOfInstrument117_mustReturnAllCategories() throws Exception {
     List<Vertex> categoriesGremlin = gremlinDAO.traversal()
-        .V().hasLabel("http://dbtune.org/musicbrainz/resource/instrument/117")
+        .V().has(schema.iri().identifierAsString(),
+            "http://dbtune.org/musicbrainz/resource/instrument/117")
         .out("http://purl.org/dc/terms/subject").toList();
-    assertThat(categoriesGremlin.stream().map(Element::label).collect(Collectors.toList()),
+    assertThat(categoriesGremlin.stream()
+            .map(elem -> schema.iri().<String>apply(elem))
+            .collect(Collectors.toList()),
         containsInAnyOrder("http://dbpedia.org/resource/Category:Mexican_musical_instruments",
             "http://dbpedia.org/resource/Category:Guitar_family_instruments"));
   }
@@ -100,7 +92,8 @@ public abstract class AbstractMusicPintaGremlinTests {
             + " ?s a <http://purl.org/ontology/mo/Instrument> .\n"
             + "}", true)).value().get(0).get("cnt"))).getLexicalForm());
     assertThat(
-        gremlinDAO.traversal().V().hasLabel("http://purl.org/ontology/mo/Instrument")
+        gremlinDAO.traversal().V()
+            .has(schema.iri().identifierAsString(), "http://purl.org/ontology/mo/Instrument")
             .inE().outV().dedup().count().next(), is(equalTo(instrumentsCount)));
   }
 
@@ -116,8 +109,7 @@ public abstract class AbstractMusicPintaGremlinTests {
             + "    FILTER(isIRI(?s)) .\n"
             + "}", true)).value().get(0).get("cnt")).getLexicalForm());
     assertThat("Each resource (not-literal) must be represented as vertex in the gremlin graph.",
-        gremlinDAO.traversal().V().dedup().count().next(),
-        is(equalTo(totalResourceNumber)));
+        gremlinDAO.traversal().V().dedup().count().next(), is(equalTo(totalResourceNumber)));
   }
 
   @Test(timeout = 120000)
@@ -127,10 +119,11 @@ public abstract class AbstractMusicPintaGremlinTests {
     List<Vertex> classes = g.V()
         .union(__.inE("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").inV(),
             __.as("c").out("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
-                .V().hasLabel("http://www.w3.org/2000/01/rdf-schema#Class").select("c")).dedup()
+                .V().has(schema.iri().identifierAsString(),
+                "http://www.w3.org/2000/01/rdf-schema#Class").select("c")).dedup()
         .toList();
-    List<String> classStrings = classes.stream().map(Element::label)
-        .collect(Collectors.toList());
+    List<String> classStrings = classes.stream()
+        .map(elem -> schema.iri().<String>apply(elem)).collect(Collectors.toList());
     assertThat(classStrings, hasItems("http://purl.org/ontology/mo/Instrument",
         "http://purl.org/ontology/mo/Performance"));
   }
@@ -139,12 +132,14 @@ public abstract class AbstractMusicPintaGremlinTests {
   @SuppressWarnings("unchecked")
   public void test_getAllSubClassesOfGuitar() {
     GraphTraversalSource g = gremlinDAO.traversal();
-    List<Object> guitarSubClasses = g.V().hasLabel("http://dbpedia.org/resource/Guitar").as("c")
+    List<Object> guitarSubClasses = g.V()
+        .has(schema.iri().identifierAsString(), "http://dbpedia.org/resource/Guitar").as("c")
         .repeat(__.in("http://www.w3.org/2000/01/rdf-schema#subClassOf"))
         .until(__.or(__.not(__.in("http://www.w3.org/2000/01/rdf-schema#subClassOf")),
             __.cyclicPath())).path().unfold().dedup().toList();
     List<String> guitarSubClassStrings = guitarSubClasses.stream()
-        .map(v -> (((Vertex) v).label())).collect(Collectors.toList());
+        .map(v -> schema.iri().<String>apply((Vertex) v))
+        .collect(Collectors.toList());
     assertThat(guitarSubClassStrings, hasItems("http://dbpedia.org/resource/Electric_guitar",
         "http://dbpedia.org/resource/Classical_guitar",
         "http://dbtune.org/musicbrainz/resource/instrument/467"));

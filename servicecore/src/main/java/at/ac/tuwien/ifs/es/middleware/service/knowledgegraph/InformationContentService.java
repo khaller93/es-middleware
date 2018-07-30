@@ -2,6 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.service.knowledgegraph;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDAOReadyEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDAOUpdatedEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.event.InformationContentUpdatedEvent;
@@ -15,6 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
+import org.apache.tinkerpop.gremlin.structure.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,7 @@ public class InformationContentService {
   private static final Logger logger = LoggerFactory.getLogger(InformationContentService.class);
 
   private GremlinService gremlinService;
+  private PGS schema;
   private CacheManager cacheManager;
   private ExecutorService threadPool;
   private ApplicationEventPublisher applicationEventPublisher;
@@ -47,6 +50,7 @@ public class InformationContentService {
   public InformationContentService(GremlinService gremlinService,
       ApplicationEventPublisher applicationEventPublisher, CacheManager cacheManager) {
     this.gremlinService = gremlinService;
+    this.schema = gremlinService.getPropertyGraphSchema();
     this.cacheManager = cacheManager;
     this.applicationEventPublisher = applicationEventPublisher;
     this.threadPool = Executors.newCachedThreadPool();
@@ -84,9 +88,11 @@ public class InformationContentService {
     return gremlinService.traversal().V()
         .union(__.inE("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").inV(),
             __.as("c").out("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
-                .hasLabel("http://www.w3.org/2000/01/rdf-schema#Class").select("c")).dedup()
+                .has(schema.iri().identifierAsString(),
+                    "http://www.w3.org/2000/01/rdf-schema#Class")
+                .select("c")).dedup()
         .toList()
-        .stream().map(v -> new Resource(BlankOrIRIJsonUtil.valueOf(v.label())))
+        .stream().map(v -> new Resource(BlankOrIRIJsonUtil.valueOf(schema.iri().<String>apply(v))))
         .collect(Collectors.toList());
   }
 
@@ -139,10 +145,11 @@ public class InformationContentService {
         String[] addClassLabels = allClasses.stream().skip(1).map(Resource::getId)
             .toArray(String[]::new);
         Map<Object, Object> classInstancesMap = g
-            .V().hasLabel(allClasses.get(0).getId(), addClassLabels).until(
-                __.or(__.not(__.in("http://www.w3.org/2000/01/rdf-schema#subClassOf")),
-                    __.cyclicPath()))
-            .repeat(__.in("http://www.w3.org/2000/01/rdf-schema#subClassOf")).group().by(__.label())
+            .V().has(schema.iri().identifierAsString(), allClasses.get(0).getId(), addClassLabels)
+            .until(__.or(__.not(__.in("http://www.w3.org/2000/01/rdf-schema#subClassOf")),
+                __.cyclicPath()))
+            .repeat(__.in("http://www.w3.org/2000/01/rdf-schema#subClassOf")).group()
+            .by(__.map(traverser -> schema.iri().<String>apply((Element) traverser.get())))
             .by(__.in("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").dedup().count()).next();
         Map<Resource, Double> icClassMap = classInstancesMap.entrySet().stream().collect(
             Collectors.toMap(e -> new Resource(BlankOrIRIJsonUtil.valueOf((String) e.getKey())),

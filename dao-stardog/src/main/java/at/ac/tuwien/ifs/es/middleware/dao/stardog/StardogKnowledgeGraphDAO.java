@@ -80,7 +80,7 @@ public class StardogKnowledgeGraphDAO extends RDF4JSparqlDAO implements
   @PostConstruct
   public void setUp() {
     SPARQLRepository sparqlRepository = new SPARQLRepository(
-        stardogConfig.getSPARQLEndpointURL());
+        stardogConfig.getSPARQLQueryEndpointURL(), stardogConfig.getSPARQLUpdateEndpointURL());
     sparqlRepository.setUsernameAndPassword(stardogConfig.getUsername(),
         stardogConfig.getPassword());
     try {

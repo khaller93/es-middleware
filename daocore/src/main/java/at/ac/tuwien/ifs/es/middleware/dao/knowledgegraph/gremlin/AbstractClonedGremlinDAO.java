@@ -8,6 +8,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDA
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDAOUpdatingEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOReadyEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOUpdatedEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
@@ -100,6 +101,8 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
   private KGSparqlDAO sparqlDAO;
   /* storing graph data */
   private Graph graph;
+  /* schema for the graph data */
+  private PGS schema;
   /* whether transactions are supported by the graph */
   private boolean transactionSupported = false;
   /* current timestamp for the most current, integrated data */
@@ -115,10 +118,12 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
    * @param applicationContext to publish the events.
    * @param sparqlDAO that shall be used.
    */
-  public AbstractClonedGremlinDAO(ApplicationContext applicationContext, KGSparqlDAO sparqlDAO) {
+  public AbstractClonedGremlinDAO(ApplicationContext applicationContext, KGSparqlDAO sparqlDAO,
+      PGS schema) {
     this.applicationContext = applicationContext;
     this.sparqlDAO = sparqlDAO;
     this.status = new KGDAOInitStatus();
+    this.schema = schema;
   }
 
   /**
@@ -154,6 +159,11 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
   }
 
   @Override
+  public PGS getPropertyGraphSchema() {
+    return schema;
+  }
+
+  @Override
   public GraphTraversalSource traversal() {
     return graph.traversal();
   }
@@ -166,40 +176,6 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
   @Override
   public Features getFeatures() {
     return graph.features();
-  }
-
-  @Override
-  public void lock() {
-    if (transactionSupported) {
-      graph.tx().open();
-    } else {
-      graphLock.lock();
-    }
-  }
-
-  @Override
-  public void commit() {
-    if (transactionSupported) {
-      graph.tx().commit();
-    }
-  }
-
-  @Override
-  public void rollback() {
-    if (transactionSupported) {
-      graph.tx().rollback();
-    }
-  }
-
-  @Override
-  public void unlock() {
-    if (transactionSupported) {
-      if (graph.tx().isOpen()) {
-        graph.tx().close();
-      }
-    } else {
-      graphLock.unlock();
-    }
   }
 
   /**
@@ -237,14 +213,16 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
             for (Map<String, RDFTerm> row : values) {
               BlankNodeOrIRI node = (IRI) row.get("resource");
               String sIRI = BlankOrIRIJsonUtil.stringValue(node);
-              Iterator<Vertex> vertexIt = Collections.<Vertex>emptyList()
-                  .iterator();  //todo: reimplement
+              Iterator<Vertex> vertexIt = graph.traversal().V()
+                  .has(schema.iri().identifierAsString(), sIRI).iterate();
               if (vertexIt.hasNext()) {
                 Vertex v = vertexIt.next();
                 v.property(Cardinality.set, "version", issuedTimestamp);
                 cache.put(node, v);
               } else {
-                Vertex v = graph.addVertex(T.label, sIRI, "version", issuedTimestamp);
+                Vertex v = graph
+                    .addVertex(schema.iri().identifier(), sIRI, schema.kind().identifier(), "iri",
+                        "version", issuedTimestamp);
                 cache.put(node, v);
               }
             }
@@ -358,6 +336,40 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
 
   public void setUpdatedListener(Consumer<ApplicationEvent> updatedListener) {
     this.updatedListener = updatedListener;
+  }
+
+  @Override
+  public void lock() {
+    if (transactionSupported) {
+      graph.tx().open();
+    } else {
+      graphLock.lock();
+    }
+  }
+
+  @Override
+  public void commit() {
+    if (transactionSupported) {
+      graph.tx().commit();
+    }
+  }
+
+  @Override
+  public void rollback() {
+    if (transactionSupported) {
+      graph.tx().rollback();
+    }
+  }
+
+  @Override
+  public void unlock() {
+    if (transactionSupported) {
+      if (graph.tx().isOpen()) {
+        graph.tx().close();
+      }
+    } else {
+      graphLock.unlock();
+    }
   }
 
   @PreDestroy

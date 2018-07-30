@@ -39,11 +39,21 @@ public class StardogConfig {
   /**
    * Gets the URL for the SPARQL endpoint of Stardog specified in the properties file.
    *
-   * @return the URL for the SPARQL endpoint.
+   * @return the URL for the SPARQL endpoint for reading data.
    */
-  public String getSPARQLEndpointURL() {
+  public String getSPARQLQueryEndpointURL() {
     String formattedAddress = address.endsWith("/") ? address : address + "/";
     return String.format("%s/%s/query", formattedAddress, dbName);
+  }
+
+  /**
+   * Gets the URL for the SPARQL endpoint of Stardog specified in the properties file.
+   *
+   * @return the URL for the SPARQL endpoint for manipulating data.
+   */
+  public String getSPARQLUpdateEndpointURL() {
+    String formattedAddress = address.endsWith("/") ? address : address + "/";
+    return String.format("%s/%s/update", formattedAddress, dbName);
   }
 
 }

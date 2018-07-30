@@ -2,6 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.service.centrality;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDAOReadyEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDAOUpdatedEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.event.PageRankUpdatedEvent;
@@ -22,6 +23,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.Scope;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Column;
+import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +52,7 @@ public class CentralityMetricsService {
 
   private ExecutorService threadPool;
   private GremlinService gremlinService;
+  private PGS schema;
   private CacheManager cacheManager;
   private ApplicationEventPublisher applicationEventPublisher;
 
@@ -57,6 +60,7 @@ public class CentralityMetricsService {
   public CentralityMetricsService(GremlinService gremlinService, CacheManager cacheManager,
       ApplicationEventPublisher applicationEventPublisher) {
     this.gremlinService = gremlinService;
+    this.schema = gremlinService.getPropertyGraphSchema();
     this.cacheManager = cacheManager;
     this.threadPool = Executors.newCachedThreadPool();
     this.applicationEventPublisher = applicationEventPublisher;
@@ -127,8 +131,9 @@ public class CentralityMetricsService {
     gremlinService.lock();
     try {
       GraphTraversal<Vertex, Vertex> g = gremlinService.traversal().withComputer().V().pageRank();
-      Map<Object, Object> pageRankMap = g.pageRank().group().by(__.label()).by(
-          __.values("gremlin.pageRankVertexProgram.pageRank")).next();
+      Map<Object, Object> pageRankMap = g.pageRank().group()
+          .by(__.map(traverser -> schema.iri().<String>apply((Element) traverser.get()))).by(
+              __.values("gremlin.pageRankVertexProgram.pageRank")).next();
       for (Map.Entry<Object, Object> entry : pageRankMap.entrySet()) {
         centralityCache.put(CentralityKey
                 .of(METRIC.PAGERANK, new Resource(BlankOrIRIJsonUtil.valueOf((String) entry.getKey()))),
@@ -165,10 +170,10 @@ public class CentralityMetricsService {
     }
     gremlinService.lock();
     try {
-      GraphTraversal<Vertex, Vertex> g = gremlinService.traversal().withComputer().V();
-      GraphTraversal<Vertex, Map<String, Object>> resourceDegreesTraversal = g
-          .project("v", "degree")
-          .by(__.label()).by(__.inE().count());
+      GraphTraversal<Vertex, Map<String, Object>> resourceDegreesTraversal = gremlinService
+          .traversal().withComputer().V().project("v", "degree")
+          .by(__.map(traverser -> schema.iri().<String>apply((Element) traverser.get())))
+          .by(__.inE().count());
       while (resourceDegreesTraversal.hasNext()) {
         Map<String, Object> node = resourceDegreesTraversal.next();
         centralityCache.put(CentralityKey

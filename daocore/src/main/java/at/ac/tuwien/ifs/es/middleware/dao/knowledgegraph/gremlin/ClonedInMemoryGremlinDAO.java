@@ -3,13 +3,9 @@ package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Consumer;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.Transaction;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.LiteralGraphSchema;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
+import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,7 +14,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * This class implements the {@link KGGremlinDAO} as a in-memory {@link TinkerGraph}. It makes use
@@ -34,10 +29,13 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class ClonedInMemoryGremlinDAO extends AbstractClonedGremlinDAO {
 
+  private static final PGS schema = PGS.with("kind", T.id, T.id,
+      new LiteralGraphSchema(T.value, "datatype", "language"));
+
   @Autowired
   public ClonedInMemoryGremlinDAO(ApplicationContext context,
       @Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO) {
-    super(context, sparqlDAO);
+    super(context, sparqlDAO, schema);
     this.setGraph(TinkerGraph.open());
   }
 }
