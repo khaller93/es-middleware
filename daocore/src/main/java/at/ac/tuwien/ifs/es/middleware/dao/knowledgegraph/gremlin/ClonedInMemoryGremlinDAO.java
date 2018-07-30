@@ -13,6 +13,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -34,8 +35,8 @@ public class ClonedInMemoryGremlinDAO extends AbstractClonedGremlinDAO {
 
   @Autowired
   public ClonedInMemoryGremlinDAO(ApplicationContext context,
-      @Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO) {
-    super(context, sparqlDAO, schema);
+      @Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO, TaskExecutor taskExecutor) {
+    super(context, sparqlDAO, schema, taskExecutor);
     this.setGraph(TinkerGraph.open());
   }
 }

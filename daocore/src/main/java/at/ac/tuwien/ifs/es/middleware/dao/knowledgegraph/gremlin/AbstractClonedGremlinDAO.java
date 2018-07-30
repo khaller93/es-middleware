@@ -16,14 +16,11 @@ import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOReadyStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOUpdatingStatus;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -37,17 +34,14 @@ import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Graph.Features;
-import org.apache.tinkerpop.gremlin.structure.T;
-import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty.Cardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.task.TaskExecutor;
 
 /**
  * This is a {@link KGGremlinDAO} in which data will be cloned from the {@link KGSparqlDAO}. It
@@ -91,7 +85,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
   /* application context */
   private ApplicationContext applicationContext;
   /* thread pool for spanning syncing operations */
-  private ExecutorService threadPool = Executors.newCachedThreadPool();
+  private TaskExecutor taskExecutor;
   /* lock for controlling syncing operations */
   private Lock graphLock = new ReentrantLock();
 
@@ -119,11 +113,12 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
    * @param sparqlDAO that shall be used.
    */
   public AbstractClonedGremlinDAO(ApplicationContext applicationContext, KGSparqlDAO sparqlDAO,
-      PGS schema) {
+      PGS schema, TaskExecutor taskExecutor) {
     this.applicationContext = applicationContext;
     this.sparqlDAO = sparqlDAO;
     this.status = new KGDAOInitStatus();
     this.schema = schema;
+    this.taskExecutor = taskExecutor;
   }
 
   /**
@@ -142,8 +137,8 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
     newestDatatimestamp.accumulateAndGet(event.getTimestamp(),
         (current, updated) -> current <= updated ? updated : current);
     if (!graph.vertices().hasNext()) {
-      threadPool
-          .submit(new GraphConstruction(event.getTimestamp(), new GremlinDAOReadyEvent(this)));
+      taskExecutor
+          .execute(new GraphConstruction(event.getTimestamp(), new GremlinDAOReadyEvent(this)));
     }
   }
 
@@ -153,8 +148,8 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
     if (newestDatatimestamp.get() < event.getTimestamp()) {
       newestDatatimestamp.accumulateAndGet(event.getTimestamp(),
           (current, updated) -> current < updated ? updated : current);
-      threadPool
-          .submit(new GraphConstruction(event.getTimestamp(), new GremlinDAOUpdatedEvent(this)));
+      taskExecutor
+          .execute(new GraphConstruction(event.getTimestamp(), new GremlinDAOUpdatedEvent(this)));
     }
   }
 
@@ -378,7 +373,6 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
       if (graph != null) {
         graph.close();
       }
-      threadPool.shutdown();
     } catch (Exception e) {
       logger.error("Failed to close the Gremlin graph DAO. {}", e.getMessage());
     }

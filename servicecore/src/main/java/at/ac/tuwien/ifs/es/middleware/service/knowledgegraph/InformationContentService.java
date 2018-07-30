@@ -6,13 +6,10 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.event.InformationContentUpdatedEvent;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.event.PageRankUpdatedEvent;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
@@ -26,6 +23,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -43,17 +41,18 @@ public class InformationContentService {
   private GremlinService gremlinService;
   private PGS schema;
   private CacheManager cacheManager;
-  private ExecutorService threadPool;
+  private TaskExecutor taskExecutor;
   private ApplicationEventPublisher applicationEventPublisher;
 
   @Autowired
   public InformationContentService(GremlinService gremlinService,
-      ApplicationEventPublisher applicationEventPublisher, CacheManager cacheManager) {
+      ApplicationEventPublisher applicationEventPublisher, CacheManager cacheManager,
+      TaskExecutor taskExecutor) {
     this.gremlinService = gremlinService;
     this.schema = gremlinService.getPropertyGraphSchema();
     this.cacheManager = cacheManager;
     this.applicationEventPublisher = applicationEventPublisher;
-    this.threadPool = Executors.newCachedThreadPool();
+    this.taskExecutor = taskExecutor;
   }
 
   @EventListener
@@ -73,7 +72,7 @@ public class InformationContentService {
    * Updates the information content for classes.
    */
   private void updateMetrics() {
-    threadPool.submit(this::computeInformationContentForClasses);
+    taskExecutor.execute(this::computeInformationContentForClasses);
   }
 
   /**

@@ -7,6 +7,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.ThreadPoolConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
@@ -37,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -51,8 +53,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {SimpleGremlinService.class, RDF4JLuceneFullTextSearchDAO.class,
     RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedInMemoryGremlinDAO.class,
-    CentralityCacheManagerStub.class,
-    KGDAOConfig.class, RDF4JDAOConfig.class})
+    CentralityCacheManagerStub.class, ThreadPoolConfig.class, KGDAOConfig.class,
+    RDF4JDAOConfig.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -74,6 +76,8 @@ public class CentralityMetricsServiceTest {
   @Autowired
   private CacheManager cacheManager;
   @Autowired
+  private TaskExecutor taskExecutor;
+  @Autowired
   private ApplicationContext applicationContext;
 
   private CentralityMetricsService centralityMetricsService;
@@ -87,7 +91,7 @@ public class CentralityMetricsServiceTest {
   public void setUp() throws InterruptedException {
     musicPintaResource.waitForAllDAOsBeingReady();
     centralityMetricsService = new CentralityMetricsService(gremlinService, cacheManager,
-        applicationContext);
+        applicationContext, taskExecutor);
   }
 
   @Test

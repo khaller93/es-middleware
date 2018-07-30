@@ -15,9 +15,6 @@ import static org.apache.tinkerpop.gremlin.process.traversal.Operator.div;
 import static org.apache.tinkerpop.gremlin.process.traversal.Operator.sum;
 
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import javax.annotation.PreDestroy;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.Scope;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
@@ -33,6 +30,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -50,7 +48,7 @@ public class CentralityMetricsService {
 
   public enum METRIC {PAGERANK, DEGREE, BETWEENESS, CLOSENESS}
 
-  private ExecutorService threadPool;
+  private TaskExecutor taskExecutor;
   private GremlinService gremlinService;
   private PGS schema;
   private CacheManager cacheManager;
@@ -58,11 +56,11 @@ public class CentralityMetricsService {
 
   @Autowired
   public CentralityMetricsService(GremlinService gremlinService, CacheManager cacheManager,
-      ApplicationEventPublisher applicationEventPublisher) {
+      ApplicationEventPublisher applicationEventPublisher, TaskExecutor taskExecutor) {
     this.gremlinService = gremlinService;
     this.schema = gremlinService.getPropertyGraphSchema();
     this.cacheManager = cacheManager;
-    this.threadPool = Executors.newCachedThreadPool();
+    this.taskExecutor = taskExecutor;
     this.applicationEventPublisher = applicationEventPublisher;
   }
 
@@ -82,8 +80,8 @@ public class CentralityMetricsService {
    * Updates the centrality metrics and puts them into the cache.
    */
   private void updateMetrics() {
-    threadPool.submit(this::computePageRank);
-    threadPool.submit(this::computeDegree);
+    taskExecutor.execute(this::computePageRank);
+    taskExecutor.execute(this::computeDegree);
     //threadPool.submit(this::computeBetweeness);
     //threadPool.submit(this::computeCloseness);
   }
@@ -312,12 +310,4 @@ public class CentralityMetricsService {
       return Objects.hash(metric, resource);
     }
   }
-
-  @PreDestroy
-  public void tearDown() {
-    if (threadPool != null) {
-      threadPool.shutdown();
-    }
-  }
-
 }

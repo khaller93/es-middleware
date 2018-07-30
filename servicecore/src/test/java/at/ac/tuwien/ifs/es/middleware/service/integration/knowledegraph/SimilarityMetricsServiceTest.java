@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.is;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.ThreadPoolConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
@@ -36,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -51,7 +53,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {SimpleGremlinService.class,
     RDF4JMemoryStoreWithLuceneSparqlDAO.class,
     ClonedInMemoryGremlinDAO.class, SimpleSPARQLService.class, CentralityCacheManagerStub.class,
-    KGDAOConfig.class, RDF4JDAOConfig.class, RDF4JLuceneFullTextSearchDAO.class,})
+    KGDAOConfig.class, RDF4JDAOConfig.class, RDF4JLuceneFullTextSearchDAO.class,
+    ThreadPoolConfig.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -72,6 +75,8 @@ public class SimilarityMetricsServiceTest {
   private SPARQLService sparqlService;
   @Autowired
   private GremlinService gremlinService;
+  @Autowired
+  private TaskExecutor taskExecutor;
   @Autowired
   private CacheManager cacheManager;
   @Autowired
@@ -103,11 +108,11 @@ public class SimilarityMetricsServiceTest {
   public void before() throws InterruptedException {
     musicPintaResource.waitForAllDAOsBeingReady();
     centralityMetricsService = new CentralityMetricsService(gremlinService, cacheManager,
-        applicationContext);
+        applicationContext, taskExecutor);
     informationContentService = new InformationContentService(gremlinService, applicationContext,
-        cacheManager);
+        cacheManager, taskExecutor);
     similarityMetricsService = new SimilarityMetricsService(sparqlService, gremlinService,
-        centralityMetricsService, informationContentService, cacheManager);
+        centralityMetricsService, informationContentService, cacheManager, taskExecutor);
   }
 
   @Test

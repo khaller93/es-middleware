@@ -16,8 +16,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
@@ -35,6 +33,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -71,43 +70,43 @@ public class SimilarityMetricsService {
   private CentralityMetricsService centralityMetricsService;
   private InformationContentService informationContentService;
   private CacheManager cacheManager;
-  private ExecutorService threadPool;
+  private TaskExecutor taskExecutor;
 
   @Autowired
   public SimilarityMetricsService(SPARQLService sparqlService, GremlinService gremlinService,
       CentralityMetricsService centralityMetricsService,
       InformationContentService informationContentService,
-      CacheManager cacheManager) {
+      CacheManager cacheManager, TaskExecutor taskExecutor) {
     this.sparqlService = sparqlService;
     this.gremlinService = gremlinService;
     this.centralityMetricsService = centralityMetricsService;
     this.informationContentService = informationContentService;
     this.cacheManager = cacheManager;
-    this.threadPool = Executors.newCachedThreadPool();
+    this.taskExecutor = taskExecutor;
   }
 
   @EventListener
   public void onApplicationEvent(GremlinDAOReadyEvent event) {
     logger.debug("Recognized an Gremlin ready event {}.", event);
-    threadPool.submit(this::computeDistance);
+    taskExecutor.execute(this::computeDistance);
   }
 
   @EventListener
   public void onApplicationEvent(GremlinDAOUpdatedEvent event) {
     logger.debug("Recognized an Gremlin update event {}.", event);
-    threadPool.submit(this::computeDistance);
+    taskExecutor.execute(this::computeDistance);
   }
 
   @EventListener
   public void onApplicationEvent(PageRankUpdatedEvent event) {
     logger.debug("Recognized an Page Rank update event {}.", event);
-    threadPool.submit(this::computeICPR);
+    taskExecutor.execute(this::computeICPR);
   }
 
   @EventListener
   public void onApplicationEvent(InformationContentUpdatedEvent event) {
     logger.debug("Recognized an Information Content update event {}.", event);
-    threadPool.submit(this::computeInformationContent);
+    taskExecutor.execute(this::computeInformationContent);
   }
 
   /**

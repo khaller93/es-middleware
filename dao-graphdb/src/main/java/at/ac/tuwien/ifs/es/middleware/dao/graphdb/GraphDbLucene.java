@@ -18,11 +18,8 @@ import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOUpdatingStatus;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.text.StringSubstitutor;
@@ -36,6 +33,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -77,7 +75,7 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
       "PREFIX luc: <http://www.ontotext.com/owlim/lucene#>\n"
           + "INSERT DATA { <%s> luc:updateIndex _:b1 . }";
 
-  private ExecutorService threadPool;
+  private TaskExecutor taskExecutor;
 
   private ApplicationContext context;
   private KGSparqlDAO sparqlDAO;
@@ -87,11 +85,11 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
 
   @Autowired
   public GraphDbLucene(ApplicationContext context, @Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO,
-      GraphDbLuceneConfig graphDbLuceneConfig) {
+      GraphDbLuceneConfig graphDbLuceneConfig, TaskExecutor taskExecutor) {
     this.context = context;
     this.sparqlDAO = sparqlDAO;
     this.graphDbLuceneConfig = graphDbLuceneConfig;
-    this.threadPool = Executors.newCachedThreadPool();
+    this.taskExecutor = taskExecutor;
     this.status = new KGDAOInitStatus();
   }
 
@@ -99,7 +97,7 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
   public void setUp() {
     if (graphDbLuceneConfig.shouldBeInitialized()) {
       logger.debug("The GraphDb Lucene index will be initialized.");
-      threadPool.submit(() -> {
+      taskExecutor.execute(() -> {
         try (RepositoryConnection con = ((RDF4JSparqlDAO) sparqlDAO).getRepository()
             .getConnection()) {
           con.prepareUpdate(
@@ -188,7 +186,7 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
     logger.info("The SPARQL DAO was updated, and lucene index will be updated now too.");
     context.publishEvent(new FullTextSearchDAOUpdatingEvent(this));
     this.status = new KGDAOUpdatingStatus();
-    threadPool.submit(() -> {
+    taskExecutor.execute(() -> {
       try {
         performBatchUpdateOfIndex();
         context.publishEvent(new FullTextSearchDAOUpdatedEvent(GraphDbLucene.this));
@@ -201,12 +199,5 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
         throw e;
       }
     });
-  }
-
-  @PreDestroy
-  public void tearDown() {
-    if (threadPool != null) {
-      threadPool.shutdown();
-    }
   }
 }
