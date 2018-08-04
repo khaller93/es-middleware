@@ -4,6 +4,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.VoidPayload;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.SameAsResourceService;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.DatasetInformationService;
@@ -35,10 +36,11 @@ public class Distinct implements AggregationOperator<VoidPayload> {
 
   private static final Logger logger = LoggerFactory.getLogger(Distinct.class);
 
-  private DatasetInformationService datasetInformationService;
+  private SameAsResourceService sameAsResourceService;
 
-  public Distinct(@Autowired DatasetInformationService datasetInformationService) {
-    this.datasetInformationService = datasetInformationService;
+  @Autowired
+  public Distinct(SameAsResourceService sameAsResourceService) {
+    this.sameAsResourceService = sameAsResourceService;
   }
 
   @Override
@@ -51,16 +53,13 @@ public class Distinct implements AggregationOperator<VoidPayload> {
     logger.debug("Apply distinct operation to context {}", context);
     if (context instanceof ResourceList) {
       ResourceList resourceList = (ResourceList) context;
-      Map<Resource, List<Resource>> duplicatesMaps = datasetInformationService
-          .getSameAsEntitiesMap();
       List<Resource> newResourceList = new LinkedList<>();
       Set<Resource> recognizedResources = new HashSet<>();
       for (Resource resource : resourceList) {
         if (!recognizedResources.contains(resource)) {
           newResourceList.add(resource);
           recognizedResources.add(resource);
-          recognizedResources
-              .addAll(duplicatesMaps.getOrDefault(resource, Collections.emptyList()));
+          recognizedResources.addAll(sameAsResourceService.getSameAsResourcesFor(resource));
         }
       }
       return newResourceList.stream().collect(resourceList);

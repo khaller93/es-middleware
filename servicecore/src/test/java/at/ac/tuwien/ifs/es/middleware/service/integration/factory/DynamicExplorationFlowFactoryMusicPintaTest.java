@@ -9,6 +9,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.ThreadPoolConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
@@ -46,7 +47,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     RDF4JMemoryStoreWithLuceneSparqlDAO.class, RDF4JLuceneFullTextSearchDAO.class,
     DynamicExplorationFlowFactory.class, ExplorationFlowRegistry.class, FullTextSearch.class,
     ResourceDescriber.class, SimpleFullTextSearchService.class, ObjectMapper.class,
-    KGDAOConfig.class, RDF4JDAOConfig.class, ClonedInMemoryGremlinDAO.class})
+    KGDAOConfig.class, RDF4JDAOConfig.class, ClonedInMemoryGremlinDAO.class,
+    ThreadPoolConfig.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",

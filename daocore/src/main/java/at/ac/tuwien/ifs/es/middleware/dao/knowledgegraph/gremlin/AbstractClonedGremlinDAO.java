@@ -212,7 +212,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
                   .has(schema.iri().identifierAsString(), sIRI).iterate();
               if (vertexIt.hasNext()) {
                 Vertex v = vertexIt.next();
-                v.property(Cardinality.set, "version", issuedTimestamp);
+                v.property(Cardinality.single, "version", issuedTimestamp);
                 cache.put(node, v);
               } else {
                 Vertex v = graph
@@ -221,10 +221,10 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
                 cache.put(node, v);
               }
             }
+            offset += LOAD_LIMIT;
           } else {
             break;
           }
-          offset += LOAD_LIMIT;
         } while (!values.isEmpty() && values.size() == LOAD_LIMIT
             && AbstractClonedGremlinDAO.this.currentTimestamp.get() < issuedTimestamp);
         AbstractClonedGremlinDAO.this.commit();

@@ -1,42 +1,43 @@
-package at.ac.tuwien.ifs.es.middleware.service.integration.knowledegraph;
+package at.ac.tuwien.ifs.es.middleware.service.integration.analysis;
 
-import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.ThreadPoolConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
+import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.service.centrality.CentralityMetricsService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.degree.DegreeCentralityMetricService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.degree.DegreeCentralityMetricWithGremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.SimpleGremlinService;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
+import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Literal;
 import org.apache.commons.rdf.api.RDFTerm;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
@@ -44,7 +45,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * This class implements integration test cases for {@link CentralityMetricsService}.
+ * This class implements integration test cases for {@link DegreeCentralityMetricService}.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -53,75 +54,49 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {SimpleGremlinService.class, RDF4JLuceneFullTextSearchDAO.class,
     RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedInMemoryGremlinDAO.class,
-    CentralityCacheManagerStub.class, ThreadPoolConfig.class, KGDAOConfig.class,
-    RDF4JDAOConfig.class})
+    ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class, ThreadPoolConfig.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
     "esm.db.fts.choice=RDF4JLucene",
     "esm.db.gremlin.choice=ClonedInMemoryGremlin"
 })
-public class CentralityMetricsServiceTest {
+public class DegreeCentralityMetricServiceTests {
 
   @Rule
   public MusicPintaInstrumentsResource musicPintaResource;
   @Autowired
-  @Qualifier("getSparqlDAO")
-  private KGSparqlDAO sparqlDAO;
+  public KGSparqlDAO sparqlDAO;
   @Autowired
-  @Qualifier("getGremlinDAO")
-  private KGGremlinDAO gremlinDAO;
+  public KGGremlinDAO gremlinDAO;
   @Autowired
-  private GremlinService gremlinService;
+  public TaskExecutor taskExecutor;
   @Autowired
-  private CacheManager cacheManager;
+  public GremlinService gremlinService;
   @Autowired
-  private TaskExecutor taskExecutor;
-  @Autowired
-  private ApplicationContext applicationContext;
+  private ApplicationContext context;
 
-  private CentralityMetricsService centralityMetricsService;
+  private DegreeCentralityMetricService degreeCentralityMetricService;
 
   @PostConstruct
-  public void setUpInstance() throws Exception {
+  public void setUpInstance() {
     musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
   }
 
   @Before
   public void setUp() throws InterruptedException {
     musicPintaResource.waitForAllDAOsBeingReady();
-    centralityMetricsService = new CentralityMetricsService(gremlinService, cacheManager,
-        applicationContext, taskExecutor);
+    degreeCentralityMetricService = new DegreeCentralityMetricWithGremlinService(gremlinService,
+        context, taskExecutor);
   }
 
   @Test
-  public void test_computePageRankForAllResources_mustReturnCorrespondingPageRank() {
-    centralityMetricsService.computePageRank();
+  public void computeDegreeMetricsAndGetForTop10_mustBeEqualToSPARQLResult() {
+    degreeCentralityMetricService.compute();
     List<Resource> resources = ((SelectQueryResult) sparqlDAO
         .query(
             "SELECT distinct ?resource WHERE { {?resource ?p1 ?o} UNION {?s ?p2 ?resource} . FILTER(isIRI(?resource))}",
             false)).value().stream().map(r -> new Resource((BlankNodeOrIRI) r.get("resource")))
-        .collect(Collectors.toList());
-    List<Pair<Resource, Double>> resourceList = resources.stream().map(
-        resource -> new ImmutablePair<>(resource, centralityMetricsService.getPageRankOf(resource)))
-        .sorted((e1, e2) -> -Double.compare(e1.getRight(), e2.getRight()))
-        .collect(Collectors.toList());
-    assertThat("Instrument class must be in the top 10.", resourceList.stream().limit(10)
-            .map(r -> r.getKey().getId()).collect(Collectors.toList()),
-        hasItem("http://purl.org/ontology/mo/Instrument"));
-  }
-
-  @Test
-  public void test_computeDegreeMetrics_mustReturnAResult() {
-    centralityMetricsService.computeDegree();
-    List<Resource> resources = ((SelectQueryResult) sparqlDAO
-        .query(
-            "SELECT distinct ?resource WHERE { {?resource ?p1 ?o} UNION {?s ?p2 ?resource} . FILTER(isIRI(?resource))}",
-            false)).value().stream().map(r -> new Resource((BlankNodeOrIRI) r.get("resource")))
-        .collect(Collectors.toList());
-    List<Pair<Resource, Long>> resourceList = resources.stream().map(
-        resource -> new ImmutablePair<>(resource, centralityMetricsService.getDegreeOf(resource)))
-        .sorted((e1, e2) -> -Double.compare(e1.getRight(), e2.getRight()))
         .collect(Collectors.toList());
     List<Map<String, RDFTerm>> result = ((SelectQueryResult) sparqlDAO
         .query("select ?o (count(*) as ?c) where { \n"
@@ -136,26 +111,32 @@ public class CentralityMetricsServiceTest {
     for (Map<String, RDFTerm> row : result) {
       sparqlDegreeCount.add(Long.parseLong(((Literal) row.get("c")).getLexicalForm()));
       gremlinDegreeCount
-          .add(centralityMetricsService.getDegreeOf(new Resource((IRI) row.get("o"))));
+          .add(degreeCentralityMetricService.getValueFor(new Resource((IRI) row.get("o"))));
     }
     assertThat(gremlinDegreeCount, hasItems(sparqlDegreeCount.toArray(new Long[0])));
   }
 
   @Test
-  @Ignore
-  public void test_computeBetweeness_mustReturnAResult() {
-    centralityMetricsService.computeDegree();
-    List<Resource> resources = ((SelectQueryResult) sparqlDAO
-        .query(
-            "SELECT distinct ?resource WHERE { {?resource ?p1 ?o} UNION {?s ?p2 ?resource} . FILTER(isIRI(?resource))}",
-            false)).value().stream().map(r -> new Resource((BlankNodeOrIRI) r.get("resource")))
-        .collect(Collectors.toList());
-    List<Pair<Resource, Long>> resourceList = resources.stream().map(
-        resource -> new ImmutablePair<>(resource, centralityMetricsService.getDegreeOf(resource)))
-        .sorted((e1, e2) -> -Double.compare(e1.getRight(), e2.getRight()))
-        .collect(Collectors.toList());
-    assertThat("'Percussion instruments' must be in the top 10.", resourceList.stream().limit(10)
-            .map(r -> r.getKey().getId()).collect(Collectors.toList()),
-        hasItem("http://dbtune.org/musicbrainz/resource/instrument/124"));
+  public void computeDegreeMetricsAndGetForUnknownResource_mustReturnNull() {
+    degreeCentralityMetricService.compute();
+    Long distanceForUnknownResource = degreeCentralityMetricService
+        .getValueFor(new Resource("test:a"));
+    assertNull(distanceForUnknownResource);
+  }
+
+  @Test
+  public void computeDegreeMetricsAndGetForNewResource_mustReturnOnlineComputedResult() {
+    degreeCentralityMetricService.compute();
+    PGS schema = gremlinService.getPropertyGraphSchema();
+    Vertex vertexA = gremlinService.traversal().getGraph()
+        .addVertex(schema.iri().identifier(), "test:a", schema.kind().identifier(), "iri",
+            "version", Instant.now().getEpochSecond());
+    Vertex vertexB = gremlinService.traversal().getGraph()
+        .addVertex(schema.iri().identifier(), "test:b", schema.kind().identifier(), "iri",
+            "version", Instant.now().getEpochSecond());
+    vertexA.addEdge("owl:sameAs", vertexB);
+    Long resourceA = degreeCentralityMetricService.getValueFor(new Resource("test:a"));
+    assertNotNull(resourceA);
+    assertThat(resourceA, equalTo(1L));
   }
 }

@@ -5,7 +5,6 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDA
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.service.centrality.CentralityMetricsService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.event.InformationContentUpdatedEvent;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.event.PageRankUpdatedEvent;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
@@ -47,7 +46,7 @@ import org.springframework.stereotype.Service;
 @org.springframework.context.annotation.Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class SimilarityMetricsService {
 
-  private static final Logger logger = LoggerFactory.getLogger(SimilarityMetricsService.class);
+/*  private static final Logger logger = LoggerFactory.getLogger(SimilarityMetricsService.class);
 
   private static final String LEAST_COMMON_SUBSUMER_QUERY =
       "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
@@ -67,14 +66,14 @@ public class SimilarityMetricsService {
 
   private SPARQLService sparqlService;
   private GremlinService gremlinService;
-  private CentralityMetricsService centralityMetricsService;
+  private CentralityMetricsServiceImpl centralityMetricsService;
   private InformationContentService informationContentService;
   private CacheManager cacheManager;
   private TaskExecutor taskExecutor;
 
   @Autowired
   public SimilarityMetricsService(SPARQLService sparqlService, GremlinService gremlinService,
-      CentralityMetricsService centralityMetricsService,
+      CentralityMetricsServiceImpl centralityMetricsService,
       InformationContentService informationContentService,
       CacheManager cacheManager, TaskExecutor taskExecutor) {
     this.sparqlService = sparqlService;
@@ -109,9 +108,6 @@ public class SimilarityMetricsService {
     taskExecutor.execute(this::computeInformationContent);
   }
 
-  /**
-   * Computes the information-content between nodes.
-   */
   public void computeInformationContent() {
     Instant issueTimestamp = Instant.now();
     logger.info("Resnik similarity metric issued on {}", issueTimestamp);
@@ -183,9 +179,7 @@ public class SimilarityMetricsService {
     return getCentralityMetricValueOf(METRIC.ICPR, resourcePairs, Double.class);
   }
 
-  /**
-   * Computes the information-content page rank between nodes.
-   */
+
   public void computeICPR() {
     Instant issueTimestamp = Instant.now();
     logger.info("Computes distance metric issued on {}", issueTimestamp);
@@ -229,9 +223,6 @@ public class SimilarityMetricsService {
     return getCentralityMetricValueOf(METRIC.RESNIK, resourcePairs, Double.class);
   }
 
-  /**
-   * Computes the pairwise-distance between nodes.
-   */
   public void computeDistance() {
     Instant issueTimestamp = Instant.now();
     logger.info("Computes distance metric issued on {}", issueTimestamp);
@@ -273,10 +264,6 @@ public class SimilarityMetricsService {
         Instant.now());
   }
 
-  /**
-   * Gets the classes (least common subsummer) that are shared by two resources. It returns a map
-   * with the pair and a list with common subsumer.
-   */
   @Cacheable("sparql")
   public Map<ResourcePair, List<Resource>> getLeastCommonSubsumer() {
     List<Map<String, RDFTerm>> resultMap = ((SelectQueryResult) sparqlService
@@ -298,13 +285,6 @@ public class SimilarityMetricsService {
     return subsumerMap;
   }
 
-  /**
-   * Computes the distance between the first resource and second resource of a resource pair. If
-   * first and second pair are the same resource, the distance will be {@code 0}.
-   *
-   * @param resourcePairs for which the distance shall be computed.
-   * @return {@link Map} of resource pairs with the distance between given pair.
-   */
   public Map<ResourcePair, Integer> getDistance(List<ResourcePair> resourcePairs) {
     Cache similarityCache = cacheManager.getCache("similarity");
     if (similarityCache == null) {
@@ -320,9 +300,6 @@ public class SimilarityMetricsService {
     return distanceMap;
   }
 
-  /**
-   * This class represents the cache key for storing the result of the metrics.
-   */
   private static class SimilarityKey {
 
     private METRIC metric;
@@ -356,5 +333,5 @@ public class SimilarityMetricsService {
       return Objects.hash(metric, pair);
     }
   }
-
+**/
 }
