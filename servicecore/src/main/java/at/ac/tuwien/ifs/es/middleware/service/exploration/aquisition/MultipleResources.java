@@ -66,10 +66,9 @@ public class MultipleResources implements AcquisitionSource<MultipleResourcesPay
     List<Resource> resources = payload.getResources();
     if (!resources.isEmpty()) {
       logger.debug("A list of resources with IRIs {} was passed as source.", resources);
-      SelectQueryResult notExistResult = (SelectQueryResult) sparqlService
-          .query(String.format(SELECT_NOT_EXIST_QUERY,
-              resources.stream().map(BlankOrIRIJsonUtil::stringForSPARQLResourceOf)
-                  .collect(Collectors.joining("\n"))), true);
+      SelectQueryResult notExistResult = sparqlService.query(String.format(SELECT_NOT_EXIST_QUERY,
+          resources.stream().map(BlankOrIRIJsonUtil::stringForSPARQLResourceOf)
+              .collect(Collectors.joining("\n"))), true);
       List<RDFTerm> notExistingResources = new LinkedList<>();
       for (Map<String, RDFTerm> row : notExistResult.value()) {
         if (row.containsKey("s")) {

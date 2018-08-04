@@ -279,8 +279,8 @@ public class SimilarityMetricsService {
    */
   @Cacheable("sparql")
   public Map<ResourcePair, List<Resource>> getLeastCommonSubsumer() {
-    List<Map<String, RDFTerm>> resultMap = ((SelectQueryResult) sparqlService
-        .query(LEAST_COMMON_SUBSUMER_QUERY, true)).value();
+    List<Map<String, RDFTerm>> resultMap = (sparqlService.<SelectQueryResult>query(
+        LEAST_COMMON_SUBSUMER_QUERY, true)).value();
     Map<ResourcePair, List<Resource>> subsumerMap = new HashMap<>();
     for (Map<String, RDFTerm> row : resultMap) {
       Resource left = new Resource((BlankNodeOrIRI) row.get("resource1"));

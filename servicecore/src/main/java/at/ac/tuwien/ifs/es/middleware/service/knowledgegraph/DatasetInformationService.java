@@ -61,7 +61,7 @@ public class DatasetInformationService {
   public Map<Resource, List<Resource>> getSameAsEntitiesMap() {
     logger.debug("Start to compute the 'owl:sameAs' entities to all entities.");
     Map<Resource, List<Resource>> sameAsMap = new HashMap<>();
-    SelectQueryResult queryResult = (SelectQueryResult) sparqlService.query(DUPLICATES_QUERY, true);
+    SelectQueryResult queryResult = sparqlService.query(DUPLICATES_QUERY, true);
     for (Map<String, RDFTerm> row : queryResult.value()) {
       Resource keyResource = new Resource((BlankNodeOrIRI) row.get("s"));
       String sameAsResourceString = ((Literal) row.get("sameAs")).getLexicalForm();

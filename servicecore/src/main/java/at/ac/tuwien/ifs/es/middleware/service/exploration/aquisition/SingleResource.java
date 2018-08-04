@@ -57,7 +57,7 @@ public class SingleResource implements AcquisitionSource<SingleResourcePayload> 
     Map<String, String> valueMap = Collections
         .singletonMap("s",
             BlankOrIRIJsonUtil.stringForSPARQLResourceOf(payload.getResource().value()));
-    AskQueryResult existResult = (AskQueryResult) sparqlService
+    AskQueryResult existResult = sparqlService
         .query(new StringSubstitutor(valueMap).replace(ASK_EXIST_QUERY), true);
     if (existResult.value()) {
       return new ResourceList(Collections.singletonList(payload.getResource()));

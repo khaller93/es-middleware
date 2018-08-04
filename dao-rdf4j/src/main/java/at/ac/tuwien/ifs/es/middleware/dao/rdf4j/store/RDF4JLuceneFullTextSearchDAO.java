@@ -97,7 +97,7 @@ public class RDF4JLuceneFullTextSearchDAO implements KGFullTextSearchDAO {
     valueMap.put("offset", offset != null ? "OFFSET " + offset.toString() : "");
     valueMap.put("limit", limit != null ? "LIMIT " + limit.toString() : "");
     String filledFtsQuery = new StringSubstitutor(valueMap).replace(FTS_QUERY);
-    return ((SelectQueryResult) sparqlDAO.query(filledFtsQuery, true)).value();
+    return sparqlDAO.<SelectQueryResult>query(filledFtsQuery, true).value();
   }
 
   @Override

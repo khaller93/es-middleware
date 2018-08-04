@@ -201,8 +201,8 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
           Map<String, String> valuesMap = new HashMap<>();
           valuesMap.put("offset", String.valueOf(offset));
           valuesMap.put("limit", String.valueOf(LOAD_LIMIT));
-          values = ((SelectQueryResult) sparqlDAO
-              .query(new StringSubstitutor(valuesMap).replace(ALL_RESOURCE_IRIS_QUERY), true))
+          values = sparqlDAO.<SelectQueryResult>query(
+              new StringSubstitutor(valuesMap).replace(ALL_RESOURCE_IRIS_QUERY), true)
               .value();
           if (values != null) {
             for (Map<String, RDFTerm> row : values) {
@@ -256,8 +256,8 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
           Map<String, String> valuesMap = new HashMap<>();
           valuesMap.put("offset", String.valueOf(offset));
           valuesMap.put("limit", String.valueOf(LOAD_LIMIT));
-          values = ((SelectQueryResult) sparqlDAO
-              .query(new StringSubstitutor(valuesMap).replace(ALL_STATEMENTS_QUERY), true)).value();
+          values = sparqlDAO.<SelectQueryResult>query(
+              new StringSubstitutor(valuesMap).replace(ALL_STATEMENTS_QUERY), true).value();
           for (Map<String, RDFTerm> row : values) {
             BlankNodeOrIRI subject = (BlankNodeOrIRI) row.get("s");
             BlankNodeOrIRI property = (BlankNodeOrIRI) row.get("p");

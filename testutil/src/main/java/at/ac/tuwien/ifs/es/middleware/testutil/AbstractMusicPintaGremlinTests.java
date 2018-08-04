@@ -87,8 +87,8 @@ public abstract class AbstractMusicPintaGremlinTests {
 
   @Test(timeout = 120000)
   public void test_countAllInstruments_mustReturnCorrectResults() throws Exception {
-    long instrumentsCount = Long.parseLong(((Literal) (((SelectQueryResult) sparqlDAO
-        .query("select (COUNT(DISTINCT ?s) AS ?cnt) { \n"
+    long instrumentsCount = Long.parseLong(((Literal) ((sparqlDAO
+        .<SelectQueryResult>query("select (COUNT(DISTINCT ?s) AS ?cnt) { \n"
             + " ?s a <http://purl.org/ontology/mo/Instrument> .\n"
             + "}", true)).value().get(0).get("cnt"))).getLexicalForm());
     assertThat(
@@ -99,8 +99,8 @@ public abstract class AbstractMusicPintaGremlinTests {
 
   @Test(timeout = 120000)
   public void test_getCountIndividuals_mustReturnCorrectNumber() throws Exception {
-    long totalResourceNumber = Long.parseLong(((Literal) ((SelectQueryResult) sparqlDAO
-        .query("SELECT (count(DISTINCT ?s) AS ?cnt) WHERE {\n"
+    long totalResourceNumber = Long.parseLong(((Literal) (sparqlDAO
+        .<SelectQueryResult>query("SELECT (count(DISTINCT ?s) AS ?cnt) WHERE {\n"
             + "   {\n"
             + "        ?s ?p ?o .\n"
             + "    } UNION {\n"

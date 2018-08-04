@@ -118,7 +118,8 @@ public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
   }
 
   @Override
-  public QueryResult query(String queryString, boolean includeInferred)
+  @SuppressWarnings("unchecked")
+  public <T extends QueryResult> T query(String queryString, boolean includeInferred)
       throws KnowledgeGraphSPARQLException {
     logger
         .trace("Query {} was requested to be executed. Inference={}",
@@ -128,12 +129,13 @@ public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
       query.setIncludeInferred(includeInferred);
       if (query instanceof TupleQuery) {
         TupleQueryResult result = ((TupleQuery) query).evaluate();
-        return new RDF4JSelectQueryResult(result.getBindingNames(), QueryResults.asList(result));
+        return (T) new RDF4JSelectQueryResult(result.getBindingNames(),
+            QueryResults.asList(result));
       } else if (query instanceof BooleanQuery) {
-        return new RDF4JAskQueryResult(((BooleanQuery) query).evaluate());
+        return (T) new RDF4JAskQueryResult(((BooleanQuery) query).evaluate());
       } else if (query instanceof GraphQuery) {
         GraphQueryResult graphQueryResult = ((GraphQuery) query).evaluate();
-        return new RDF4JGraphQueryResult(graphQueryResult.getNamespaces(),
+        return (T) new RDF4JGraphQueryResult(graphQueryResult.getNamespaces(),
             QueryResults.asList(graphQueryResult));
       } else {
         throw new MalformedSPARQLQueryException(String

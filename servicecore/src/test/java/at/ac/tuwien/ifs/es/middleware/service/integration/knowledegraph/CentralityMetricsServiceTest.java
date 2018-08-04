@@ -97,10 +97,10 @@ public class CentralityMetricsServiceTest {
   @Test
   public void test_computePageRankForAllResources_mustReturnCorrespondingPageRank() {
     centralityMetricsService.computePageRank();
-    List<Resource> resources = ((SelectQueryResult) sparqlDAO
-        .query(
+    List<Resource> resources = sparqlDAO
+        .<SelectQueryResult>query(
             "SELECT distinct ?resource WHERE { {?resource ?p1 ?o} UNION {?s ?p2 ?resource} . FILTER(isIRI(?resource))}",
-            false)).value().stream().map(r -> new Resource((BlankNodeOrIRI) r.get("resource")))
+            false).value().stream().map(r -> new Resource((BlankNodeOrIRI) r.get("resource")))
         .collect(Collectors.toList());
     List<Pair<Resource, Double>> resourceList = resources.stream().map(
         resource -> new ImmutablePair<>(resource, centralityMetricsService.getPageRankOf(resource)))
@@ -114,8 +114,8 @@ public class CentralityMetricsServiceTest {
   @Test
   public void test_computeDegreeMetrics_mustReturnAResult() {
     centralityMetricsService.computeDegree();
-    List<Resource> resources = ((SelectQueryResult) sparqlDAO
-        .query(
+    List<Resource> resources = (sparqlDAO
+        .<SelectQueryResult>query(
             "SELECT distinct ?resource WHERE { {?resource ?p1 ?o} UNION {?s ?p2 ?resource} . FILTER(isIRI(?resource))}",
             false)).value().stream().map(r -> new Resource((BlankNodeOrIRI) r.get("resource")))
         .collect(Collectors.toList());
@@ -145,8 +145,8 @@ public class CentralityMetricsServiceTest {
   @Ignore
   public void test_computeBetweeness_mustReturnAResult() {
     centralityMetricsService.computeDegree();
-    List<Resource> resources = ((SelectQueryResult) sparqlDAO
-        .query(
+    List<Resource> resources = (sparqlDAO
+        .<SelectQueryResult>query(
             "SELECT distinct ?resource WHERE { {?resource ?p1 ?o} UNION {?s ?p2 ?resource} . FILTER(isIRI(?resource))}",
             false)).value().stream().map(r -> new Resource((BlankNodeOrIRI) r.get("resource")))
         .collect(Collectors.toList());
