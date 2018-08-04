@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.dao.blazegraph;
 
-import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JKnowledgeGraphDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
 import javax.annotation.PostConstruct;
 import org.eclipse.rdf4j.repository.sparql.SPARQLRepository;
 import org.slf4j.Logger;
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component("BlazegraphDAO")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-public class BlazegraphDAO extends RDF4JKnowledgeGraphDAO {
+public class BlazegraphDAO extends RDF4JSparqlDAO {
 
   private static final Logger logger = LoggerFactory.getLogger(BlazegraphDAO.class);
 

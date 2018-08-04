@@ -27,6 +27,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -49,10 +50,10 @@ public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
       new LiteralGraphSchema(T.value, "datatype", "language"));
 
   @Autowired
-  public ClonedLocalJanusGraph(ApplicationContext context,
+  public ClonedLocalJanusGraph(ApplicationContext context, TaskExecutor taskExecutor,
       @Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO,
       @Value("${janusgraph.dir}") String janusGraphDir) {
-    super(context, sparqlDAO, schema);
+    super(context, sparqlDAO, schema, taskExecutor);
     this.setGraph(initGraphInstance(janusGraphDir));
   }
 
