@@ -24,14 +24,4 @@ public interface ClassInformationService extends AnalysisService<Void> {
    */
   Set<Resource> getAllClasses();
 
-  /**
-   * Gets the least common subsumers (also least common ancestors) for the given {@code
-   * resourcePair}. The returned list must not be null and will be empty, if there is no common
-   * subsumer. A common subsumer are the deepest classes that are shared by both resources of the
-   * pair and do not have a descendant that both resources share too (making it the deepest).
-   *
-   * @param resourcePair for which the least common subsumers shall be returned.
-   * @return the least common subsumers of the given {@code resourcePar} in form of a {@link List}.
-   */
-  Set<Resource> getLeastCommonSubSumersFor(ResourcePair resourcePair);
 }

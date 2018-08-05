@@ -1,7 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.service.integration.analysis;
 
 import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
@@ -19,9 +18,13 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePai
 import at.ac.tuwien.ifs.es.middleware.service.CachingConfig;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyWithGremlinService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassInformationService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassInformationServiceImpl;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LeastCommonSubSummersService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LeastCommonSubSummersWithSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LCSWithInMemoryTreeService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LeastCommonSubSumersService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LCSWithSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.SameAsResourceService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.SameAsResourceWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.resnik.ResnikSimilarityMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.resnik.ResnikSimilarityMetricServiceImpl;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
@@ -30,13 +33,12 @@ import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLServic
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import javax.annotation.PostConstruct;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
@@ -54,7 +56,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {SimpleSPARQLService.class, SimpleGremlinService.class,
     RDF4JLuceneFullTextSearchDAO.class, RDF4JMemoryStoreWithLuceneSparqlDAO.class,
     ClonedInMemoryGremlinDAO.class, ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class,
-    ThreadPoolConfig.class, ClassInformationServiceImpl.class, CachingConfig.class})
+    ThreadPoolConfig.class, ClassInformationServiceImpl.class, CachingConfig.class,
+    SameAsResourceWithSPARQLService.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -76,9 +79,11 @@ public class ResnikSimilarityMetricServiceTests {
   @Autowired
   private GremlinService gremlinService;
   @Autowired
-  private ClassInformationServiceImpl classInformationService;
-  @Autowired
   private ApplicationContext context;
+  @Autowired
+  private CacheManager cacheManager;
+  @Autowired
+  private ClassInformationService classInformationService;
 
   private PGS schema;
   private ResnikSimilarityMetricService resnikSimilarityMetricService;
@@ -86,17 +91,23 @@ public class ResnikSimilarityMetricServiceTests {
   @PostConstruct
   public void setUpInstance() {
     musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
-    schema = gremlinService.getPropertyGraphSchema();
   }
 
   @Before
   public void setUp() throws InterruptedException {
     musicPintaResource.waitForAllDAOsBeingReady();
+    SameAsResourceService sameAsResourceService = new SameAsResourceWithSPARQLService(sparqlService,
+        context, taskExecutor, cacheManager);
+    sameAsResourceService.compute();
     ClassEntropyService classEntropyService = new ClassEntropyWithGremlinService(gremlinService,
         classInformationService, context, taskExecutor);
-    LeastCommonSubSummersService leastCommonSubSummersService = new LeastCommonSubSummersWithSPARQLService(sparqlService);
+    classEntropyService.compute();
+    LeastCommonSubSumersService leastCommonSubSumersService = new LCSWithInMemoryTreeService(
+        sparqlService, classInformationService, sameAsResourceService, context, taskExecutor,
+        cacheManager);
+    leastCommonSubSumersService.compute();
     resnikSimilarityMetricService = new ResnikSimilarityMetricServiceImpl(gremlinService,
-        classEntropyService, leastCommonSubSummersService);
+        classEntropyService, leastCommonSubSumersService, cacheManager);
   }
 
   @Test
@@ -109,21 +120,5 @@ public class ResnikSimilarityMetricServiceTests {
         .getValueFor(ResourcePair.of(guitarResource, spanishAcousticGuitarResource));
     assertNotNull(resnikValue);
     assertThat(resnikValue, greaterThan(0.0));
-  }
-
-  @Test
-  public void areHiddenEdgesForIC_actuallyHidden() {
-    Vertex guitarVertex = gremlinService.traversal().V()
-        .has(schema.iri().identifierAsString(), "http://dbpedia.org/resource/Guitar").next();
-    Long guitarOutgoingEdges = gremlinService.traversal().V(guitarVertex.id()).outE().count()
-        .next();
-    Vertex spanishAcousticGuitarVertex = gremlinService.traversal().V()
-        .has(schema.iri().identifierAsString(),
-            "http://dbtune.org/musicbrainz/resource/instrument/206").next();
-    guitarVertex.addEdge(Graph.Hidden.hide("test:a"), spanishAcousticGuitarVertex);
-    Long guitarOutgoingEdgesAfter = gremlinService.traversal().V(guitarVertex.id()).outE().count()
-        .next();
-    assertNotNull(guitarOutgoingEdges);
-    assertThat(guitarOutgoingEdges, is(guitarOutgoingEdgesAfter));
   }
 }

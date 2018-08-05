@@ -9,7 +9,6 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisEventStatus;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
@@ -38,12 +37,12 @@ import org.springframework.stereotype.Service;
  */
 @Primary
 @Service
-@AnalyticalProcessing(name = "esm.service.analytics.dataset.classentropy")
+@AnalyticalProcessing(name = ClassEntropyWithGremlinService.CLASS_ENTROPY_UID)
 public class ClassEntropyWithGremlinService implements ClassEntropyService {
 
   private static final Logger logger = LoggerFactory.getLogger(ClassEntropyService.class);
 
-  public static final String ENTROPY_PROP_NAME = "esm.class.ic";
+  public static final String CLASS_ENTROPY_UID = "esm.service.analytics.dataset.classentropy";
 
   private GremlinService gremlinService;
   private ClassInformationService classInformationService;
@@ -96,7 +95,7 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
     if (!traversal.hasNext()) {
       return null;
     }
-    return (Double) traversal.next().property(ENTROPY_PROP_NAME).orElse(null);
+    return (Double) traversal.next().property(CLASS_ENTROPY_UID).orElse(null);
   }
 
   @Override
@@ -128,7 +127,7 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
         for (Resource clazz : allClasses) {
           gremlinService.traversal().V().has(schema.iri().identifierAsString(),
               BlankOrIRIJsonUtil.stringValue(clazz.value()))
-              .property(Cardinality.single, ENTROPY_PROP_NAME,
+              .property(Cardinality.single, CLASS_ENTROPY_UID,
                   icClassMap.getOrDefault(clazz, -Math.log(1.0 / total))).iterate();
         }
         gremlinService.commit();

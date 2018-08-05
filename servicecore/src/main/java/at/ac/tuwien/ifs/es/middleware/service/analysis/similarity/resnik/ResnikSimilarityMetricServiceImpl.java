@@ -7,18 +7,19 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisEventStatus;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LeastCommonSubSummersService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LeastCommonSubSumersService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityKey;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import java.time.Instant;
 import java.util.Iterator;
 import java.util.Set;
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
-import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.Graph.Hidden;
+import java.util.function.BinaryOperator;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -32,53 +33,57 @@ import org.springframework.stereotype.Service;
  */
 @Primary
 @Service
-@AnalyticalProcessing(name = "esm.service.analysis.sim.resnik")
+@AnalyticalProcessing(name = ResnikSimilarityMetricServiceImpl.RESNIK_SIMILARITY_UID)
 public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetricService {
 
   private static final Logger logger = LoggerFactory
       .getLogger(ResnikSimilarityMetricServiceImpl.class);
 
-  private static final String RESNIK_EDGE_PROP_NAME = "esm.service.analysis.sim.resnik";
+  public static final String RESNIK_SIMILARITY_UID = "esm.service.analysis.sim.resnik";
 
   private GremlinService gremlinService;
   private PGS schema;
   private ClassEntropyService classEntropyService;
-  private LeastCommonSubSummersService leastCommonSubSummersService;
+  private LeastCommonSubSumersService leastCommonSubSumersService;
+  private Cache similarityCache;
+  private boolean similarityCacheAvailable;
 
+  @Autowired
   public ResnikSimilarityMetricServiceImpl(
       GremlinService gremlinService,
       ClassEntropyService classEntropyService,
-      LeastCommonSubSummersService leastCommonSubSummersService) {
+      LeastCommonSubSumersService leastCommonSubSumersService,
+      CacheManager cacheManager) {
     this.gremlinService = gremlinService;
     this.schema = gremlinService.getPropertyGraphSchema();
     this.classEntropyService = classEntropyService;
-    this.leastCommonSubSummersService = leastCommonSubSummersService;
+    this.leastCommonSubSumersService = leastCommonSubSumersService;
+    this.similarityCache = cacheManager.getCache("similarity");
+    this.similarityCacheAvailable = similarityCache != null;
   }
 
   @Override
   public Double getValueFor(ResourcePair resourcePair) {
-    String resourceIRI_A = BlankOrIRIJsonUtil.stringValue(resourcePair.getFirst().value());
-    String resourceIRI_B = BlankOrIRIJsonUtil.stringValue(resourcePair.getSecond().value());
-    GraphTraversal<Vertex, Vertex> vertexTraversal = gremlinService.traversal().V()
-        .has(schema.iri().identifierAsString(), resourceIRI_A);
-    if (!vertexTraversal.hasNext()) {
-      return null;
-    }
-    GraphTraversal<Vertex, Object> icTraversal = gremlinService.traversal().V()
-        .has(schema.iri().identifierAsString(), resourceIRI_A)
-        .out(Hidden.hide(RESNIK_EDGE_PROP_NAME)).as("e")
-        .outV().has(schema.iri().identifierAsString(), resourceIRI_B).select("e");
-    if (icTraversal.hasNext()) {
-      return (Double) ((Edge) icTraversal.next()).properties("value").next().orElse(null);
+    Double simValue = similarityCache
+        .get(SimilarityKey.of(RESNIK_SIMILARITY_UID, resourcePair), Double.class);
+    if (simValue != null) {
+      return simValue;
     } else {
-      return computeIC(resourcePair);
+      if (!gremlinService.traversal().V().has(schema.iri().identifierAsString(),
+          BlankOrIRIJsonUtil.stringValue(resourcePair.getFirst().value())).hasNext()
+          || !gremlinService.traversal().V().has(schema.iri().identifierAsString(),
+          BlankOrIRIJsonUtil.stringValue(resourcePair.getSecond().value())).hasNext()) {
+        return null;
+      } else {
+        return computeIC(resourcePair);
+      }
     }
   }
 
   private Double computeIC(ResourcePair pair) {
-    Set<Resource> classes = leastCommonSubSummersService.getLeastCommonSubSummersFor(pair);
+    Set<Resource> classes = leastCommonSubSumersService.getLeastCommonSubSumersFor(pair);
     return classes.stream().map(clazz -> classEntropyService.getEntropyForClass(clazz))
-        .reduce(0.0, (a, b) -> a + b);
+        .reduce(0.0, BinaryOperator.maxBy(Double::compareTo));
   }
 
   @Override
@@ -93,15 +98,14 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
         Iterator<Vertex> verticesBIterator = gremlinService.traversal().getGraph().vertices();
         while (verticesBIterator.hasNext()) {
           Vertex vertexB = verticesBIterator.next();
-          Double clazzSumIC = computeIC(
-              ResourcePair.of(new Resource(schema.iri().<String>apply(vertexA)),
-                  new Resource(schema.iri().<String>apply(vertexB))));
-          vertexA.addEdge(Graph.Hidden.hide(RESNIK_EDGE_PROP_NAME), vertexB, "value", clazzSumIC);
+          ResourcePair pair = ResourcePair.of(new Resource(schema.iri().<String>apply(vertexA)),
+              new Resource(schema.iri().<String>apply(vertexB)));
+          Double clazzSumIC = computeIC(pair);
+          if (clazzSumIC != null && similarityCacheAvailable) {
+            similarityCache.put(SimilarityKey.of(RESNIK_SIMILARITY_UID, pair), clazzSumIC);
+          }
         }
       }
-      gremlinService.commit();
-    } catch (Exception e) {
-      gremlinService.rollback();
     } finally {
       gremlinService.unlock();
     }

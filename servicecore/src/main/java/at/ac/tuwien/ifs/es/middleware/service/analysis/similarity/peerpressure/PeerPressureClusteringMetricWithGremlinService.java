@@ -19,6 +19,7 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty.Cardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.event.EventListener;
@@ -32,20 +33,19 @@ import org.springframework.stereotype.Service;
  *
  * @author Kevin Haller
  * @version 1.0
- * @see <a href="http://tinkerpop.apache.org/docs/current/reference/#peerpressurevertexprogram">Tinkerpop
- * Peer Pressure documentation</a>
  * @since 1.0
  */
 @Primary
 @Service
-@AnalyticalProcessing(name = "esm.service.analytics.similarity.peerpressure")
+@AnalyticalProcessing(name = PeerPressureClusteringMetricWithGremlinService.PEER_PRESSURE_UID)
 public class PeerPressureClusteringMetricWithGremlinService implements
     PeerPressureClusteringMetricService {
 
   private static final Logger logger = LoggerFactory
       .getLogger(PeerPressureClusteringMetricWithGremlinService.class);
 
-  private static final String PEER_PRESSURE_PROP_NAME = "esm.service.analytics.similarity.peerpressure";
+  public static final String PEER_PRESSURE_UID = "esm.service.analytics.similarity.peerpressure";
+  private static final String PEER_PRESSURE_PROP_NAME = PEER_PRESSURE_UID;
 
   private GremlinService gremlinService;
   private PGS schema;
@@ -55,6 +55,7 @@ public class PeerPressureClusteringMetricWithGremlinService implements
   private long lastUpdateTimestamp = 0L;
   private Lock computationLock = new ReentrantLock();
 
+  @Autowired
   public PeerPressureClusteringMetricWithGremlinService(
       GremlinService gremlinService,
       ApplicationEventPublisher eventPublisher,

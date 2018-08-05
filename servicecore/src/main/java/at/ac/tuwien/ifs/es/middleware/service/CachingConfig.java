@@ -18,8 +18,8 @@ public class CachingConfig {
     cacheManager.setCaches(Arrays.asList(
         new ConcurrentMapCache("sparql"),
         new ConcurrentMapCache("fts"),
-        new ConcurrentMapCache("centrality"),
-        new ConcurrentMapCache("information-content"),
+        new ConcurrentMapCache("sameas"),
+        new ConcurrentMapCache("lcs"),
         new ConcurrentMapCache("similarity")));
     return cacheManager;
   }

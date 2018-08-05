@@ -84,7 +84,7 @@ public class ClassInformationServiceTests {
   public void setUp() throws Exception {
     musicPintaResource.waitForAllDAOsBeingReady();
   }
-
+/*
   @Test
   public void leastcommonSubsummersOfTwoGuitarInstruments_mustReturnGuitarClass() {
     Resource guitarResource = new Resource("http://dbpedia.org/resource/Guitar");
@@ -107,5 +107,5 @@ public class ClassInformationServiceTests {
         .getLeastCommonSubSumersFor(ResourcePair.of(guitarResource, testAResource));
     assertNotNull(leastCommonSubSummers);
     assertThat(leastCommonSubSummers, hasSize(0));
-  }
+  }*/
 }

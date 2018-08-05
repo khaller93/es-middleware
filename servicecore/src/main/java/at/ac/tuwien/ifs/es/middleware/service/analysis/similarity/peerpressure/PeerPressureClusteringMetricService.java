@@ -10,6 +10,8 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisService;
  *
  * @author Kevin Haller
  * @version 1.0
+ * @see <a href="http://tinkerpop.apache.org/docs/current/reference/#peerpressurevertexprogram">Tinkerpop
+ * Peer Pressure documentation</a>
  * @since 1.0
  */
 public interface PeerPressureClusteringMetricService extends AnalysisService<Void> {

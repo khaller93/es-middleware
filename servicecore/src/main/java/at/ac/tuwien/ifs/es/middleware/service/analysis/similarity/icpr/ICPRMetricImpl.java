@@ -4,13 +4,13 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePai
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisEventStatus;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.pagerank.PageRankCentralityMetricService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LeastCommonSubSummersService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LeastCommonSubSumersService;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
  * This class is an implementation of {@link ICPRMetricService} that uses the {@link
- * LeastCommonSubSummersService} and {@link PageRankCentralityMetricService}.
+ * LeastCommonSubSumersService} and {@link PageRankCentralityMetricService}.
  *
  * @author Kevin Haller
  * @version 1.0
