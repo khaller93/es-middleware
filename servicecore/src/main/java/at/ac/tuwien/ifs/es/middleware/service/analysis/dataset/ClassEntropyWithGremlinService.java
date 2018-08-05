@@ -7,11 +7,11 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisEventStatus;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.DatasetInformationService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -46,7 +46,7 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
   public static final String ENTROPY_PROP_NAME = "esm.class.ic";
 
   private GremlinService gremlinService;
-  private DatasetInformationService datasetInformationService;
+  private ClassInformationService classInformationService;
   private PGS schema;
   private ApplicationEventPublisher eventPublisher;
   private TaskExecutor taskExecutor;
@@ -55,11 +55,11 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
   private Lock computationLock = new ReentrantLock();
 
   public ClassEntropyWithGremlinService(GremlinService gremlinService,
-      DatasetInformationService datasetInformationService,
+      ClassInformationService classInformationService,
       ApplicationEventPublisher eventPublisher, TaskExecutor taskExecutor) {
     this.gremlinService = gremlinService;
     this.schema = gremlinService.getPropertyGraphSchema();
-    this.datasetInformationService = datasetInformationService;
+    this.classInformationService = classInformationService;
     this.eventPublisher = eventPublisher;
     this.taskExecutor = taskExecutor;
   }
@@ -105,14 +105,15 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
     logger.info("Starting to computes information content metric for classes.");
     gremlinService.lock();
     try {
-      List<Resource> allClasses = datasetInformationService.getAllClasses();
+      Set<Resource> allClasses = classInformationService.getAllClasses();
       if (!allClasses.isEmpty()) {
         GraphTraversalSource g = gremlinService.traversal();
         Long total = g.V().dedup().count().next();
         String[] addClassLabels = allClasses.stream().skip(1).map(Resource::getId)
             .toArray(String[]::new);
         Map<Object, Object> classInstancesMap = g
-            .V().has(schema.iri().identifierAsString(), allClasses.get(0).getId(), addClassLabels)
+            .V().has(schema.iri().identifierAsString(), allClasses.iterator().next().getId(),
+                addClassLabels)
             .until(__.or(__.not(__.in("http://www.w3.org/2000/01/rdf-schema#subClassOf")),
                 __.cyclicPath()))
             .repeat(__.in("http://www.w3.org/2000/01/rdf-schema#subClassOf")).group()

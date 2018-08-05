@@ -121,6 +121,6 @@ public class StardogKnowledgeGraphDAO extends RDF4JSparqlDAO implements
     logger
         .trace("Searching with '{}' for '{}' of classes {} with limit={}, offset={}.", searchQuery,
             keyword, classes, offset, limit);
-    return ((SelectQueryResult) query(searchQuery, true)).value();
+    return this.<SelectQueryResult>query(searchQuery, true).value();
   }
 }

@@ -28,7 +28,8 @@ public interface SPARQLService {
    * of server).
    * @throws MalformedSPARQLQueryException will be thrown, if the given {@code query} is malformed.
    */
-  QueryResult query(String query, boolean includeInference) throws KnowledgeGraphSPARQLException;
+  <T extends QueryResult> T query(String query, boolean includeInference)
+      throws KnowledgeGraphSPARQLException;
 
   /**
    * Executes the given SPARQL {@code query}.

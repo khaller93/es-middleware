@@ -107,7 +107,7 @@ public class AllResources implements AcquisitionSource<AllResourcesPayload> {
     // Reads the result.
     String query = new StringSubstitutor(valuesMap).replace(allQueryTemplate);
     logger.debug("Executing the query '{}' for all resources operator.", query);
-    SelectQueryResult result = (SelectQueryResult) sparqlService.query(query, true);
+    SelectQueryResult result = sparqlService.query(query, true);
     return ResourceList.of(result, "s");
   }
 }

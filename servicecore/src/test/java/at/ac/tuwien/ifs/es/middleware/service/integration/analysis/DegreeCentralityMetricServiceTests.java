@@ -93,8 +93,8 @@ public class DegreeCentralityMetricServiceTests {
   @Test
   public void computeDegreeMetricsAndGetForTop10_mustBeEqualToSPARQLResult() {
     degreeCentralityMetricService.compute();
-    List<Resource> resources = ((SelectQueryResult) sparqlDAO
-        .query(
+    List<Resource> resources = (sparqlDAO
+        .<SelectQueryResult>query(
             "SELECT distinct ?resource WHERE { {?resource ?p1 ?o} UNION {?s ?p2 ?resource} . FILTER(isIRI(?resource))}",
             false)).value().stream().map(r -> new Resource((BlankNodeOrIRI) r.get("resource")))
         .collect(Collectors.toList());

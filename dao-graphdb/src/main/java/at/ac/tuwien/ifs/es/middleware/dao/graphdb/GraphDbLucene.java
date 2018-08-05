@@ -135,7 +135,7 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
     logger.trace(
         "Query resulting from FTS call for {} with parameters (offset={}, limit={}, classes={}).",
         filledFtsQuery, offset, limit, classes);
-    return ((SelectQueryResult) sparqlDAO.query(filledFtsQuery, true)).value();
+    return sparqlDAO.<SelectQueryResult>query(filledFtsQuery, true).value();
   }
 
   @Override

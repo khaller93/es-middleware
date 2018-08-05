@@ -32,7 +32,7 @@ public class SimpleSPARQLService implements SPARQLService {
 
   @Cacheable({"sparql"})
   @Override
-  public QueryResult query(String query, boolean includeInference)
+  public <T extends QueryResult> T query(String query, boolean includeInference)
       throws KnowledgeGraphSPARQLException {
     return sparqlDAO.query(query, includeInference);
   }

@@ -17,15 +17,13 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLucene
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.service.CachingConfig;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.pagerank.PageRankCentralityMetricService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.pagerank.PageRankCentralityMetricWithGremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyWithGremlinService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassInformationServiceImpl;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LeastCommonSubSummersService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LeastCommonSubSummersWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.resnik.ResnikSimilarityMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.resnik.ResnikSimilarityMetricServiceImpl;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.DatasetInformationService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.SimpleGremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
@@ -56,7 +54,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {SimpleSPARQLService.class, SimpleGremlinService.class,
     RDF4JLuceneFullTextSearchDAO.class, RDF4JMemoryStoreWithLuceneSparqlDAO.class,
     ClonedInMemoryGremlinDAO.class, ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class,
-    ThreadPoolConfig.class, DatasetInformationService.class, CachingConfig.class})
+    ThreadPoolConfig.class, ClassInformationServiceImpl.class, CachingConfig.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -78,7 +76,7 @@ public class ResnikSimilarityMetricServiceTests {
   @Autowired
   private GremlinService gremlinService;
   @Autowired
-  private DatasetInformationService datasetInformationService;
+  private ClassInformationServiceImpl classInformationService;
   @Autowired
   private ApplicationContext context;
 
@@ -95,7 +93,7 @@ public class ResnikSimilarityMetricServiceTests {
   public void setUp() throws InterruptedException {
     musicPintaResource.waitForAllDAOsBeingReady();
     ClassEntropyService classEntropyService = new ClassEntropyWithGremlinService(gremlinService,
-        datasetInformationService, context, taskExecutor);
+        classInformationService, context, taskExecutor);
     LeastCommonSubSummersService leastCommonSubSummersService = new LeastCommonSubSummersWithSPARQLService(sparqlService);
     resnikSimilarityMetricService = new ResnikSimilarityMetricServiceImpl(gremlinService,
         classEntropyService, leastCommonSubSummersService);

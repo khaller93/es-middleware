@@ -40,7 +40,8 @@ public interface KGSparqlDAO {
    * @throws KnowledgeGraphSPARQLException if the given SPARQL query could not be executed
    * successfully.
    */
-  QueryResult query(String query, boolean includeInferred) throws KnowledgeGraphSPARQLException;
+  <T extends QueryResult> T query(String query, boolean includeInferred)
+      throws KnowledgeGraphSPARQLException;
 
   /**
    * Updates the knowledge graph using given SPARQL {@code query}.

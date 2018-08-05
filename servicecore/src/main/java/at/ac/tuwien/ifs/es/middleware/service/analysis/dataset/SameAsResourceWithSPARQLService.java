@@ -66,13 +66,13 @@ public class SameAsResourceWithSPARQLService implements SameAsResourceService {
     this.taskExecutor = taskExecutor;
   }
 
-  @EventListener
+//  @EventListener
   public void onApplicationEvent(SPARQLDAOReadyEvent event) {
     logger.debug("Recognized an SPARQL ready event {}.", event);
     startComputation(event.getTimestamp());
   }
 
-  @EventListener
+//  @EventListener
   public void onApplicationEvent(SPARQLDAOUpdatedEvent event) {
     logger.debug("Recognized an SPARQL update event {}.", event);
     startComputation(event.getTimestamp());
