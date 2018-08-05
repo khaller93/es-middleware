@@ -23,18 +23,14 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component("RemoteGraphDB")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-public class RemoteGraphDbDAO extends RDF4JSparqlDAO {
-
-  @Value("${graphdb.address}")
-  private String address;
-  @Value("${graphdb.repository.id}")
-  private String repositoryId;
+public class RemoteGraphDbDAO extends RDF4JSparqlDAO implements GraphDbSparqlDAO {
 
   /**
    * Creates a {@link RDF4JSparqlDAO} with the given location conf.
    */
   @Autowired
-  public RemoteGraphDbDAO(ApplicationContext context) throws KnowledgeGraphSetupException {
+  public RemoteGraphDbDAO(ApplicationContext context, @Value("${graphdb.address}") String address,
+      @Value("${graphdb.repository.id}") String repositoryId) throws KnowledgeGraphSetupException {
     super(context);
     this.init(new HTTPRepository(address, repositoryId));
   }
