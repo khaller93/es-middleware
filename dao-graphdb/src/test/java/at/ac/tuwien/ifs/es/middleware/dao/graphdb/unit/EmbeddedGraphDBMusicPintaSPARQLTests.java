@@ -10,6 +10,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbLuceneConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.ThreadPoolConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.testutil.AbstractMusicPintaSPARQLTests;
 import java.io.File;
@@ -38,7 +39,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {EmbeddedGraphDbDAO.class, ClonedInMemoryGremlinDAO.class,
-    GraphDbLucene.class, KGDAOConfig.class, GraphDbConfig.class, GraphDbLuceneConfig.class})
+    GraphDbLucene.class, KGDAOConfig.class, GraphDbConfig.class, GraphDbLuceneConfig.class,
+    ThreadPoolConfig.class})
 @TestPropertySource(properties = {
     "esm.db.choice=GraphDB",
     "esm.db.sparql.choice=EmbeddedGraphDB",
@@ -46,7 +48,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     "esm.db.gremlin.choice=ClonedInMemoryGremlin",
     "graphdb.embedded.location=db/",
     "graphdb.embedded.config.path=db/conf/graphdb-musicpinta-instruments.ttl",
-    "logging.level.com.ontotext=INFO"
 })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class EmbeddedGraphDBMusicPintaSPARQLTests extends AbstractMusicPintaSPARQLTests {
