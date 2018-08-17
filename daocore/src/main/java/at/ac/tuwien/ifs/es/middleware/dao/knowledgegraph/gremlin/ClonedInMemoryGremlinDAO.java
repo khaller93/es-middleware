@@ -39,4 +39,9 @@ public class ClonedInMemoryGremlinDAO extends AbstractClonedGremlinDAO {
     super(context, sparqlDAO, schema, taskExecutor);
     this.setGraph(TinkerGraph.open());
   }
+
+  @Override
+  protected boolean areTransactionSupported() {
+    return false;
+  }
 }

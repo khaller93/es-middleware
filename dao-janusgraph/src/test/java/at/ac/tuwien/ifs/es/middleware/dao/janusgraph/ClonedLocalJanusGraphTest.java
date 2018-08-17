@@ -1,9 +1,9 @@
 package at.ac.tuwien.ifs.es.middleware.dao.janusgraph;
 
-
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.ThreadPoolConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
@@ -21,10 +21,18 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+/**
+ * This class implements {@link AbstractMusicPintaGremlinTests} for the {@link
+ * ClonedLocalJanusGraph}.
+ *
+ * @author Kevin Haller
+ * @version 1.0
+ * @since 1.0
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {
     RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedLocalJanusGraph.class, KGDAOConfig.class,
-    RDF4JDAOConfig.class, RDF4JLuceneFullTextSearchDAO.class
+    RDF4JDAOConfig.class, RDF4JLuceneFullTextSearchDAO.class, ThreadPoolConfig.class
 })
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
@@ -32,6 +40,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     "esm.db.fts.choice=RDF4JLucene",
     "esm.db.gremlin.choice=LocalSyncingJanusGraph",
     "janusgraph.dir=janusgraph/",
+    "esm.db.updateInterval=30000"
 })
 @Ignore
 public class ClonedLocalJanusGraphTest extends AbstractMusicPintaGremlinTests {

@@ -62,7 +62,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
 
   private static final Logger logger = LoggerFactory.getLogger(AbstractClonedGremlinDAO.class);
 
-  private static final int LOAD_LIMIT = 10000;
+  private static final int LOAD_LIMIT = 100000;
 
   private static final String ALL_RESOURCE_IRIS_QUERY = "SELECT DISTINCT ?resource WHERE {\n"
       + "    {?resource ?p1 _:o1}\n"
@@ -97,8 +97,6 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
   private Graph graph;
   /* schema for the graph data */
   private PGS schema;
-  /* whether transactions are supported by the graph */
-  private boolean transactionSupported = false;
   /* current timestamp for the most current, integrated data */
   private AtomicLong currentTimestamp = new AtomicLong(0);
   /* timestamp of latest submitted changes of data */
@@ -153,6 +151,8 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
     }
   }
 
+  protected abstract boolean areTransactionSupported();
+
   @Override
   public PGS getPropertyGraphSchema() {
     return schema;
@@ -171,6 +171,13 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
   @Override
   public Features getFeatures() {
     return graph.features();
+  }
+
+  /**
+   * This method is called, when potentially new data has been integrated into the graph.
+   */
+  protected void onBulkLoadCompleted() {
+
   }
 
   /**
@@ -209,7 +216,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
               BlankNodeOrIRI node = (IRI) row.get("resource");
               String sIRI = BlankOrIRIJsonUtil.stringValue(node);
               Iterator<Vertex> vertexIt = graph.traversal().V()
-                  .has(schema.iri().identifierAsString(), sIRI).iterate();
+                  .has(schema.iri().identifierAsString(), sIRI);
               if (vertexIt.hasNext()) {
                 Vertex v = vertexIt.next();
                 v.property(Cardinality.single, "version", issuedTimestamp);
@@ -239,9 +246,9 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
 
     @Override
     public void run() {
-      logger.info("Starts to construct an '{}' graph with {}.",
+      logger.info("Starts to construct an '{}' graph with timestamp={} and transaction support={}.",
           AbstractClonedGremlinDAO.this.getClass().getSimpleName(),
-          issuedTimestamp);
+          issuedTimestamp, areTransactionSupported());
       /* updating the gremlin status */
       applicationContext
           .publishEvent(new GremlinDAOUpdatingEvent(AbstractClonedGremlinDAO.this));
@@ -284,6 +291,8 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
         } while (!values.isEmpty() && values.size() == LOAD_LIMIT
             && currentTimestamp.get() < issuedTimestamp);
         if (currentTimestamp.get() < issuedTimestamp) {
+          AbstractClonedGremlinDAO.this.commit();
+          AbstractClonedGremlinDAO.this.onBulkLoadCompleted();
           currentTimestamp.accumulateAndGet(issuedTimestamp,
               (current, updated) -> current <= updated ? updated : current);
           if (currentTimestamp.get() == newestDatatimestamp.get()) {
@@ -293,7 +302,8 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
               updatedListener.accept(eventForSuccess);
             }
           }
-          AbstractClonedGremlinDAO.this.commit();
+        } else {
+          AbstractClonedGremlinDAO.this.rollback();
         }
       } catch (Exception e) {
         logger.error("An exception occurred while loading the graph. {}", e.getMessage());
@@ -310,15 +320,11 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
     }
 
     private void deleteOldData() {
-      boolean transactionSupported = getFeatures().graph().supportsTransactions();
       AbstractClonedGremlinDAO.this.lock();
       long cT = currentTimestamp.get();
       try {
         graph.traversal().V().has("version", P.lt(cT)).drop().iterate();
         graph.traversal().E().has("version", P.lt(cT)).drop().iterate();
-        if (transactionSupported) {
-          graph.tx().commit();
-        }
         AbstractClonedGremlinDAO.this.commit();
       } catch (Exception e) {
         AbstractClonedGremlinDAO.this.rollback();
@@ -335,7 +341,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
 
   @Override
   public void lock() {
-    if (transactionSupported) {
+    if (areTransactionSupported()) {
       graph.tx().open();
     } else {
       graphLock.lock();
@@ -344,21 +350,21 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
 
   @Override
   public void commit() {
-    if (transactionSupported) {
+    if (areTransactionSupported()) {
       graph.tx().commit();
     }
   }
 
   @Override
   public void rollback() {
-    if (transactionSupported) {
+    if (areTransactionSupported()) {
       graph.tx().rollback();
     }
   }
 
   @Override
   public void unlock() {
-    if (transactionSupported) {
+    if (areTransactionSupported()) {
       if (graph.tx().isOpen()) {
         graph.tx().close();
       }

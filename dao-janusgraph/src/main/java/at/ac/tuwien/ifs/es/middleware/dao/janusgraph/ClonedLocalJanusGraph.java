@@ -4,19 +4,19 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.AbstractClonedGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.LiteralGraphSchema;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
-import com.google.common.collect.Lists;
 import java.io.File;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.janusgraph.core.Cardinality;
 import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.JanusGraphFactory;
 import org.janusgraph.core.PropertyKey;
-import org.janusgraph.core.schema.JanusGraphIndex;
 import org.janusgraph.core.schema.JanusGraphManagement;
 import org.janusgraph.core.schema.SchemaAction;
+import org.janusgraph.core.schema.SchemaStatus;
+import org.janusgraph.graphdb.database.management.GraphIndexStatusWatcher;
 import org.janusgraph.graphdb.database.management.ManagementSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +49,8 @@ public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
   private static final PGS schema = PGS.with("kind", "iri", "bnodeid",
       new LiteralGraphSchema(T.value, "datatype", "language"));
 
+  private JanusGraph graph;
+
   @Autowired
   public ClonedLocalJanusGraph(ApplicationContext context, TaskExecutor taskExecutor,
       @Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO,
@@ -58,28 +60,90 @@ public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
   }
 
   private Graph initGraphInstance(String janusGraphDir) {
-    JanusGraph graph = JanusGraphFactory.build().set("storage.backend", "berkeleyje")
+    logger.info("Started to initialize the Janusgraph.");
+    graph = JanusGraphFactory.build().set("storage.backend", "berkeleyje")
         .set("storage.transactions", true)
         .set("storage.directory", new File(janusGraphDir).getAbsolutePath()).open();
-    JanusGraphManagement mgmt = graph.openManagement();
     /* build and maintain IRI index */
-    PropertyKey iriProperty = mgmt.getOrCreatePropertyKey("iri");
-    if(mgmt.getGraphIndex("byIRI") == null) {
-      mgmt.buildIndex("byIRI", Vertex.class).addKey(iriProperty).unique().buildCompositeIndex();
-      mgmt.commit();
-      try {
-        ManagementSystem.awaitGraphIndexStatus(graph, "byIRI").call();
-      } catch (InterruptedException e) {
-        logger.error("Waiting for the availability of the IRI index failed. {}", e.getMessage());
-      }
+    JanusGraphManagement mgmt = graph.openManagement();
+    PropertyKey iriProperty = mgmt.getPropertyKey("iri");
+    if (iriProperty == null) {
+      iriProperty = mgmt.makePropertyKey("iri").dataType(String.class)
+          .cardinality(Cardinality.SINGLE)
+          .make();
+    }
+    if (mgmt.getGraphIndex("byIRI") == null) {
+      mgmt.buildIndex("byIRI", Vertex.class).addKey(iriProperty)
+          .unique().buildCompositeIndex();
     } else {
       try {
         mgmt.updateIndex(mgmt.getGraphIndex("byIRI"), SchemaAction.REINDEX).get();
-        mgmt.commit();
+      } catch (InterruptedException | ExecutionException e) {
+        logger.error("Updating the IRI index failed. {}", e.getMessage());
+      }
+    }
+    /* build and maintain version index */
+    PropertyKey versionProperty = mgmt.getPropertyKey("version");
+    if (versionProperty == null) {
+      versionProperty = mgmt.makePropertyKey("version").dataType(Long.class)
+          .cardinality(Cardinality.SINGLE).make();
+    }
+    if (mgmt.getGraphIndex("byVersion") == null) {
+      mgmt.buildIndex("byVersion", Vertex.class).addKey(versionProperty).buildCompositeIndex();
+    } else {
+      try {
+        mgmt.updateIndex(mgmt.getGraphIndex("byVersion"), SchemaAction.REINDEX).get();
       } catch (InterruptedException | ExecutionException e) {
         logger.error(". {}", e.getMessage());
       }
     }
+    mgmt.commit();
+    /* wait for index to be ready */
+    try {
+      GraphIndexStatusWatcher byIRIWatcher = ManagementSystem.awaitGraphIndexStatus(graph, "byIRI")
+          .status(SchemaStatus.ENABLED);
+      GraphIndexStatusWatcher byVersionWatcher = ManagementSystem
+          .awaitGraphIndexStatus(graph, "byVersion").status(SchemaStatus.ENABLED);
+      byIRIWatcher.call();
+      byVersionWatcher.call();
+    } catch (InterruptedException e) {
+      logger.error("Waiting for the availability of the IRI/version index failed. {}",
+          e.getMessage());
+    }
+    logger.info("Finished initializing the setup of Janusgraph.");
     return graph;
+  }
+
+  @Override
+  protected boolean areTransactionSupported() {
+    return true;
+  }
+
+  @Override
+  protected void onBulkLoadCompleted() {
+    logger.info("Starting the reindexing of the IRI/version index.");
+    JanusGraphManagement mgmt = graph.openManagement();
+    try {
+      mgmt.updateIndex(mgmt.getGraphIndex("byIRI"), SchemaAction.REINDEX).get();
+    } catch (ExecutionException | InterruptedException e) {
+      logger.error("Building the IRI index failed. {}", e);
+    }
+    try {
+      mgmt.updateIndex(mgmt.getGraphIndex("byVersion"), SchemaAction.REINDEX).get();
+    } catch (ExecutionException | InterruptedException e) {
+      logger.error("Building the version index failed. {}", e);
+    }
+    mgmt.commit();
+    try {
+      GraphIndexStatusWatcher byIRIWatcher = ManagementSystem.awaitGraphIndexStatus(graph, "byIRI")
+          .status(SchemaStatus.ENABLED);
+      GraphIndexStatusWatcher byVersionWatcher = ManagementSystem.awaitGraphIndexStatus(graph, "byVersion")
+          .status(SchemaStatus.ENABLED);
+      byIRIWatcher.call();
+      byVersionWatcher.call();
+      logger.info("Reindexing of the IRI/version was successful.");
+    } catch (InterruptedException e) {
+      logger.error("Waiting for the availability of the version index failed. {}", e.getMessage());
+    }
   }
 }
