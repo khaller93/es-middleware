@@ -50,7 +50,7 @@ public class ResourceList extends AbstractExplorationContext<Resource> implement
    * @param resourceList that shall be wrapped.
    */
   @JsonCreator
-  public ResourceList(@JsonProperty("list") List<Resource> resourceList) {
+  public ResourceList(@JsonProperty("list") Collection<Resource> resourceList) {
     this.list = new LinkedList<>(resourceList);
   }
 

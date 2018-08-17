@@ -1,5 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.acquisition;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -23,6 +25,7 @@ public final class SingleResourcePayload implements Serializable {
   @JsonCreator
   public SingleResourcePayload(
       @JsonProperty(value = "resource", required = true) Resource resource) {
+    checkNotNull(resource);
     this.resource = resource;
   }
 

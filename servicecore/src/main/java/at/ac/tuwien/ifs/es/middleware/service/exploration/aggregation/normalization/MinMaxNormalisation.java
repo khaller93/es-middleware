@@ -56,7 +56,7 @@ public class MinMaxNormalisation implements AggregationOperator<MinMaxPayload> {
         Optional<JsonNode> valueOptional = eContext.getValues(r.getId(), ptr);
         if (valueOptional.isPresent()) {
           JsonNode valueNode = valueOptional.get();
-          if (valueNode.isValueNode()) {
+          if (valueNode.isNumber()) {
             final double value = valueNode.asDouble();
             actualMinMaxMap.compute(ptr, (jsonPointer, actualMinMax) -> {
               if (actualMinMax == null) {
@@ -79,12 +79,14 @@ public class MinMaxNormalisation implements AggregationOperator<MinMaxPayload> {
       String id = r.getId();
       for (JsonPointer ptr : minMaxPointers) {
         Optional<JsonNode> optionalVal = eContext.getValues(id, ptr);
-        if (optionalVal.isPresent()) {
+        if (optionalVal.isPresent() && optionalVal.get().isNumber()) {
           ActualMinMax actualMinMax = actualMinMaxMap.get(ptr);
           double range = actualMinMax.getMax() - actualMinMax.getMin();
           if (Double.compare(range, 0.0) != 0) {
             double val = (optionalVal.get().asDouble() - actualMinMax.getMin()) / range;
             eContext.putValuesData(id, ptr, JsonNodeFactory.instance.numberNode(val));
+          } else {
+            eContext.putValuesData(id, ptr, JsonNodeFactory.instance.numberNode(1.0));
           }
         }
       }
@@ -116,6 +118,14 @@ public class MinMaxNormalisation implements AggregationOperator<MinMaxPayload> {
 
     public Double getMax() {
       return max;
+    }
+
+    @Override
+    public String toString() {
+      return "ActualMinMax{" +
+          "min=" + min +
+          ", max=" + max +
+          '}';
     }
   }
 }

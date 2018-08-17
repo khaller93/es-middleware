@@ -32,7 +32,8 @@ public class ResourcePairing implements AcquisitionOperator<PairingPayload> {
 
   private DynamicExplorationFlowFactory dynamicExplorationFlowFactory;
 
-  public ResourcePairing(@Autowired DynamicExplorationFlowFactory dynamicExplorationFlowFactory) {
+  @Autowired
+  public ResourcePairing(DynamicExplorationFlowFactory dynamicExplorationFlowFactory) {
     this.dynamicExplorationFlowFactory = dynamicExplorationFlowFactory;
   }
 

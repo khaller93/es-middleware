@@ -14,7 +14,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.service.CachingConfig;
+import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyWithGremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassInformationService;
@@ -47,13 +47,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {SimpleGremlinService.class, RDF4JLuceneFullTextSearchDAO.class,
     SimpleSPARQLService.class, RDF4JMemoryStoreWithLuceneSparqlDAO.class,
     ClonedInMemoryGremlinDAO.class, ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class,
-    ThreadPoolConfig.class, ClassInformationServiceImpl.class, CachingConfig.class,
+    ThreadPoolConfig.class, ClassInformationServiceImpl.class, SpringCacheConfig.class,
     SameAsResourceWithSPARQLService.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
     "esm.db.fts.choice=RDF4JLucene",
-    "esm.db.gremlin.choice=ClonedInMemoryGremlin"
+    "esm.db.gremlin.choice=ClonedInMemoryGremlin",
 })
 public class ClassEntropyServiceTests {
 

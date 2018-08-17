@@ -45,17 +45,15 @@ public class WeightedSum implements AggregationOperator<WeightedSumPayload> {
       Map<JsonPointer, Double> candidates = payload.getCandidates();
       eContext.streamOfResults().forEach(r -> {
         String id = r.getId();
-        double sum = 0;
+        Double sum = 0.0;
         for (Entry<JsonPointer, Double> candidate : candidates.entrySet()) {
           Optional<JsonNode> optionalValue = eContext.getValues(id, candidate.getKey());
           if (optionalValue.isPresent()) {
             JsonNode valueNode = optionalValue.get();
-            if (valueNode.isValueNode()) {
+            if (valueNode.isNumber() && sum != null) {
               sum += candidate.getValue() * valueNode.asDouble();
             } else {
-              throw new ExplorationFlowSpecificationException(
-                  String.format("The given pointer '%s' does not show to a number entry.",
-                      candidate.getKey()));
+              sum = null;
             }
           } else {
             throw new ExplorationFlowSpecificationException(String

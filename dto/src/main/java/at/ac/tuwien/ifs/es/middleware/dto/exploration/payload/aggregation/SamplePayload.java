@@ -1,5 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.aggregation;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
@@ -13,14 +16,16 @@ import java.io.Serializable;
  */
 public final class SamplePayload implements Serializable {
 
-  private int number;
+  private Long number;
 
   @JsonCreator
-  public SamplePayload(@JsonProperty(value = "number", required = true) int number) {
+  public SamplePayload(@JsonProperty(value = "number", required = true) Long number) {
+    checkNotNull(number);
+    checkArgument(number >= 0, "Given number for sample operator must be positive.");
     this.number = number;
   }
 
-  public int getNumber() {
+  public Long getNumber() {
     return number;
   }
 

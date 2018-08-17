@@ -39,14 +39,14 @@ public class Sample implements AggregationOperator<SamplePayload> {
   @Override
   public ExplorationContext apply(ExplorationContext context, SamplePayload payload) {
     logger.debug("Apply 'sample' operator to {} with {}.", context, payload);
-    int n = payload.getNumber();
+    Long n = payload.getNumber();
     if (n >= 0) {
       Random randomGenerator = new Random();
       ExplorationContext<IdentifiableResult> eContext = (ExplorationContext<IdentifiableResult>) context;
       List<IdentifiableResult> results = eContext.streamOfResults()
           .collect(Collectors.toCollection(ArrayList::new));
       List<IdentifiableResult> sampledResults = new LinkedList<>();
-      for (int i = 0; i < n; i++) {
+      for (int i = 0; i < n && !results.isEmpty(); i++) {
         sampledResults.add(results.remove(randomGenerator.nextInt(results.size())));
       }
       return sampledResults.stream().collect(eContext);

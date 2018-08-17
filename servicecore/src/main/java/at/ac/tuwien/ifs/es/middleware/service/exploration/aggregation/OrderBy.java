@@ -48,11 +48,8 @@ public class OrderBy implements AggregationOperator<OrderByPayload> {
       Optional<JsonNode> optionalValueNode = identifiableResults.getValues(id, payload.getPath());
       if (optionalValueNode.isPresent()) {
         JsonNode valueNode = optionalValueNode.get();
-        if (valueNode.isValueNode()) {
+        if (valueNode.isNumber()) {
           valuesMap.put(id, valueNode.asDouble());
-        } else {
-          throw new ExplorationFlowServiceException(
-              String.format("The path '%s' must refer to a number.", payload.getPath()));
         }
       } else {
         throw new ExplorationFlowServiceException(
@@ -63,7 +60,16 @@ public class OrderBy implements AggregationOperator<OrderByPayload> {
     return identifiableResults.streamOfResults().sorted(new Comparator<IdentifiableResult>() {
       @Override
       public int compare(IdentifiableResult t1, IdentifiableResult t2) {
-        return strategy * Double.compare(valuesMap.get(t1.getId()), valuesMap.get(t2.getId()));
+        Double valueT1 = valuesMap.get(t1.getId());
+        Double ValueT2 = valuesMap.get(t2.getId());
+        if(valueT1 == null && ValueT2 == null){
+          return 0;
+        } else if (valueT1 == null){
+          return -strategy;
+        } else if (ValueT2 == null) {
+          return strategy;
+        }
+        return strategy * Double.compare(valueT1, ValueT2);
       }
     }).collect(identifiableResults);
   }

@@ -52,7 +52,8 @@ public class MultipleResources implements AcquisitionSource<MultipleResourcesPay
 
   private SPARQLService sparqlService;
 
-  public MultipleResources(@Autowired SPARQLService sparqlService) {
+  @Autowired
+  public MultipleResources(SPARQLService sparqlService) {
     this.sparqlService = sparqlService;
   }
 

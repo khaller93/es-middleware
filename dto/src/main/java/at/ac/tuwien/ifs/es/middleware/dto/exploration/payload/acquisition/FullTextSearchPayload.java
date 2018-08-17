@@ -1,8 +1,13 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.acquisition;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 
@@ -15,11 +20,31 @@ import org.apache.commons.rdf.api.BlankNodeOrIRI;
  */
 public final class FullTextSearchPayload implements Serializable {
 
-  @JsonProperty(value = "keyword",required = true)
   private String keyword;
   private List<Resource> classes;
   private Integer offset;
   private Integer limit;
+
+  @JsonCreator
+  public FullTextSearchPayload(@JsonProperty(value = "keyword", required = true) String keyword,
+      @JsonProperty(value = "classes") List<Resource> classes,
+      @JsonProperty(value = "offset") Integer offset,
+      @JsonProperty(value = "limit") Integer limit) {
+    checkNotNull(keyword);
+    checkArgument(!keyword.isEmpty());
+    this.keyword = keyword;
+    this.classes = classes;
+    this.offset = offset;
+    this.limit = limit;
+  }
+
+  public FullTextSearchPayload(String keyword, List<Resource> classes) {
+    this(keyword, classes, null, null);
+  }
+
+  public FullTextSearchPayload(String keyword) {
+    this(keyword, Collections.emptyList(), null, null);
+  }
 
   public String getKeyword() {
     return keyword;

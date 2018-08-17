@@ -42,7 +42,8 @@ public class SingleResource implements AcquisitionSource<SingleResourcePayload> 
 
   private SPARQLService sparqlService;
 
-  public SingleResource(@Autowired SPARQLService sparqlService) {
+  @Autowired
+  public SingleResource(SPARQLService sparqlService) {
     this.sparqlService = sparqlService;
   }
 

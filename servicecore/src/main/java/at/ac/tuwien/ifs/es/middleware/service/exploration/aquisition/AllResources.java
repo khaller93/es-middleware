@@ -8,10 +8,14 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.commons.rdf.api.BlankNodeOrIRI;
+import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,27 +38,24 @@ public class AllResources implements AcquisitionSource<AllResourcesPayload> {
 
   private static final Logger logger = LoggerFactory.getLogger(AllResources.class);
 
-  private static final String ALL_QUERY = "SELECT DISTINCT ?s WHERE {\n?s ?p ?o .\n ${include}\n ${exclude}\n}";
+  private static final int LOAD_LIMIT = 100000;
+
+  private static final String ALL_QUERY = "SELECT DISTINCT ?s WHERE { \n"
+      + "    { ?s ?p _:x . FILTER(isIRI(?s)) .}\n"
+      + "     UNION\n"
+      + "    { _:y ?p ?s . FILTER(isIRI(?s)) .}\n"
+      + "    ${include}\n"
+      + "    ${exclude}\n"
+      + "}\n"
+      + "LIMIT ${limit}\n"
+      + "OFFSET ${offset}\n";
+
   private static final String ALL_GRAPH_QUERY = "SELECT DISTINCT ?s WHERE {\nGRAPH ?g {?s ?p ?o .\n ${include}\n ${exclude}\n}\n${namespace}\n}";
 
-  private static final String[] INCLUDE_FILTER_TEMPLATE = {
-      "FILTER EXISTS {\n"
-          + "?s a %s .\n"
-          + "}",
-      "FILTER EXISTS {\n"
-          + "?s a ?class .\n"
-          + "FILTER(?class in (%s)) .\n"
-          + "}"
-  };
-  private static final String[] EXCLUDE_FILTER_TEMPLATE = {
+  private static final String EXCLUDE_FILTER_TEMPLATE =
       "FILTER NOT EXISTS {\n"
-          + "?s a %s .\n"
-          + "}",
-      "FILTER NOT EXISTS {\n"
-          + "?s a ?class .\n"
-          + "FILTER(?class in (%s)) .\n"
-          + "}"
-  };
+          + "%s\n"
+          + "}";
   private static final String[] NAMESPACES_FILTER_TEMPlATE = {
       "FILTER {?g = %s}",
       "FILTER NOT EXISTS {\n"
@@ -74,19 +75,29 @@ public class AllResources implements AcquisitionSource<AllResourcesPayload> {
     return AllResourcesPayload.class;
   }
 
-  /**
-   * Fills the filter templates for the "all" query.
-   */
-  private String prepareFilterBlock(String[] filterTemplate, List<Resource> includedClasses) {
+  private String prepareNamespaceFilterBlock(List<Resource> includedClasses) {
     if (includedClasses == null || includedClasses.isEmpty()) {
       return "";
     } else if (includedClasses.size() == 1) {
-      return String.format(filterTemplate[0],
+      return String.format(NAMESPACES_FILTER_TEMPlATE[0],
           BlankOrIRIJsonUtil.stringForSPARQLResourceOf(includedClasses.get(0)));
     } else {
-      return String.format(filterTemplate[1],
+      return String.format(NAMESPACES_FILTER_TEMPlATE[1],
           includedClasses.stream().map(BlankOrIRIJsonUtil::stringForSPARQLResourceOf)
               .collect(Collectors.joining(",")));
+    }
+  }
+
+  private static String prepareFilter(List<Resource> classes) {
+    if (classes == null || classes.isEmpty()) {
+      return "";
+    } else if (classes.size() == 1) {
+      return String.format("?s a/rdfs:subClassOf* %s .",
+          BlankOrIRIJsonUtil.stringForSPARQLResourceOf(classes.get(0)));
+    } else {
+      return classes.stream().map(clazz -> String.format("{?s a/rdfs:subClassOf* %s}",
+          BlankOrIRIJsonUtil.stringForSPARQLResourceOf(clazz)))
+          .collect(Collectors.joining("\nUNION\n"));
     }
   }
 
@@ -94,20 +105,48 @@ public class AllResources implements AcquisitionSource<AllResourcesPayload> {
   public ExplorationContext apply(AllResourcesPayload payload) {
     String allQueryTemplate = ALL_QUERY;
     Map<String, String> valuesMap = new HashMap<>();
-    List<Resource> namespaces = payload.getNamespaces();
+    /* prepare the namespace filter */
+    final List<Resource> namespaces = payload.getNamespaces();
     if (namespaces != null && !namespaces.isEmpty()) {
       allQueryTemplate = ALL_GRAPH_QUERY;
-      valuesMap.put("namespace",
-          prepareFilterBlock(NAMESPACES_FILTER_TEMPlATE, payload.getNamespaces()));
+      valuesMap.put("namespace", prepareNamespaceFilterBlock(payload.getNamespaces()));
     }
-    valuesMap
-        .put("include", prepareFilterBlock(INCLUDE_FILTER_TEMPLATE, payload.getIncludedClasses()));
-    valuesMap
-        .put("exclude", prepareFilterBlock(EXCLUDE_FILTER_TEMPLATE, payload.getExcludedClasses()));
-    // Reads the result.
-    String query = new StringSubstitutor(valuesMap).replace(allQueryTemplate);
-    logger.debug("Executing the query '{}' for all resources operator.", query);
-    SelectQueryResult result = sparqlService.query(query, true);
-    return ResourceList.of(result, "s");
+    /* prepare the filter including instances of given classes */
+    final List<Resource> includedClasses = payload.getIncludedClasses();
+    if (includedClasses != null && !includedClasses.isEmpty()) {
+      valuesMap.put("include", prepareFilter(payload.getIncludedClasses()));
+    } else {
+      valuesMap.put("include", "");
+    }
+    /* prepare the filter excluding instances of given classes */
+    final List<Resource> excludedClasses = payload.getExcludedClasses();
+    if (excludedClasses != null && !excludedClasses.isEmpty()) {
+      valuesMap.put("exclude",
+          String.format(EXCLUDE_FILTER_TEMPLATE, prepareFilter(payload.getExcludedClasses())));
+    } else {
+      valuesMap.put("exclude", "");
+    }
+    /* perform query */
+    valuesMap.put("limit", String.valueOf(LOAD_LIMIT));
+    String allQuery = new StringSubstitutor(valuesMap).replace(allQueryTemplate);
+    List<Resource> resourceList = new LinkedList<>();
+    List<Map<String, RDFTerm>> results;
+    int offset = 0;
+    do {
+      logger.debug(">>>> {}",
+          new StringSubstitutor(Collections.singletonMap("offset", offset)).replace(allQuery));
+      results = sparqlService.<SelectQueryResult>query(new StringSubstitutor(
+              Collections.singletonMap("offset", offset)).replace(allQuery)
+          , true).value();
+      if (results != null) {
+        for (Map<String, RDFTerm> row : results) {
+          resourceList.add(new Resource((BlankNodeOrIRI) row.get("s")));
+        }
+        offset += results.size();
+      } else {
+        break;
+      }
+    } while (results.size() == LOAD_LIMIT);
+    return new ResourceList(resourceList);
   }
 }

@@ -1,5 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.aggregation;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
@@ -10,9 +13,8 @@ public final class LimitPayload implements Serializable {
 
   @JsonCreator
   public LimitPayload(@JsonProperty(value = "number", required = true) Long number) {
-    if (number < 0) {
-      throw new IllegalArgumentException("The limit number must be positive.");
-    }
+    checkNotNull(number);
+    checkArgument(number >= 0, "The limit number must be positive.");
     this.number = number;
   }
 
