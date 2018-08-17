@@ -112,12 +112,12 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-rdf-api</artifactId>
-      <version>${commons-rdf.version}</version>
+      <version>${apache-commons-rdf.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-rdf-rdf4j</artifactId>
-      <version>${commons-rdf.version}</version>
+      <version>${apache-commons-rdf.version}</version>
     </dependency>
     <!-- ES Middleware dependencies -->
     <dependency>

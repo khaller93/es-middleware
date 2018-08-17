@@ -17,12 +17,12 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-rdf-api</artifactId>
-      <version>${commons-rdf.version}</version>
+      <version>${apache-commons-rdf.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-text</artifactId>
-      <version>1.3</version>
+      <version>${apache-commons-text.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.tinkerpop</groupId>

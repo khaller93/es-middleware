@@ -12,7 +12,7 @@
   <artifactId>middleware.dao-janusgraph</artifactId>
 
   <properties>
-    <janusgraph.version>0.2.0</janusgraph.version>
+    <janusgraph.version>0.3.0</janusgraph.version>
   </properties>
 
   <dependencies>
@@ -20,6 +20,12 @@
       <groupId>org.janusgraph</groupId>
       <artifactId>janusgraph-core</artifactId>
       <version>${janusgraph.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-text</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.janusgraph</groupId>
@@ -32,6 +38,7 @@
       <artifactId>middleware.daocore</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <!-- Test dependencies -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.dao-rdf4j</artifactId>

@@ -58,7 +58,7 @@
       <version>2.6</version>
       <scope>test</scope>
     </dependency>
-    <!-- External modules -->
+    <!-- External ES modules -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.dao-blazegraph</artifactId>
