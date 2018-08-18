@@ -1,17 +1,14 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.factory;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.exploitation.DescriberPayload.TextLiteralPayload;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.payload.exploitation.DescriberPayload.TextLiteralPayload;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowServiceException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.FullTextSearch;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.acquisition.FullTextSearchPayload;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.payload.acquisition.FullTextSearchPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.exploitation.ResourceDescriber;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.exploitation.DescriberPayload;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.exploitation.ResourceDescriber.DescribeTerm;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Arrays;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.payload.exploitation.DescriberPayload;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -65,29 +62,21 @@ public class CommonExplorationFlowFactory {
   public ExplorationFlow constructFullTextSearchFlow(String keyword, List<String> languages,
       List<String> classes, Integer limit, Integer offset) {
     ExplorationFlow flow = new ExplorationFlow();
-    try {
-      FullTextSearchPayload ftsParameterPayload = fullTextSearch
-          .getParameterClass().newInstance();
-      ftsParameterPayload.setKeyword(keyword);
-      ftsParameterPayload.setClasses(
-          classes != null ? classes.stream().map(c -> new Resource(BlankOrIRIJsonUtil.valueOf(c)))
-              .collect(Collectors.toList()) : null);
-      ftsParameterPayload.setLimit(limit);
-      ftsParameterPayload.setOffset(offset);
-      flow.appendFlowStep(fullTextSearch, ftsParameterPayload);
-      DescriberPayload describerPayload = new DescriberPayload(false);
-      if (languages != null && !languages.isEmpty()) {
-        describerPayload.addTextContent("label",
-            new TextLiteralPayload(Collections.singletonList(DescriberPayload.RDFS_LABEL_PROPERTY), languages));
-        describerPayload.addTextContent("description",
-            new TextLiteralPayload(Collections.singletonList(DescriberPayload.RDFS_COMMENT_PROPERTY), languages));
-      }
-      flow.appendFlowStep(resourceDescriber, describerPayload);
-      return flow;
-    } catch (IllegalAccessException | InstantiationException e) {
-      throw new ExplorationFlowServiceException(
-          "The full-text-search flow could not be constructed, due to internal error.", e);
+    FullTextSearchPayload ftsParameterPayload = new FullTextSearchPayload(keyword,
+        classes != null ? classes.stream().map(c -> new Resource(BlankOrIRIJsonUtil.valueOf(c)))
+            .collect(Collectors.toList()) : null, offset, limit);
+    flow.appendFlowStep(fullTextSearch, ftsParameterPayload);
+    DescriberPayload describerPayload = new DescriberPayload(false);
+    if (languages != null && !languages.isEmpty()) {
+      describerPayload.addTextContent("label",
+          new TextLiteralPayload(Collections.singletonList(DescriberPayload.RDFS_LABEL_PROPERTY),
+              languages));
+      describerPayload.addTextContent("description",
+          new TextLiteralPayload(
+              Collections.singletonList(DescriberPayload.RDFS_COMMENT_PROPERTY), languages));
     }
+    flow.appendFlowStep(resourceDescriber, describerPayload);
+    return flow;
   }
 
 }

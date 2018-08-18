@@ -1,7 +1,6 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.acquisition;
+package at.ac.tuwien.ifs.es.middleware.service.exploration.payload.acquisition;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -9,10 +8,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
-import org.apache.commons.rdf.api.BlankNodeOrIRI;
 
 /**
- * This class is a POJO for the parameters expected by full-text-search operator.
+ * This class is a POJO for the parameters expected by a {@link at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.FullTextSearch}.
+ * <p/>
+ * A keyword that is not an empty string is required and if not given, an {@link
+ * IllegalArgumentException} will be thrown at construction. The search can be restricted to
+ * instances of a given list of classes. Moreover, a number of results can be skipped with a
+ * specified offset as well as the list of returned results limited. If offset/limit is given and
+ * none negative, then an {@link IllegalArgumentException} will be thrown at construction.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -30,10 +34,13 @@ public final class FullTextSearchPayload implements Serializable {
       @JsonProperty(value = "classes") List<Resource> classes,
       @JsonProperty(value = "offset") Integer offset,
       @JsonProperty(value = "limit") Integer limit) {
-    checkNotNull(keyword);
-    checkArgument(!keyword.isEmpty());
+    checkArgument(keyword != null && !keyword.isEmpty(), "The given keyword must not be empty.");
+    checkArgument(offset == null || offset >= 0,
+        "If an offset is given, it must be a positive number, but was %d.", offset);
+    checkArgument(limit == null || limit >= 0,
+        "If a limit is given, it must be a positive number, but was %d.", limit);
     this.keyword = keyword;
-    this.classes = classes;
+    this.classes = classes != null ? classes : Collections.emptyList();
     this.offset = offset;
     this.limit = limit;
   }
@@ -50,32 +57,16 @@ public final class FullTextSearchPayload implements Serializable {
     return keyword;
   }
 
-  public void setKeyword(String keyword) {
-    this.keyword = keyword;
-  }
-
   public List<Resource> getClasses() {
     return classes;
-  }
-
-  public void setClasses(List<Resource> classes) {
-    this.classes = classes;
   }
 
   public Integer getOffset() {
     return offset;
   }
 
-  public void setOffset(Integer offset) {
-    this.offset = offset;
-  }
-
   public Integer getLimit() {
     return limit;
-  }
-
-  public void setLimit(Integer limit) {
-    this.limit = limit;
   }
 
   @Override

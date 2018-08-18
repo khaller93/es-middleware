@@ -2,7 +2,6 @@ package at.ac.tuwien.ifs.es.middleware.service.integration.explorationflow.aggre
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -16,7 +15,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLucene
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.aggregation.LimitPayload;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.payload.aggregation.LimitPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation.Limit;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
 import java.util.List;

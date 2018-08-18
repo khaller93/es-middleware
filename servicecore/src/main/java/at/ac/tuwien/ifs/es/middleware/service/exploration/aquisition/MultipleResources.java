@@ -6,7 +6,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.acquisition.MultipleResourcesPayload;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.payload.acquisition.MultipleResourcesPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import java.util.LinkedList;

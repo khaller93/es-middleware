@@ -1,4 +1,6 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.acquisition;
+package at.ac.tuwien.ifs.es.middleware.service.exploration.payload.acquisition;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.request.ExplorationFlowStepRequest;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -24,6 +26,8 @@ public final class PairingPayload implements Serializable {
       @JsonProperty(value = "steps", required = true) List<ExplorationFlowStepRequest> steps,
       @JsonProperty(value = "symmetric") Boolean symmetric,
       @JsonProperty(value = "selfReflectionAllowed") Boolean selfReflectionAllowed) {
+    checkArgument(steps == null || !steps.isEmpty(),
+        "A list of steps must be given and it must not be empty.");
     this.steps = steps;
     this.symmetric = symmetric != null ? symmetric : false;
     this.selfReflectionAllowed = selfReflectionAllowed != null ? selfReflectionAllowed : true;

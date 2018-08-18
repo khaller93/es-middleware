@@ -1,7 +1,6 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.aggregation.normalisation;
+package at.ac.tuwien.ifs.es.middleware.service.exploration.payload.aggregation.normalisation;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -10,8 +9,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * This payload is intended for specifying the arguments for a Z-score normalisation of certain
- * fields.
+ * This payload is intended for specifying the arguments for {@link at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation.normalization.ZScore}.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -24,7 +22,7 @@ public class ZScorePayload implements Serializable {
   @JsonCreator
   public ZScorePayload(
       @JsonProperty(value = "targets", required = true) List<JsonPointer> targets) {
-    checkNotNull(targets);
+    checkArgument(targets != null, "A list of targets must be given, but can be empty.");
     this.targets = targets;
   }
 

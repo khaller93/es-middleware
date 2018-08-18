@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.acquisition;
+package at.ac.tuwien.ifs.es.middleware.service.exploration.payload.acquisition;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -10,7 +10,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * This is the parameter payload for the 'multiple resource' operator.
+ * This is the parameter payload for {@link MultipleResourcesPayload}.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -23,8 +23,8 @@ public final class MultipleResourcesPayload implements Serializable {
   @JsonCreator
   public MultipleResourcesPayload(
       @JsonProperty(value = "resources", required = true) List<Resource> resources) {
-    checkNotNull(resources);
-    checkArgument(!resources.isEmpty());
+    checkArgument(resources != null && !resources.isEmpty(),
+        "The given resources must not be empty.");
     this.resources = resources;
   }
 

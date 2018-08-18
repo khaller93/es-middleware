@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.aggregation;
+package at.ac.tuwien.ifs.es.middleware.service.exploration.payload.aggregation;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -8,7 +8,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
 /**
- * This is a payload for the aggregation operator {@code esm.aggregate.sample}.
+ * This is a payload for {@link SamplePayload} that expects a non negative number. If not given, an
+ * {@link IllegalArgumentException} will be thrown.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -20,8 +21,8 @@ public final class SamplePayload implements Serializable {
 
   @JsonCreator
   public SamplePayload(@JsonProperty(value = "number", required = true) Long number) {
-    checkNotNull(number);
-    checkArgument(number >= 0, "Given number for sample operator must be positive.");
+    checkArgument(number != null && number >= 0,
+        "Given number for sample operator must be non negative, but was %d.", number);
     this.number = number;
   }
 

@@ -1,18 +1,14 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.acquisition;
+package at.ac.tuwien.ifs.es.middleware.service.exploration.payload.acquisition;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkArgument;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.Serializable;
-import org.apache.commons.rdf.api.BlankNodeOrIRI;
 
 /**
- * This is the parameter payload for single resource operator.
+ * This is the parameter payload for {@link at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.SingleResource}.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -22,10 +18,16 @@ public final class SingleResourcePayload implements Serializable {
 
   private Resource resource;
 
+  /**
+   * Creates a new {@link SingleResourcePayload} considering the given {@code resource}.
+   *
+   * @param resource {@link Resource} that shall be considered and must not be null.
+   */
   @JsonCreator
   public SingleResourcePayload(
       @JsonProperty(value = "resource", required = true) Resource resource) {
-    checkNotNull(resource);
+    checkArgument(resource != null,
+        "The given resource must not be null.");
     this.resource = resource;
   }
 

@@ -2,9 +2,8 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IdentifiableResult;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.aggregation.OffsetPayload;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.payload.aggregation.OffsetPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
-import java.util.Iterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;

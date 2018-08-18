@@ -1,10 +1,11 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.aggregation;
+package at.ac.tuwien.ifs.es.middleware.service.exploration.payload.aggregation;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonPointer;
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * This class is a POJO for the parameters expected by an oder by operator. The order strategy is
@@ -27,6 +28,7 @@ public final class OrderByPayload implements Serializable {
   public OrderByPayload(
       @JsonProperty(value = "path", required = true) JsonPointer path,
       @JsonProperty(value = "strategy") ORDER_STRATEGY strategy) {
+    checkArgument(path != null, "The path to the value that shall be ordered must be given.");
     this.path = path;
     this.strategy = strategy == null ? ORDER_STRATEGY.ASC : strategy;
   }

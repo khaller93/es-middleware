@@ -17,7 +17,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLucene
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.VoidPayload;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.payload.VoidPayload;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.SameAsResourceService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.SameAsResourceWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;

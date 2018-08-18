@@ -1,5 +1,6 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.aggregation.normalisation;
+package at.ac.tuwien.ifs.es.middleware.service.exploration.payload.aggregation.normalisation;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -23,7 +24,7 @@ public class MinMaxPayload implements Serializable {
   @JsonCreator
   public MinMaxPayload(
       @JsonProperty(value = "targets", required = true) List<MinMaxTarget> targets) {
-    checkNotNull(targets);
+    checkArgument(targets != null, "A list of targets must be given, but can be empty.");
     this.targets = targets;
   }
 

@@ -5,7 +5,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IterableResourcesC
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourcePairList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.acquisition.PairingPayload;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.payload.acquisition.PairingPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.factory.DynamicExplorationFlowFactory;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;

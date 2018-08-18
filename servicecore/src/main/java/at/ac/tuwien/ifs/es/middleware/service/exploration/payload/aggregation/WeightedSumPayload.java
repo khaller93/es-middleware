@@ -1,5 +1,6 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration.payload.aggregation;
+package at.ac.tuwien.ifs.es.middleware.service.exploration.payload.aggregation;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -23,8 +24,10 @@ public final class WeightedSumPayload implements Serializable {
   @JsonCreator
   public WeightedSumPayload(@JsonProperty(value = "path", required = true) JsonPointer path,
       @JsonProperty(value = "candidates", required = true) Map<JsonPointer, Double> candidates) {
-    checkNotNull(path);
-    checkNotNull(candidates);
+    checkArgument(path != null,
+        "The path to which the result of the weighting shall be stored must be given.");
+    checkArgument(candidates != null,
+        "The candidates for the weighting must be specified, but can be empty.");
     this.path = path;
     this.candidates = candidates;
   }
