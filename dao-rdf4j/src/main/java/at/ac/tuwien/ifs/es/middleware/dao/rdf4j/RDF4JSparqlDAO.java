@@ -56,12 +56,11 @@ public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
 
   private static final Logger logger = LoggerFactory.getLogger(RDF4JSparqlDAO.class);
 
-  private Lock updateLock = new ReentrantLock();
-
-  @Value("${esm.db.updateInterval:15000}")
+  @Value("${esm.db.updateinterval:15000}")
   private long updateInterval;
-  private Timer timer = new Timer();
-  private NotificationTask notificationTask;
+  @Value("${esm.db.updateinterval.timeout:60000}")
+  private long updateIntervalTimout;
+  private NotificationScheduler notificationScheduler;
 
   private Repository repository;
   private ApplicationContext applicationContext;
@@ -70,6 +69,8 @@ public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
 
   public RDF4JSparqlDAO(ApplicationContext applicationContext) {
     this.applicationContext = applicationContext;
+    this.notificationScheduler = new NotificationScheduler(applicationContext, updateInterval,
+        updateIntervalTimout);
     this.status = new KGDAOInitStatus();
   }
 
@@ -155,30 +156,9 @@ public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
     logger.trace("Update {} was requested to be executed", query.replaceAll("\\n", "\\\\n"));
     try (RepositoryConnection con = repository.getConnection()) {
       con.prepareUpdate(query).execute();
-      updateLock.lock();
-      try {
-        if (notificationTask == null) {
-          notificationTask = new NotificationTask();
-          timer.schedule(notificationTask, updateInterval);
-        } else {
-          //TODO:reschedule.
-        }
-      } finally {
-        updateLock.unlock();
-      }
+      notificationScheduler.updated();
     } catch (RDF4JException e) {
       throw new SPARQLExecutionException(e);
-    }
-  }
-
-  private class NotificationTask extends TimerTask {
-
-    @Override
-    public void run() {
-      logger.debug("Scheduled a new update task. Interval: {}", updateInterval);
-      applicationContext.publishEvent(new SPARQLDAOUpdatedEvent(RDF4JSparqlDAO.this));
-      RDF4JSparqlDAO.this.notificationTask = null;
-      this.cancel();
     }
   }
 
