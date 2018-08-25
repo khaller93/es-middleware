@@ -1,6 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.AbstractDAOEvent;
+import java.time.Instant;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -10,7 +12,7 @@ import org.springframework.context.ApplicationEvent;
  * @version 1.0
  * @since 1.0
  */
-public class SPARQLDAOFailedEvent extends ApplicationEvent {
+public class SPARQLDAOFailedEvent extends AbstractDAOEvent {
 
   private String message;
   private Exception exception;
@@ -21,7 +23,7 @@ public class SPARQLDAOFailedEvent extends ApplicationEvent {
    * @param exception {@link Exception} that has been thrown, can be {@code null}.
    */
   public SPARQLDAOFailedEvent(Object source, String message, Exception exception) {
-    super(source);
+    super(source, Instant.now());
     this.message = message;
     this.exception = exception;
   }

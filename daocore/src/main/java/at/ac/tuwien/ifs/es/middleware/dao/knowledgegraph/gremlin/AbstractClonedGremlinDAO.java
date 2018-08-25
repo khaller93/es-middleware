@@ -1,5 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDAOFailedEvent;
@@ -16,6 +18,8 @@ import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOReadyStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOUpdatingStatus;
+import java.time.Instant;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -97,10 +101,14 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
   private Graph graph;
   /* schema for the graph data */
   private PGS schema;
+  /* update lock */
+  private Lock updateLock = new ReentrantLock();
   /* current timestamp for the most current, integrated data */
-  private AtomicLong currentTimestamp = new AtomicLong(0);
+  //private AtomicLong currentTimestamp = new AtomicLong(0);
+  private Instant currentTimestamp = Instant.now();
   /* timestamp of latest submitted changes of data */
-  private AtomicLong newestDatatimestamp = new AtomicLong(0);
+  //private AtomicLong newestDatatimestamp = new AtomicLong(0);
+  private Instant newestUpdateTimestamp;
 
   private Consumer<ApplicationEvent> updatedListener;
 
@@ -130,24 +138,38 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
 
   @EventListener
   public void onSPARQLReadyEvent(SPARQLDAOReadyEvent event) {
-    logger.debug("SPARQL DAO is ready {}.", event);
-    /* only do initial construction if graph is empty */
-    newestDatatimestamp.accumulateAndGet(event.getTimestamp(),
-        (current, updated) -> current <= updated ? updated : current);
-    if (!graph.vertices().hasNext()) {
-      taskExecutor
-          .execute(new GraphConstruction(event.getTimestamp(), new GremlinDAOReadyEvent(this)));
+    logger.debug("Recognized a SPARQL DAO ready event {}.", event);
+    updateLock.lock();
+    try {
+      if (event.getDAOTimestamp().isAfter(currentTimestamp)) {
+        if (!graph.vertices().hasNext()) {
+          taskExecutor
+              .execute(
+                  new GraphConstruction(event.getDAOTimestamp(), new GremlinDAOReadyEvent(this)));
+        } else {
+          currentTimestamp = event.getDAOTimestamp();
+          logger.debug("Readiness of SPARQL DAO triggers no update.");
+        }
+      }
+    } finally {
+      updateLock.unlock();
     }
   }
 
   @EventListener
   public void onSPARQLUpdatedEvent(SPARQLDAOUpdatedEvent event) {
-    logger.debug("Recognized an SPARQL update event {}.", event);
-    if (newestDatatimestamp.get() < event.getTimestamp()) {
-      newestDatatimestamp.accumulateAndGet(event.getTimestamp(),
-          (current, updated) -> current < updated ? updated : current);
-      taskExecutor
-          .execute(new GraphConstruction(event.getTimestamp(), new GremlinDAOUpdatedEvent(this)));
+    logger.debug("Recognized a SPARQL update event {}.", event);
+    updateLock.lock();
+    try {
+      if (newestUpdateTimestamp == null || newestUpdateTimestamp
+          .isBefore(event.getDAOTimestamp())) {
+        newestUpdateTimestamp = event.getDAOTimestamp();
+        taskExecutor
+            .execute(
+                new GraphConstruction(event.getDAOTimestamp(), new GremlinDAOUpdatedEvent(this)));
+      }
+    } finally {
+      updateLock.unlock();
     }
   }
 
@@ -185,10 +207,12 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
    */
   private class GraphConstruction implements Runnable {
 
-    private long issuedTimestamp;
+    private Instant issuedTimestamp;
     private ApplicationEvent eventForSuccess;
 
-    private GraphConstruction(long issuedTimestamp, ApplicationEvent eventForSuccess) {
+    private GraphConstruction(Instant issuedTimestamp, ApplicationEvent eventForSuccess) {
+      checkArgument(issuedTimestamp != null && eventForSuccess != null,
+          "Given timestamp and event must not be null.");
       this.issuedTimestamp = issuedTimestamp;
       this.eventForSuccess = eventForSuccess;
     }
@@ -219,12 +243,12 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
                   .has(schema.iri().identifierAsString(), sIRI);
               if (vertexIt.hasNext()) {
                 Vertex v = vertexIt.next();
-                v.property(Cardinality.single, "version", issuedTimestamp);
+                v.property(Cardinality.single, "version", Date.from(issuedTimestamp));
                 cache.put(node, v);
               } else {
                 Vertex v = graph
                     .addVertex(schema.iri().identifier(), sIRI, schema.kind().identifier(), "iri",
-                        "version", issuedTimestamp);
+                        "version", Date.from(issuedTimestamp));
                 cache.put(node, v);
               }
             }
@@ -233,7 +257,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
             break;
           }
         } while (!values.isEmpty() && values.size() == LOAD_LIMIT
-            && AbstractClonedGremlinDAO.this.currentTimestamp.get() < issuedTimestamp);
+            && currentTimestamp.compareTo(issuedTimestamp) <= 0);
         AbstractClonedGremlinDAO.this.commit();
         return cache;
       } catch (Exception e) {
@@ -289,20 +313,35 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
               sparqlDAO.getClass().getSimpleName());
           offset += LOAD_LIMIT;
         } while (!values.isEmpty() && values.size() == LOAD_LIMIT
-            && currentTimestamp.get() < issuedTimestamp);
-        if (currentTimestamp.get() < issuedTimestamp) {
+            && currentTimestamp.compareTo(issuedTimestamp) <= 0);
+        /* check status */
+        boolean commit = false;
+        updateLock.lock();
+        try {
+          if (currentTimestamp.isBefore(issuedTimestamp)) {
+            if (issuedTimestamp.compareTo(newestUpdateTimestamp) == 0) {
+              AbstractClonedGremlinDAO.this.status = new KGDAOReadyStatus();
+              if (updatedListener != null && (eventForSuccess instanceof GremlinDAOUpdatedEvent)) {
+                updatedListener.accept(eventForSuccess);
+              }
+            }
+            commit = true;
+            currentTimestamp = issuedTimestamp;
+          }
+        } finally {
+          updateLock.unlock();
+        }
+        /* commit/rollback update */
+        if (commit) {
+          Date cT = Date.from(currentTimestamp);
+          graph.traversal().V().has("version", P.lt(cT)).drop().iterate();
+          graph.traversal().E().has("version", P.lt(cT)).drop().iterate();
           AbstractClonedGremlinDAO.this.commit();
           AbstractClonedGremlinDAO.this.onBulkLoadCompleted();
-          currentTimestamp.accumulateAndGet(issuedTimestamp,
-              (current, updated) -> current <= updated ? updated : current);
-          if (currentTimestamp.get() == newestDatatimestamp.get()) {
-            applicationContext.publishEvent(eventForSuccess);
-            AbstractClonedGremlinDAO.this.status = new KGDAOReadyStatus();
-            if (updatedListener != null && (eventForSuccess instanceof GremlinDAOUpdatedEvent)) {
-              updatedListener.accept(eventForSuccess);
-            }
-          }
+          applicationContext.publishEvent(eventForSuccess);
+          logger.debug("An update with timestamp '{}' has been committed.", issuedTimestamp);
         } else {
+          logger.debug("An update with timestamp '{}' is rolled back.", issuedTimestamp);
           AbstractClonedGremlinDAO.this.rollback();
         }
       } catch (Exception e) {
@@ -313,22 +352,6 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
         AbstractClonedGremlinDAO.this.status = new KGDAOFailedStatus(
             "Updating the Gremlin graph failed.", e);
         AbstractClonedGremlinDAO.this.rollback();
-      } finally {
-        AbstractClonedGremlinDAO.this.unlock();
-        deleteOldData();
-      }
-    }
-
-    private void deleteOldData() {
-      AbstractClonedGremlinDAO.this.lock();
-      long cT = currentTimestamp.get();
-      try {
-        graph.traversal().V().has("version", P.lt(cT)).drop().iterate();
-        graph.traversal().E().has("version", P.lt(cT)).drop().iterate();
-        AbstractClonedGremlinDAO.this.commit();
-      } catch (Exception e) {
-        AbstractClonedGremlinDAO.this.rollback();
-        throw e;
       } finally {
         AbstractClonedGremlinDAO.this.unlock();
       }
