@@ -145,7 +145,8 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
         if (!graph.vertices().hasNext()) {
           taskExecutor
               .execute(
-                  new GraphConstruction(event.getDAOTimestamp(), new GremlinDAOReadyEvent(this)));
+                  new GraphConstruction(event.getDAOTimestamp(),
+                      new GremlinDAOReadyEvent(this, event.getDAOTimestamp())));
         } else {
           currentTimestamp = event.getDAOTimestamp();
           logger.debug("Readiness of SPARQL DAO triggers no update.");
@@ -166,7 +167,8 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
         newestUpdateTimestamp = event.getDAOTimestamp();
         taskExecutor
             .execute(
-                new GraphConstruction(event.getDAOTimestamp(), new GremlinDAOUpdatedEvent(this)));
+                new GraphConstruction(event.getDAOTimestamp(),
+                    new GremlinDAOUpdatedEvent(this, event.getDAOTimestamp())));
       }
     } finally {
       updateLock.unlock();
@@ -307,7 +309,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
             }
             Vertex objectVertex = vertexMap.get(object);
             subjectVertex.addEdge(BlankOrIRIJsonUtil.stringValue(property), objectVertex, "version",
-                issuedTimestamp);
+                Date.from(issuedTimestamp));
           }
           logger.info("Loaded {} statements from the knowledge graph {}.", offset + values.size(),
               sparqlDAO.getClass().getSimpleName());
