@@ -13,7 +13,7 @@ import java.util.Set;
  * @version 1.0
  * @since 1.0
  */
-public interface SameAsResourceService extends AnalysisService<Map<Resource, Set<Resource>>> {
+public interface SameAsResourceService extends AnalysisService {
 
   /**
    * Gets all the {@code owl:sameAs} resources for the given {@code resource}. This method must not

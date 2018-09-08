@@ -7,16 +7,11 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis;
  * @version 1.0
  * @since 1.0
  */
-public interface AnalysisService<C> {
+public interface AnalysisService {
 
   /**
    * Computes the analysis.
    */
-  C compute();
+  void compute();
 
-  /**
-   *
-   * @return
-   */
-  AnalysisEventStatus getStatus();
 }

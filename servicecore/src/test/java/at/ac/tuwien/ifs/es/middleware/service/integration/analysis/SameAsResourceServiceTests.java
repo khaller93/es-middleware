@@ -14,6 +14,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.SameAsResourceService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.SameAsResourceWithSPARQLService;
@@ -47,7 +48,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {SimpleSPARQLService.class, SimpleGremlinService.class,
     RDF4JLuceneFullTextSearchDAO.class, RDF4JMemoryStoreWithLuceneSparqlDAO.class,
     ClonedInMemoryGremlinDAO.class, ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class,
-    ThreadPoolConfig.class, SpringCacheConfig.class})
+    ThreadPoolConfig.class, SpringCacheConfig.class, AnalysisPipelineProcessorDummy.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -63,11 +64,9 @@ public class SameAsResourceServiceTests {
   @Autowired
   private KGGremlinDAO gremlinDAO;
   @Autowired
-  private TaskExecutor taskExecutor;
-  @Autowired
   private SPARQLService sparqlService;
   @Autowired
-  private ApplicationEventPublisher eventPublisher;
+  private AnalysisPipelineProcessor processor;
   @Autowired
   private CacheManager cacheManager;
 
@@ -81,15 +80,15 @@ public class SameAsResourceServiceTests {
   @Before
   public void setUp() throws InterruptedException {
     musicPintaResource.waitForAllDAOsBeingReady();
-    sameAsResourceService = new SameAsResourceWithSPARQLService(sparqlService, eventPublisher,
-        taskExecutor, cacheManager);
+    sameAsResourceService = new SameAsResourceWithSPARQLService(sparqlService, processor,
+        cacheManager);
   }
 
   @Test
   public void computeTheSameAsResources_mustReturnMapForAllKnownResources() {
-    Map<Resource, Set<Resource>> resourceMap = sameAsResourceService.compute();
-    Set<Resource> sameAsResources = resourceMap
-        .get(new Resource("http://dbpedia.org/resource/Guitar"));
+    sameAsResourceService.compute();
+    Set<Resource> sameAsResources = sameAsResourceService
+        .getSameAsResourcesFor(new Resource("http://dbpedia.org/resource/Guitar"));
     assertNotNull(sameAsResources);
     assertThat(sameAsResources, hasSize(1));
     assertThat(sameAsResources,

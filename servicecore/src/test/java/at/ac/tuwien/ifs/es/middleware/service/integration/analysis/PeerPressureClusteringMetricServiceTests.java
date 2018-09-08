@@ -16,6 +16,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchD
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.peerpressure.PeerPressureClusteringMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.peerpressure.PeerPressureClusteringMetricWithGremlinService;
@@ -46,7 +47,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {SimpleSPARQLService.class, SimpleGremlinService.class,
     RDF4JLuceneFullTextSearchDAO.class, RDF4JMemoryStoreWithLuceneSparqlDAO.class,
     ClonedInMemoryGremlinDAO.class, ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class,
-    ThreadPoolConfig.class, SpringCacheConfig.class})
+    ThreadPoolConfig.class, SpringCacheConfig.class, AnalysisPipelineProcessorDummy.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -64,9 +65,7 @@ public class PeerPressureClusteringMetricServiceTests {
   @Autowired
   private GremlinService gremlinService;
   @Autowired
-  private ApplicationContext context;
-  @Autowired
-  private TaskExecutor taskExecutor;
+  private AnalysisPipelineProcessor processor;
 
   private PeerPressureClusteringMetricService peerPressureClusteringMetricService;
 
@@ -74,7 +73,7 @@ public class PeerPressureClusteringMetricServiceTests {
   public void setUpBean() {
     musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
     peerPressureClusteringMetricService = new PeerPressureClusteringMetricWithGremlinService(
-        gremlinService, context, taskExecutor);
+        gremlinService, processor);
   }
 
   @Before

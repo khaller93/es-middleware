@@ -6,13 +6,18 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisEventStatus;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LeastCommonSubSumersService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
+import com.google.common.collect.Sets;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import javax.annotation.PostConstruct;
 import org.apache.tinkerpop.gremlin.process.computer.clustering.peerpressure.PeerPressureVertexProgram;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -49,45 +54,20 @@ public class PeerPressureClusteringMetricWithGremlinService implements
 
   private GremlinService gremlinService;
   private PGS schema;
-  private ApplicationEventPublisher eventPublisher;
-  private TaskExecutor taskExecutor;
-
-  private long lastUpdateTimestamp = 0L;
-  private Lock computationLock = new ReentrantLock();
+  private AnalysisPipelineProcessor processor;
 
   @Autowired
   public PeerPressureClusteringMetricWithGremlinService(
       GremlinService gremlinService,
-      ApplicationEventPublisher eventPublisher,
-      TaskExecutor taskExecutor) {
+      AnalysisPipelineProcessor processor) {
     this.gremlinService = gremlinService;
     this.schema = gremlinService.getPropertyGraphSchema();
-    this.eventPublisher = eventPublisher;
-    this.taskExecutor = taskExecutor;
+    this.processor = processor;
   }
 
-  @EventListener
-  public void onApplicationEvent(GremlinDAOReadyEvent event) {
-    logger.debug("Recognized an Gremlin ready event {}.", event);
-    startComputation(event.getTimestamp());
-  }
-
-  @EventListener
-  public void onApplicationEvent(GremlinDAOUpdatedEvent event) {
-    logger.debug("Recognized an Gremlin update event {}.", event);
-    startComputation(event.getTimestamp());
-  }
-
-  private void startComputation(long eventTimestamp) {
-    computationLock.lock();
-    try {
-      if (lastUpdateTimestamp < eventTimestamp) {
-        taskExecutor.execute(this::compute);
-        lastUpdateTimestamp = eventTimestamp;
-      }
-    } finally {
-      computationLock.unlock();
-    }
+  @PostConstruct
+  private void setUp() {
+    processor.registerAnalysisService(this, false, false, true, null);
   }
 
   @Override
@@ -98,7 +78,7 @@ public class PeerPressureClusteringMetricWithGremlinService implements
     if (!vertexAOpt.isPresent()) {
       return null;
     }
-    String vertexACluster = vertexAOpt.get().<String>property(PEER_PRESSURE_PROP_NAME)
+    Object vertexACluster = vertexAOpt.get().property(PEER_PRESSURE_PROP_NAME)
         .orElse(null);
     Optional<Vertex> vertexBOpt = gremlinService.traversal().V()
         .has(schema.iri().identifierAsString(),
@@ -106,7 +86,7 @@ public class PeerPressureClusteringMetricWithGremlinService implements
     if (!vertexBOpt.isPresent()) {
       return null;
     }
-    String vertexBCluster = vertexBOpt.get().<String>property(PEER_PRESSURE_PROP_NAME)
+    Object vertexBCluster = vertexBOpt.get().property(PEER_PRESSURE_PROP_NAME)
         .orElse(null);
     if (vertexACluster == null || vertexBCluster == null) {
       return null;
@@ -115,7 +95,7 @@ public class PeerPressureClusteringMetricWithGremlinService implements
   }
 
   @Override
-  public Void compute() {
+  public void compute() {
     Instant issueTimestamp = Instant.now();
     logger.info("Starting to computes peer pressure clustering metric.");
     gremlinService.lock();
@@ -138,11 +118,6 @@ public class PeerPressureClusteringMetricWithGremlinService implements
     }
     logger.info("Peer pressure clustering issued on {} computed on {}.", issueTimestamp,
         Instant.now());
-    return null;
   }
 
-  @Override
-  public AnalysisEventStatus getStatus() {
-    return null;
-  }
 }

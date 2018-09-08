@@ -6,12 +6,15 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisEventStatus;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
+import com.google.common.collect.Sets;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import javax.annotation.PostConstruct;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -46,43 +49,19 @@ public class DegreeCentralityMetricWithGremlinService implements DegreeCentralit
 
   private GremlinService gremlinService;
   private PGS schema;
-  private TaskExecutor taskExecutor;
-  private ApplicationEventPublisher eventPublisher;
-
-  private long lastUpdateTimestamp = 0L;
-  private final Lock computationLock = new ReentrantLock();
+  private AnalysisPipelineProcessor processor;
 
   @Autowired
   public DegreeCentralityMetricWithGremlinService(GremlinService gremlinService,
-      ApplicationEventPublisher eventPublisher, TaskExecutor taskExecutor) {
+      AnalysisPipelineProcessor processor) {
     this.gremlinService = gremlinService;
     this.schema = gremlinService.getPropertyGraphSchema();
-    this.taskExecutor = taskExecutor;
-    this.eventPublisher = eventPublisher;
+    this.processor = processor;
   }
 
-  @EventListener
-  public void onApplicationEvent(GremlinDAOReadyEvent event) {
-    logger.debug("Recognized an Gremlin ready event {}.", event);
-    startComputation(event.getTimestamp());
-  }
-
-  @EventListener
-  public void onApplicationEvent(GremlinDAOUpdatedEvent event) {
-    logger.debug("Recognized an Gremlin update event {}.", event);
-    startComputation(event.getTimestamp());
-  }
-
-  private void startComputation(long eventTimestamp) {
-    computationLock.lock();
-    try {
-      if (lastUpdateTimestamp < eventTimestamp) {
-        taskExecutor.execute(this::compute);
-        lastUpdateTimestamp = eventTimestamp;
-      }
-    } finally {
-      computationLock.unlock();
-    }
+  @PostConstruct
+  private void setUp() {
+    processor.registerAnalysisService(this, false, false, true, null);
   }
 
   @Override
@@ -99,7 +78,7 @@ public class DegreeCentralityMetricWithGremlinService implements DegreeCentralit
   }
 
   @Override
-  public Void compute() {
+  public void compute() {
     Instant issueTimestamp = Instant.now();
     logger.info("Starting to computes degree metric.");
     gremlinService.lock();
@@ -118,11 +97,6 @@ public class DegreeCentralityMetricWithGremlinService implements DegreeCentralit
       gremlinService.unlock();
     }
     logger.info("Degree metric issued on {} computed on {}.", issueTimestamp, Instant.now());
-    return null;
   }
 
-  @Override
-  public AnalysisEventStatus getStatus() {
-    return null;
-  }
 }

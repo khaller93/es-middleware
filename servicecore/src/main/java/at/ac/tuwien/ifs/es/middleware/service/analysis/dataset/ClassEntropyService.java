@@ -10,7 +10,7 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisService;
  * @version 1.0
  * @since 1.0
  */
-public interface ClassEntropyService extends AnalysisService<Void> {
+public interface ClassEntropyService extends AnalysisService {
 
   /**
    * Gets the entropy for the given class resource. {@code null} will be returned, if the class is

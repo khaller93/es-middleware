@@ -13,11 +13,8 @@
 
   <name>Service Core</name>
 
-  <properties>
-
-  </properties>
-
   <dependencies>
+    <!-- ESS Modules -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.dto</artifactId>
@@ -28,6 +25,17 @@
       <artifactId>middleware.daocore</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <!-- JPA -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>1.4.197</version>
+    </dependency>
+    <!-- Utils -->
     <dependency>
       <groupId>org.javatuples</groupId>
       <artifactId>javatuples</artifactId>
@@ -43,7 +51,7 @@
       <artifactId>guava</artifactId>
       <version>${guava.version}</version>
     </dependency>
-    <!-- Test util -->
+    <!-- Test Utils -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.testutil</artifactId>

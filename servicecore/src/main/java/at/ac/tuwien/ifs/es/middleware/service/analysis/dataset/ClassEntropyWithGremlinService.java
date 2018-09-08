@@ -6,14 +6,17 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisEventStatus;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
+import com.google.common.collect.Sets;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
@@ -22,6 +25,7 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty.Cardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.event.EventListener;
@@ -47,44 +51,22 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
   private GremlinService gremlinService;
   private ClassInformationService classInformationService;
   private PGS schema;
-  private ApplicationEventPublisher eventPublisher;
-  private TaskExecutor taskExecutor;
+  private AnalysisPipelineProcessor processor;
 
-  private long lastUpdateTimestamp = 0L;
-  private Lock computationLock = new ReentrantLock();
-
+  @Autowired
   public ClassEntropyWithGremlinService(GremlinService gremlinService,
       ClassInformationService classInformationService,
-      ApplicationEventPublisher eventPublisher, TaskExecutor taskExecutor) {
+      AnalysisPipelineProcessor processor) {
     this.gremlinService = gremlinService;
     this.schema = gremlinService.getPropertyGraphSchema();
     this.classInformationService = classInformationService;
-    this.eventPublisher = eventPublisher;
-    this.taskExecutor = taskExecutor;
+    this.processor = processor;
   }
 
-  @EventListener
-  public void onApplicationEvent(GremlinDAOReadyEvent event) {
-    logger.debug("Recognized an Gremlin ready event {}.", event);
-    startComputation(event.getTimestamp());
-  }
-
-  @EventListener
-  public void onApplicationEvent(GremlinDAOUpdatedEvent event) {
-    logger.debug("Recognized an Gremlin update event {}.", event);
-    startComputation(event.getTimestamp());
-  }
-
-  private void startComputation(long eventTimestamp) {
-    computationLock.lock();
-    try {
-      if (lastUpdateTimestamp < eventTimestamp) {
-        taskExecutor.execute(this::compute);
-        lastUpdateTimestamp = eventTimestamp;
-      }
-    } finally {
-      computationLock.unlock();
-    }
+  @PostConstruct
+  private void setUp() {
+    processor.registerAnalysisService(this, false, false, true,
+        Sets.newHashSet(ClassInformationService.class));
   }
 
   @Override
@@ -99,7 +81,7 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
   }
 
   @Override
-  public Void compute() {
+  public void compute() {
     Instant issueTimestamp = Instant.now();
     logger.info("Starting to computes information content metric for classes.");
     gremlinService.lock();
@@ -140,12 +122,6 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
     }
     logger.info("Information Content for classes issued on {} computed on {}.", issueTimestamp,
         Instant.now());
-    return null;
-  }
-
-  @Override
-  public AnalysisEventStatus getStatus() {
-    return null;
   }
 
 }

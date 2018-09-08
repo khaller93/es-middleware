@@ -4,6 +4,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisEventStatus;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import com.google.common.collect.Sets;
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.slf4j.Logger;
@@ -84,8 +86,7 @@ public class LCSWithInMemoryTreeService implements LeastCommonSubSumersService {
   private SPARQLService sparqlService;
   private ClassInformationService classInformationService;
   private SameAsResourceService sameAsResourceService;
-  private ApplicationEventPublisher eventPublisher;
-  private TaskExecutor taskExecutor;
+  private AnalysisPipelineProcessor processor;
 
   private Cache lcsCache;
 
@@ -94,15 +95,19 @@ public class LCSWithInMemoryTreeService implements LeastCommonSubSumersService {
       SPARQLService sparqlService,
       ClassInformationService classInformationService,
       SameAsResourceService sameAsResourceService,
-      ApplicationEventPublisher eventPublisher,
-      TaskExecutor taskExecutor,
+      AnalysisPipelineProcessor processor,
       CacheManager cacheManager) {
     this.sparqlService = sparqlService;
     this.classInformationService = classInformationService;
     this.sameAsResourceService = sameAsResourceService;
-    this.eventPublisher = eventPublisher;
-    this.taskExecutor = taskExecutor;
+    this.processor = processor;
     this.lcsCache = cacheManager.getCache("lcs");
+  }
+
+  @PostConstruct
+  private void setUp() {
+    processor.registerAnalysisService(this, true, false, false,
+        Sets.newHashSet(ClassInformationService.class, SameAsResourceService.class));
   }
 
   private TreeNode computeLCATreeNodeFor(Map<Resource, TreeNode> treeNodes, Resource resource) {
@@ -209,7 +214,7 @@ public class LCSWithInMemoryTreeService implements LeastCommonSubSumersService {
   }
 
   @Override
-  public Void compute() {
+  public void compute() {
     /* build the class tree hierarchy. */
     Map<Resource, TreeNode> treeNodeMap = computeLCATreeNodes();
     /* compute the least common subsumer */
@@ -222,7 +227,6 @@ public class LCSWithInMemoryTreeService implements LeastCommonSubSumersService {
         lcsCache.put(resourcePair, lcaSet);
       }
     }
-    return null;
   }
 
   @Override
@@ -233,11 +237,6 @@ public class LCSWithInMemoryTreeService implements LeastCommonSubSumersService {
     } else {
       return Sets.newHashSet();
     }
-  }
-
-  @Override
-  public AnalysisEventStatus getStatus() {
-    return null;
   }
 
   /**

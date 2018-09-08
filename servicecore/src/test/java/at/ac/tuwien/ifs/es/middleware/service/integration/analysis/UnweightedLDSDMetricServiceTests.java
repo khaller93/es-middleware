@@ -15,24 +15,23 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchD
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.JPAConfiguration;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricKey;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricResult;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricStoreService;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassInformationServiceImpl;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.SameAsResourceWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.ldsd.LDSDWithSPARQLMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.ldsd.LinkedDataSemanticDistanceMetricService;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.SimpleGremlinService;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import javax.annotation.PostConstruct;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.CacheManager;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.task.TaskExecutor;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -45,17 +44,20 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 1.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {SimpleSPARQLService.class, SimpleGremlinService.class,
-    RDF4JLuceneFullTextSearchDAO.class, RDF4JMemoryStoreWithLuceneSparqlDAO.class,
-    ClonedInMemoryGremlinDAO.class, ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class,
-    ThreadPoolConfig.class, ClassInformationServiceImpl.class, SpringCacheConfig.class,
-    SameAsResourceWithSPARQLService.class})
+@ContextConfiguration(classes = {KGDAOConfig.class, RDF4JDAOConfig.class,
+    ClonedInMemoryGremlinDAO.class, RDF4JMemoryStoreWithLuceneSparqlDAO.class,
+    RDF4JLuceneFullTextSearchDAO.class, ThreadPoolConfig.class, LDSDWithSPARQLMetricService.class,
+    SimpleSPARQLService.class, AnalysisPipelineProcessorDummy.class, SpringCacheConfig.class,
+    JPAConfiguration.class, SimilarityMetricStoreService.class, SimilarityMetricResult.class,
+    SimilarityMetricKey.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
     "esm.db.fts.choice=RDF4JLucene",
-    "esm.db.gremlin.choice=ClonedInMemoryGremlin"
+    "esm.db.gremlin.choice=ClonedInMemoryGremlin",
 })
+@DataJpaTest(showSql = false)
+@Ignore("Takes too long for current test data")
 public class UnweightedLDSDMetricServiceTests {
 
   @Rule
@@ -65,14 +67,6 @@ public class UnweightedLDSDMetricServiceTests {
   @Autowired
   private KGGremlinDAO gremlinDAO;
   @Autowired
-  private TaskExecutor taskExecutor;
-  @Autowired
-  private SPARQLService sparqlService;
-  @Autowired
-  private ApplicationContext context;
-  @Autowired
-  private CacheManager cacheManager;
-
   private LinkedDataSemanticDistanceMetricService ldsdMetricService;
 
   @PostConstruct
@@ -83,8 +77,6 @@ public class UnweightedLDSDMetricServiceTests {
   @Before
   public void setUp() throws InterruptedException {
     musicPintaResource.waitForAllDAOsBeingReady();
-    ldsdMetricService = new LDSDWithSPARQLMetricService(sparqlService, context, taskExecutor,
-        cacheManager);
   }
 
   @Test
@@ -102,6 +94,7 @@ public class UnweightedLDSDMetricServiceTests {
 
   @Test
   public void getLDSDForTwoDifferentFormsOfGuitarsOnline_mustReturnValidResult() {
+    ldsdMetricService.compute();
     Resource guitarResource = new Resource("http://dbpedia.org/resource/Guitar");
     Resource spanishAcousticGuitarResource = new Resource(
         "http://dbtune.org/musicbrainz/resource/instrument/206");

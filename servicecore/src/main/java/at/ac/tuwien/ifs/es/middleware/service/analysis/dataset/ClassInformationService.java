@@ -15,7 +15,7 @@ import java.util.Set;
  * @see <a href="https://en.wikipedia.org/wiki/Lowest_common_ancestor">Least Common Subsumer</a>
  * @since 1.0
  */
-public interface ClassInformationService extends AnalysisService<Void> {
+public interface ClassInformationService extends AnalysisService {
 
   /**
    * Gets all the classes in the knowledge graph.

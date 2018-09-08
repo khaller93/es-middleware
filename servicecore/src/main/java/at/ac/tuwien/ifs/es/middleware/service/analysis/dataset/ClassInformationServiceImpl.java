@@ -4,6 +4,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisEventStatus;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import com.google.common.collect.Sets;
 import java.util.HashMap;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.slf4j.Logger;
@@ -49,20 +51,18 @@ public class ClassInformationServiceImpl implements ClassInformationService {
       + "}";
 
   private SPARQLService sparqlService;
-  private SameAsResourceService sameAsResourceService;
-  private ApplicationEventPublisher eventPublisher;
-  private TaskExecutor taskExecutor;
+  private AnalysisPipelineProcessor processor;
 
   @Autowired
-  public ClassInformationServiceImpl(
-      SPARQLService sparqlService,
-      SameAsResourceService sameAsResourceService,
-      ApplicationEventPublisher eventPublisher,
-      TaskExecutor taskExecutor) {
+  public ClassInformationServiceImpl(SPARQLService sparqlService,
+      AnalysisPipelineProcessor processor) {
     this.sparqlService = sparqlService;
-    this.sameAsResourceService = sameAsResourceService;
-    this.eventPublisher = eventPublisher;
-    this.taskExecutor = taskExecutor;
+    this.processor = processor;
+  }
+
+  @PostConstruct
+  private void setUp() {
+    processor.registerAnalysisService(this, true, false, false, null);
   }
 
   @Cacheable("sparql")
@@ -74,13 +74,8 @@ public class ClassInformationServiceImpl implements ClassInformationService {
   }
 
   @Override
-  public Void compute() {
-    return null;
-  }
+  public void compute() {
 
-  @Override
-  public AnalysisEventStatus getStatus() {
-    return null;
   }
 
 }

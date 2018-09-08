@@ -16,7 +16,7 @@ import java.util.Set;
  * @version 1.0
  * @since 1.0
  */
-public interface LeastCommonSubSumersService extends AnalysisService<Void> {
+public interface LeastCommonSubSumersService extends AnalysisService {
 
   /**
    * Gets the least common subsumers (also least common ancestors) for the given {@code

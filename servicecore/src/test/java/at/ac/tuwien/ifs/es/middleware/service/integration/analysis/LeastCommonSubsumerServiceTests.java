@@ -16,6 +16,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchD
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassInformationService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassInformationServiceImpl;
@@ -52,7 +53,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedInMemoryGremlinDAO.class,
     ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class, ThreadPoolConfig.class,
     SameAsResourceWithSPARQLService.class, SpringCacheConfig.class,
-    ClassInformationServiceImpl.class})
+    ClassInformationServiceImpl.class, AnalysisPipelineProcessorDummy.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -70,9 +71,7 @@ public class LeastCommonSubsumerServiceTests {
   @Autowired
   private SPARQLService sparqlService;
   @Autowired
-  private ApplicationContext context;
-  @Autowired
-  private TaskExecutor taskExecutor;
+  private AnalysisPipelineProcessor processor;
   @Autowired
   private CacheManager cacheManager;
   @Autowired
@@ -86,7 +85,7 @@ public class LeastCommonSubsumerServiceTests {
   public void setUpBean() {
     musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
     leastCommonSubSumersService = new LCSWithInMemoryTreeService(sparqlService,
-        classInformationService, sameAsResourceService, context, taskExecutor, cacheManager);
+        classInformationService, sameAsResourceService, processor, cacheManager);
   }
 
   @Before

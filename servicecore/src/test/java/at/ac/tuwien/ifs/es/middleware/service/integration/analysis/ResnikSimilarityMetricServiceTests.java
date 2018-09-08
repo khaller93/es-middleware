@@ -9,12 +9,14 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.ThreadPoolConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.JPAConfiguration;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricStoreService;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyWithGremlinService;
@@ -33,13 +35,13 @@ import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQL
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import javax.annotation.PostConstruct;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.cache.CacheManager;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -56,13 +58,16 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     RDF4JLuceneFullTextSearchDAO.class, RDF4JMemoryStoreWithLuceneSparqlDAO.class,
     ClonedInMemoryGremlinDAO.class, ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class,
     ThreadPoolConfig.class, ClassInformationServiceImpl.class, SpringCacheConfig.class,
-    SameAsResourceWithSPARQLService.class})
+    SameAsResourceWithSPARQLService.class, AnalysisPipelineProcessorDummy.class,
+    JPAConfiguration.class, SimilarityMetricStoreService.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
     "esm.db.fts.choice=RDF4JLucene",
     "esm.db.gremlin.choice=ClonedInMemoryGremlin"
 })
+@DataJpaTest(showSql = false)
+@Ignore("Takes too long for current test data")
 public class ResnikSimilarityMetricServiceTests {
 
   @Rule
@@ -72,19 +77,18 @@ public class ResnikSimilarityMetricServiceTests {
   @Autowired
   private KGGremlinDAO gremlinDAO;
   @Autowired
-  private TaskExecutor taskExecutor;
-  @Autowired
   private SPARQLService sparqlService;
   @Autowired
   private GremlinService gremlinService;
   @Autowired
-  private ApplicationContext context;
-  @Autowired
   private CacheManager cacheManager;
   @Autowired
   private ClassInformationService classInformationService;
+  @Autowired
+  private AnalysisPipelineProcessor processor;
+  @Autowired
+  private SimilarityMetricStoreService similarityMetricStoreService;
 
-  private PGS schema;
   private ResnikSimilarityMetricService resnikSimilarityMetricService;
 
   @PostConstruct
@@ -96,17 +100,17 @@ public class ResnikSimilarityMetricServiceTests {
   public void setUp() throws InterruptedException {
     musicPintaResource.waitForAllDAOsBeingReady();
     SameAsResourceService sameAsResourceService = new SameAsResourceWithSPARQLService(sparqlService,
-        context, taskExecutor, cacheManager);
+        processor, cacheManager);
     sameAsResourceService.compute();
     ClassEntropyService classEntropyService = new ClassEntropyWithGremlinService(gremlinService,
-        classInformationService, context, taskExecutor);
+        classInformationService, processor);
     classEntropyService.compute();
     LeastCommonSubSumersService leastCommonSubSumersService = new LCSWithInMemoryTreeService(
-        sparqlService, classInformationService, sameAsResourceService, context, taskExecutor,
+        sparqlService, classInformationService, sameAsResourceService, processor,
         cacheManager);
     leastCommonSubSumersService.compute();
     resnikSimilarityMetricService = new ResnikSimilarityMetricServiceImpl(sparqlService,
-        classEntropyService, leastCommonSubSumersService, cacheManager);
+        classEntropyService, leastCommonSubSumersService, processor, similarityMetricStoreService);
   }
 
   @Test

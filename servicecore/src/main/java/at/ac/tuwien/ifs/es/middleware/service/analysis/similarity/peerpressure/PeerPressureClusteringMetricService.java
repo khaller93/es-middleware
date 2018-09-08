@@ -14,7 +14,7 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisService;
  * Peer Pressure documentation</a>
  * @since 1.0
  */
-public interface PeerPressureClusteringMetricService extends AnalysisService<Void> {
+public interface PeerPressureClusteringMetricService extends AnalysisService {
 
   /**
    * Checks whether the resources of the given {@code pair} are in the same cluster.

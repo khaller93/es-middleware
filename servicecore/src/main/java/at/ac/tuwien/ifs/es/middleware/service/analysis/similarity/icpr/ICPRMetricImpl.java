@@ -27,13 +27,8 @@ public class ICPRMetricImpl implements ICPRMetricService {
   }
 
   @Override
-  public Void compute() {
+  public void compute() {
 
-    return null;
   }
 
-  @Override
-  public AnalysisEventStatus getStatus() {
-    return null;
-  }
 }

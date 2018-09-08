@@ -16,6 +16,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchD
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.pagerank.PageRankCentralityMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.pagerank.PageRankCentralityMetricWithGremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
@@ -48,7 +49,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {SimpleGremlinService.class, RDF4JLuceneFullTextSearchDAO.class,
     RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedInMemoryGremlinDAO.class,
-    ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class, ThreadPoolConfig.class})
+    ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class, ThreadPoolConfig.class,
+    AnalysisPipelineProcessorDummy.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -68,7 +70,7 @@ public class PageRankCentralityMetricServiceTests {
   @Autowired
   public GremlinService gremlinService;
   @Autowired
-  private ApplicationContext context;
+  private AnalysisPipelineProcessor processor;
 
   private PageRankCentralityMetricService pageRankCentralityMetricService;
 
@@ -81,7 +83,7 @@ public class PageRankCentralityMetricServiceTests {
   public void setUp() throws InterruptedException {
     musicPintaResource.waitForAllDAOsBeingReady();
     pageRankCentralityMetricService = new PageRankCentralityMetricWithGremlinService(gremlinService,
-        context, taskExecutor);
+        processor);
   }
 
   @Test

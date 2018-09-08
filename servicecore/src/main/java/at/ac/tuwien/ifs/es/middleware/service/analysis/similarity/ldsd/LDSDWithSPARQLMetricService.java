@@ -1,21 +1,25 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.ldsd;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOReadyEvent;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOUpdatedEvent;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisEventStatus;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityKey;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricKey;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricResult;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricStoreService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.Literal;
 import org.apache.commons.rdf.api.RDFTerm;
@@ -25,10 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -102,55 +103,31 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
           + "}";
 
   private SPARQLService sparqlService;
-  private ApplicationEventPublisher eventPublisher;
-  private TaskExecutor taskExecutor;
-  private Cache similarityCache;
-
-  private long lastUpdateTimestamp = 0L;
-  private Lock computationLock = new ReentrantLock();
+  private AnalysisPipelineProcessor processor;
+  private SimilarityMetricStoreService similarityMetricStoreService;
 
   @Autowired
   public LDSDWithSPARQLMetricService(
       SPARQLService sparqlService,
-      ApplicationEventPublisher eventPublisher,
-      TaskExecutor taskExecutor,
-      CacheManager cacheManager) {
+      AnalysisPipelineProcessor processor,
+      SimilarityMetricStoreService similarityMetricStoreService) {
     this.sparqlService = sparqlService;
-    this.eventPublisher = eventPublisher;
-    this.taskExecutor = taskExecutor;
-    this.similarityCache = cacheManager.getCache("similarity");
+    this.processor = processor;
+    this.similarityMetricStoreService = similarityMetricStoreService;
   }
 
-  @EventListener
-  public void onApplicationEvent(SPARQLDAOReadyEvent event) {
-    logger.debug("Recognized an SPARQL ready event {}.", event);
-    startComputation(event.getTimestamp());
-  }
-
-  @EventListener
-  public void onApplicationEvent(SPARQLDAOUpdatedEvent event) {
-    logger.debug("Recognized an Gremlin update event {}.", event);
-    startComputation(event.getTimestamp());
-  }
-
-  private void startComputation(long eventTimestamp) {
-    computationLock.lock();
-    try {
-      if (lastUpdateTimestamp < eventTimestamp) {
-        taskExecutor.execute(this::compute);
-        lastUpdateTimestamp = eventTimestamp;
-      }
-    } finally {
-      computationLock.unlock();
-    }
+  @PostConstruct
+  private void setUp() {
+    processor.registerAnalysisService(this, true, false, false, null);
   }
 
   @Override
   public Double getValueFor(ResourcePair resourcePair) {
-    Double ldsdValue = similarityCache
-        .get(SimilarityKey.of(UNWEIGHTED_LDSD_SIMILARITY_UID, resourcePair), Double.class);
-    if (ldsdValue != null) {
-      return ldsdValue;
+    checkArgument(resourcePair != null, "The given resource pair must not be null.");
+    Optional<SimilarityMetricResult> metricsResult = similarityMetricStoreService
+        .findById(SimilarityMetricKey.of(UNWEIGHTED_LDSD_SIMILARITY_UID, resourcePair));
+    if (metricsResult.isPresent()) {
+      return metricsResult.get().getValue();
     } else {
       Map<String, String> valuesMap = new HashMap<>();
       valuesMap.put("a", BlankOrIRIJsonUtil.stringForSPARQLResourceOf(resourcePair.getFirst()));
@@ -166,30 +143,21 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
   }
 
   @Override
-  public Void compute() {
+  @SuppressWarnings("unchecked")
+  public void compute() {
     Instant issueTimestamp = Instant.now();
     logger.info("Starting to computes Linked Data Semantic Distance metric.");
-    if (similarityCache != null) {
-      List<Map<String, RDFTerm>> results = sparqlService.<SelectQueryResult>query(ALL_LDSD_QUERY,
-          true).value();
-      for (Map<String, RDFTerm> row : results) {
-        Resource resourceA = new Resource((BlankNodeOrIRI) row.get("a"));
-        Resource resourceB = new Resource((BlankNodeOrIRI) row.get("b"));
-        similarityCache.put(SimilarityKey
-                .of(UNWEIGHTED_LDSD_SIMILARITY_UID, ResourcePair.of(resourceA, resourceB)),
-            Double.parseDouble(((Literal) row.get("ldsd")).getLexicalForm()));
-      }
-      logger.info("Linked Data Semantic Distance issued on {} computed on {}.", issueTimestamp,
-          Instant.now());
-    } else {
-      logger.warn("Linked Data Semantic Distance was skipped, because cache is missing.");
-    }
-    return null;
-  }
-
-  @Override
-  public AnalysisEventStatus getStatus() {
-    return null;
+    List<Map<String, RDFTerm>> results = sparqlService.<SelectQueryResult>query(ALL_LDSD_QUERY,
+        true).value();
+    similarityMetricStoreService.saveAll(results.stream()
+        .map(row -> new SimilarityMetricResult(SimilarityMetricKey
+            .of(UNWEIGHTED_LDSD_SIMILARITY_UID, ResourcePair
+                .of(new Resource((BlankNodeOrIRI) row.get("a")),
+                    new Resource((BlankNodeOrIRI) row.get("b")))),
+            Double.parseDouble(((Literal) row.get("ldsd")).getLexicalForm())))
+        .collect(Collectors.toList()));
+    logger.info("Linked Data Semantic Distance issued on {} computed on {}.", issueTimestamp,
+        Instant.now());
   }
 
 }

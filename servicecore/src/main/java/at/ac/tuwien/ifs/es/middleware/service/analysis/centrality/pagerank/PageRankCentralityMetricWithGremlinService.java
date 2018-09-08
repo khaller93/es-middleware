@@ -6,6 +6,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisEventStatus;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.event.PageRankUpdatedEvent;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
@@ -13,6 +14,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import javax.annotation.PostConstruct;
 import org.apache.tinkerpop.gremlin.process.computer.ranking.pagerank.PageRankVertexProgram;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
@@ -46,45 +48,21 @@ public class PageRankCentralityMetricWithGremlinService implements PageRankCentr
 
   private final String PAGE_RANK_PROP_NAME = "esm.service.analytics.centrality.pagerank";
 
-  private TaskExecutor taskExecutor;
   private GremlinService gremlinService;
   private PGS schema;
-  private ApplicationEventPublisher applicationEventPublisher;
-
-  private long lastUpdateTimestamp = 0L;
-  private Lock computationLock = new ReentrantLock();
+  private AnalysisPipelineProcessor processor;
 
   @Autowired
   public PageRankCentralityMetricWithGremlinService(GremlinService gremlinService,
-      ApplicationEventPublisher applicationEventPublisher, TaskExecutor taskExecutor) {
+      AnalysisPipelineProcessor processor) {
     this.gremlinService = gremlinService;
     this.schema = gremlinService.getPropertyGraphSchema();
-    this.applicationEventPublisher = applicationEventPublisher;
-    this.taskExecutor = taskExecutor;
+    this.processor = processor;
   }
 
-  @EventListener
-  public void onApplicationEvent(GremlinDAOReadyEvent event) {
-    logger.debug("Recognized an Gremlin ready event {}.", event);
-    startComputation(event.getTimestamp());
-  }
-
-  @EventListener
-  public void onApplicationEvent(GremlinDAOUpdatedEvent event) {
-    logger.debug("Recognized an Gremlin update event {}.", event);
-    startComputation(event.getTimestamp());
-  }
-
-  private void startComputation(long eventTimestamp) {
-    computationLock.lock();
-    try {
-      if (lastUpdateTimestamp < eventTimestamp) {
-        taskExecutor.execute(this::compute);
-        lastUpdateTimestamp = eventTimestamp;
-      }
-    } finally {
-      computationLock.unlock();
-    }
+  @PostConstruct
+  private void setUp() {
+    processor.registerAnalysisService(this, false, false, true, null);
   }
 
   @Override
@@ -99,7 +77,7 @@ public class PageRankCentralityMetricWithGremlinService implements PageRankCentr
   }
 
   @Override
-  public Void compute() {
+  public void compute() {
     Instant issueTimestamp = Instant.now();
     logger.info("Starting to computes page rank metric.");
     gremlinService.lock();
@@ -119,14 +97,7 @@ public class PageRankCentralityMetricWithGremlinService implements PageRankCentr
     } finally {
       gremlinService.unlock();
     }
-    applicationEventPublisher
-        .publishEvent(new PageRankUpdatedEvent(this));
     logger.info("Page rank issued on {} computed on {}.", issueTimestamp, Instant.now());
-    return null;
   }
 
-  @Override
-  public AnalysisEventStatus getStatus() {
-    return null;
-  }
 }

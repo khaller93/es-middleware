@@ -14,6 +14,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryG
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassInformationService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassInformationServiceImpl;
@@ -45,7 +46,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {SimpleSPARQLService.class, RDF4JLuceneFullTextSearchDAO.class,
     RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedInMemoryGremlinDAO.class,
     ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class, ThreadPoolConfig.class,
-    SameAsResourceWithSPARQLService.class, SpringCacheConfig.class})
+    SameAsResourceWithSPARQLService.class, SpringCacheConfig.class,
+    AnalysisPipelineProcessor.class, AnalysisPipelineProcessorDummy.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -64,25 +66,22 @@ public class ClassInformationServiceTests {
   @Autowired
   private SPARQLService sparqlService;
   @Autowired
-  private ApplicationContext context;
-  @Autowired
-  private TaskExecutor taskExecutor;
+  private AnalysisPipelineProcessor processor;
   @Autowired
   private SameAsResourceService sameAsResourceService;
+
   private ClassInformationService classInformationService;
 
   @PostConstruct
   public void setUpBean() {
     musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
-    classInformationService = new ClassInformationServiceImpl(sparqlService, sameAsResourceService,
-        context, taskExecutor);
+    classInformationService = new ClassInformationServiceImpl(sparqlService, processor);
   }
 
   @Before
   public void setUp() throws Exception {
     musicPintaResource.waitForAllDAOsBeingReady();
   }
-
 
 
 }

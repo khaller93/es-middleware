@@ -66,7 +66,7 @@ public class LCSWithSPARQLService implements LeastCommonSubSumersService {
   }
 
   @Override
-  public Void compute() {
+  public void compute() {
     Instant issueTimestamp = Instant.now();
     logger.info("Starting to compute least common subsummers for all resource pairs.");
     List<Map<String, RDFTerm>> resultMap = ((SelectQueryResult) sparqlService
@@ -87,7 +87,6 @@ public class LCSWithSPARQLService implements LeastCommonSubSumersService {
     }
     logger.info("Least common subsummers for all resource pairs issued on {} computed on {}.",
         issueTimestamp, Instant.now());
-    return null;
   }
 
   @Override
@@ -98,11 +97,6 @@ public class LCSWithSPARQLService implements LeastCommonSubSumersService {
     } else {
       return Sets.newHashSet();
     }
-  }
-
-  @Override
-  public AnalysisEventStatus getStatus() {
-    return null;
   }
 
 }

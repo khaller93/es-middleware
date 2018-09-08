@@ -17,7 +17,7 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisService;
  * @version 1.0
  * @since 1.0
  */
-public interface CentralityMetricService<R> extends AnalysisService<Void> {
+public interface CentralityMetricService<R> extends AnalysisService {
 
   /**
    * Gets the computed value for the given {@code resource}, or {@code null}, if there is no

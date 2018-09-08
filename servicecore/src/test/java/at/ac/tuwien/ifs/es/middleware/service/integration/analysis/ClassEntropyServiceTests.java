@@ -14,6 +14,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyWithGremlinService;
@@ -48,7 +49,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     SimpleSPARQLService.class, RDF4JMemoryStoreWithLuceneSparqlDAO.class,
     ClonedInMemoryGremlinDAO.class, ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class,
     ThreadPoolConfig.class, ClassInformationServiceImpl.class, SpringCacheConfig.class,
-    SameAsResourceWithSPARQLService.class})
+    SameAsResourceWithSPARQLService.class, AnalysisPipelineProcessorDummy.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -64,13 +65,12 @@ public class ClassEntropyServiceTests {
   @Autowired
   private KGGremlinDAO gremlinDAO;
   @Autowired
-  private TaskExecutor taskExecutor;
-  @Autowired
   private GremlinService gremlinService;
   @Autowired
   private ClassInformationService classInformationService;
   @Autowired
-  private ApplicationContext context;
+  private AnalysisPipelineProcessor processor;
+
 
   private ClassEntropyService classEntropyService;
 
@@ -83,7 +83,7 @@ public class ClassEntropyServiceTests {
   public void setUp() throws InterruptedException {
     musicPintaResource.waitForAllDAOsBeingReady();
     classEntropyService = new ClassEntropyWithGremlinService(gremlinService,
-        classInformationService, context, taskExecutor);
+        classInformationService, processor);
   }
 
   @Test

@@ -1,20 +1,32 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.resnik;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisEventStatus;
+import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LeastCommonSubSumersService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityKey;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricKey;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricResult;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricStoreService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
+import com.google.common.collect.Sets;
 import java.time.Instant;
-import java.util.Iterator;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BinaryOperator;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
+import javax.annotation.PostConstruct;
+import org.apache.commons.lang.text.StrSubstitutor;
+import org.apache.commons.rdf.api.BlankNodeOrIRI;
+import org.apache.commons.rdf.api.RDFTerm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,42 +53,55 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
 
   public static final String RESNIK_SIMILARITY_UID = "esm.service.analysis.sim.resnik";
 
-  private GremlinService gremlinService;
-  private PGS schema;
+  private static final int LOAD_LIMIT = 25000;
+
+  private static final String ALL_RESOURCE_IRIS_QUERY = "SELECT DISTINCT ?resource WHERE {\n"
+      + "    {?resource ?p1 _:o1}\n"
+      + "     UNION\n"
+      + "    {\n"
+      + "        _:o2 ?p2 ?resource .\n"
+      + "        FILTER (isIRI(?resource)) .\n"
+      + "    } \n"
+      + "}\n"
+      + "OFFSET ${offset}\n"
+      + "LIMIT ${limit}";
+
+
+  private SPARQLService sparqlService;
   private ClassEntropyService classEntropyService;
   private LeastCommonSubSumersService leastCommonSubSumersService;
-  private Cache similarityCache;
-  private boolean similarityCacheAvailable;
+  private AnalysisPipelineProcessor processor;
+  private SimilarityMetricStoreService similarityMetricStoreService;
 
   @Autowired
   public ResnikSimilarityMetricServiceImpl(
-      GremlinService gremlinService,
+      SPARQLService sparqlService,
       ClassEntropyService classEntropyService,
       LeastCommonSubSumersService leastCommonSubSumersService,
-      CacheManager cacheManager) {
-    this.gremlinService = gremlinService;
-    this.schema = gremlinService.getPropertyGraphSchema();
+      AnalysisPipelineProcessor processor,
+      SimilarityMetricStoreService similarityMetricStoreService) {
+    this.sparqlService = sparqlService;
     this.classEntropyService = classEntropyService;
     this.leastCommonSubSumersService = leastCommonSubSumersService;
-    this.similarityCache = cacheManager.getCache("similarity");
-    this.similarityCacheAvailable = similarityCache != null;
+    this.processor = processor;
+    this.similarityMetricStoreService = similarityMetricStoreService;
+  }
+
+  @PostConstruct
+  private void setUp() {
+    processor.registerAnalysisService(this, true, false, false,
+        Sets.newHashSet(ClassEntropyService.class, LeastCommonSubSumersService.class));
   }
 
   @Override
   public Double getValueFor(ResourcePair resourcePair) {
-    Double simValue = similarityCache
-        .get(SimilarityKey.of(RESNIK_SIMILARITY_UID, resourcePair), Double.class);
-    if (simValue != null) {
-      return simValue;
+    checkArgument(resourcePair != null, "The given resource pair must not be null.");
+    Optional<SimilarityMetricResult> metricsResult = similarityMetricStoreService
+        .findById(SimilarityMetricKey.of(RESNIK_SIMILARITY_UID, resourcePair));
+    if (metricsResult.isPresent()) {
+      return metricsResult.get().getValue();
     } else {
-      if (!gremlinService.traversal().V().has(schema.iri().identifierAsString(),
-          BlankOrIRIJsonUtil.stringValue(resourcePair.getFirst().value())).hasNext()
-          || !gremlinService.traversal().V().has(schema.iri().identifierAsString(),
-          BlankOrIRIJsonUtil.stringValue(resourcePair.getSecond().value())).hasNext()) {
-        return null;
-      } else {
-        return computeIC(resourcePair);
-      }
+      return computeIC(resourcePair);
     }
   }
 
@@ -87,35 +112,51 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
   }
 
   @Override
-  public Void compute() {
+  public void compute() {
     Instant issueTimestamp = Instant.now();
     logger.info("Started to compute the Resnik similarity metric.");
-    gremlinService.lock();
-    try {
-      Iterator<Vertex> verticesAIterator = gremlinService.traversal().getGraph().vertices();
-      while (verticesAIterator.hasNext()) {
-        Vertex vertexA = verticesAIterator.next();
-        Iterator<Vertex> verticesBIterator = gremlinService.traversal().getGraph().vertices();
-        while (verticesBIterator.hasNext()) {
-          Vertex vertexB = verticesBIterator.next();
-          ResourcePair pair = ResourcePair.of(new Resource(schema.iri().<String>apply(vertexA)),
-              new Resource(schema.iri().<String>apply(vertexB)));
-          Double clazzSumIC = computeIC(pair);
-          if (clazzSumIC != null && similarityCacheAvailable) {
-            similarityCache.put(SimilarityKey.of(RESNIK_SIMILARITY_UID, pair), clazzSumIC);
-          }
+    Set<Resource> resourceSet = new HashSet<>();
+    int offset = 0;
+    List<Map<String, RDFTerm>> results;
+    String resourceQuery = new StrSubstitutor(Collections.singletonMap("limit", LOAD_LIMIT))
+        .replace(ALL_RESOURCE_IRIS_QUERY);
+    do {
+      results = sparqlService.<SelectQueryResult>query(
+          new StrSubstitutor(Collections.singletonMap("offset", offset)).replace(resourceQuery),
+          true).value();
+      if (results != null) {
+        results.stream().map(row -> new Resource((BlankNodeOrIRI) row.get("resource")))
+            .forEach(resourceSet::add);
+        offset += results.size();
+      } else {
+        break;
+      }
+    } while (results.size() == LOAD_LIMIT);
+    /* compute Resnik metric for resource pairs */
+    int i = 0;
+    logger.debug("Size: {}", resourceSet.size());
+    final long bulkSize = 100000;
+    List<SimilarityMetricResult> metricResultsBulk = new LinkedList<>();
+    for (Resource resourceA : resourceSet) {
+      for (Resource resourceB : resourceSet) {
+        ResourcePair pair = ResourcePair.of(resourceA, resourceB);
+        Double clazzSumIC = computeIC(pair);
+        metricResultsBulk
+            .add(new SimilarityMetricResult(SimilarityMetricKey.of(RESNIK_SIMILARITY_UID, pair),
+                clazzSumIC));
+        if (metricResultsBulk.size() == bulkSize) {
+          logger.debug("Bulk loaded {} Resnik metric results.", bulkSize);
+          similarityMetricStoreService.saveAll(metricResultsBulk);
+          metricResultsBulk = new LinkedList<>();
         }
       }
-    } finally {
-      gremlinService.unlock();
+    }
+    if (!metricResultsBulk.isEmpty()) {
+      logger.debug("Bulk loaded {} Resnik results.", metricResultsBulk.size());
+      similarityMetricStoreService.saveAll(metricResultsBulk);
     }
     logger.info("Resnik similarity measurement issued on {} computed on {}.", issueTimestamp,
         Instant.now());
-    return null;
   }
 
-  @Override
-  public AnalysisEventStatus getStatus() {
-    return null;
-  }
 }
