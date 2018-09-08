@@ -5,6 +5,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.AbstractClonedG
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.LiteralGraphSchema;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import java.io.File;
+import java.util.Date;
 import java.util.concurrent.ExecutionException;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.T;
@@ -85,7 +86,7 @@ public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
     /* build and maintain version index */
     PropertyKey versionProperty = mgmt.getPropertyKey("version");
     if (versionProperty == null) {
-      versionProperty = mgmt.makePropertyKey("version").dataType(Long.class)
+      versionProperty = mgmt.makePropertyKey("version").dataType(Date.class)
           .cardinality(Cardinality.SINGLE).make();
     }
     if (mgmt.getGraphIndex("byVersion") == null) {
