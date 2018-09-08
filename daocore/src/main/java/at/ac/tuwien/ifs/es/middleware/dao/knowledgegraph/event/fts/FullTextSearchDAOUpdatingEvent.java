@@ -1,6 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.AbstractDAOEvent;
+import java.time.Instant;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -12,7 +14,7 @@ import org.springframework.context.ApplicationEvent;
  * @version 1.0
  * @since 1.0
  */
-public class FullTextSearchDAOUpdatingEvent extends ApplicationEvent {
+public class FullTextSearchDAOUpdatingEvent extends AbstractDAOEvent {
 
   /**
    * Create a new {@link FullTextSearchDAOUpdatingEvent}.
@@ -20,7 +22,10 @@ public class FullTextSearchDAOUpdatingEvent extends ApplicationEvent {
    * @param source the object on which the event initially occurred (never {@code null})
    */
   public FullTextSearchDAOUpdatingEvent(Object source) {
-    super(source);
+    super(source, Instant.now());
   }
 
+  public FullTextSearchDAOUpdatingEvent(Object source, Instant timestamp) {
+    super(source, timestamp);
+  }
 }
