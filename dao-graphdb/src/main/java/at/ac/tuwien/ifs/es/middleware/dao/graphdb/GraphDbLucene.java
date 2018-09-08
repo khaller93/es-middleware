@@ -189,7 +189,8 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
     taskExecutor.execute(() -> {
       try {
         performBatchUpdateOfIndex();
-        context.publishEvent(new FullTextSearchDAOUpdatedEvent(GraphDbLucene.this));
+        context.publishEvent(
+            new FullTextSearchDAOUpdatedEvent(GraphDbLucene.this, updatedEvent.getDAOTimestamp()));
         this.status = new KGDAOReadyStatus();
       } catch (Exception e) {
         context.publishEvent(
