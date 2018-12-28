@@ -1,8 +1,10 @@
 package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
 
 /**
- * An instance of this interface represents a SPARQL interface to a certain knowledge graph. This
- * DAO provides the ability to query the graph using SPARQL.
+ * The services of this application expect to be able to access the knowledge graph in
+ * three different forms. The knowledge graph must be queryable with SPARQL, and the
+ * graph query language Gremlin. Moreover, a fulltext search over the knowledge graph
+ * must be possible.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -10,24 +12,24 @@ package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
  */
 public interface KnowledgeGraphDAOConfig {
 
-  /**
-   * Gets the {@link KGSparqlDAO} for this knowledge graph.
-   *
-   * @return {@link KGSparqlDAO} for this knowledge graph.
-   */
-  KGSparqlDAO getSparqlDAO();
+    /**
+     * Gets the {@link KGSparqlDAO} for this knowledge graph.
+     *
+     * @return {@link KGSparqlDAO} for this knowledge graph.
+     */
+    KGSparqlDAO getSparqlDAO();
 
-  /**
-   * Gets the {@link KGFullTextSearchDAO} for this knowledge graph.
-   *
-   * @return {@link KGFullTextSearchDAO} for this knowledge graph.
-   */
-  KGFullTextSearchDAO getFullTextSearchDAO();
+    /**
+     * Gets the {@link KGFullTextSearchDAO} for this knowledge graph.
+     *
+     * @return {@link KGFullTextSearchDAO} for this knowledge graph.
+     */
+    KGFullTextSearchDAO getFullTextSearchDAO();
 
-  /**
-   * Gets the {@link KGGremlinDAO} for this knowledge graph.
-   *
-   * @return {@link KGGremlinDAO} for this knowledge graph.
-   */
-  KGGremlinDAO getGremlinDAO();
+    /**
+     * Gets the {@link KGGremlinDAO} for this knowledge graph.
+     *
+     * @return {@link KGGremlinDAO} for this knowledge graph.
+     */
+    KGGremlinDAO getGremlinDAO();
 }

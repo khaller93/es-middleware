@@ -23,6 +23,7 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.SameAsResourceWit
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation.Distinct;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation.Limit;
+import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.AnalysisPipelineProcessorDummy;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import java.util.List;
@@ -50,7 +51,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {SimpleSPARQLService.class, RDF4JLuceneFullTextSearchDAO.class,
     RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedInMemoryGremlinDAO.class,
     ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class, Distinct.class,
-    SameAsResourceWithSPARQLService.class, SpringCacheConfig.class})
+    SameAsResourceWithSPARQLService.class, SpringCacheConfig.class,
+    AnalysisPipelineProcessorDummy.class, MusicPintaInstrumentsResource.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -60,11 +62,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class DistinctTests {
 
   @Rule
+  @Autowired
   public MusicPintaInstrumentsResource musicPintaResource;
-  @Autowired
-  private KGSparqlDAO sparqlDAO;
-  @Autowired
-  private KGGremlinDAO gremlinDAO;
   @Autowired
   private SameAsResourceService sameAsResourceService;
   @Autowired
@@ -72,11 +71,6 @@ public class DistinctTests {
 
   private List<Resource> resourceList;
   private ResourceList resourceListContext;
-
-  @PostConstruct
-  public void setUpInstance() {
-    musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
-  }
 
   @Before
   public void setUp() throws Exception {

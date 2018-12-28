@@ -49,7 +49,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {SimpleSPARQLService.class, RDF4JLuceneFullTextSearchDAO.class,
     RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedInMemoryGremlinDAO.class,
-    ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class, AllResources.class})
+    ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class, AllResources.class,
+    MusicPintaInstrumentsResource.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -59,18 +60,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class AllResourcesTests {
 
   @Rule
+  @Autowired
   public MusicPintaInstrumentsResource musicPintaResource;
   @Autowired
-  private KGSparqlDAO sparqlDAO;
-  @Autowired
-  private KGGremlinDAO gremlinDAO;
-  @Autowired
   private AllResources allResources;
-
-  @PostConstruct
-  public void setUpInstance() {
-    musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
-  }
 
   @Before
   public void setUp() throws InterruptedException {

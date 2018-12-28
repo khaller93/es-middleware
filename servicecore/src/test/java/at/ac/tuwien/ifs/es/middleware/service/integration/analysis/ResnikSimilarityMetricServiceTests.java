@@ -59,7 +59,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     ClonedInMemoryGremlinDAO.class, ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class,
     ThreadPoolConfig.class, ClassInformationServiceImpl.class, SpringCacheConfig.class,
     SameAsResourceWithSPARQLService.class, AnalysisPipelineProcessorDummy.class,
-    JPAConfiguration.class, SimilarityMetricStoreService.class})
+    JPAConfiguration.class, SimilarityMetricStoreService.class,
+    MusicPintaInstrumentsResource.class, ResnikSimilarityMetricServiceImpl.class,
+    LCSWithInMemoryTreeService.class, ClassEntropyWithGremlinService.class,
+    SameAsResourceWithSPARQLService.class
+})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -71,46 +75,23 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class ResnikSimilarityMetricServiceTests {
 
   @Rule
+  @Autowired
   public MusicPintaInstrumentsResource musicPintaResource;
   @Autowired
-  public KGSparqlDAO sparqlDAO;
+  private SameAsResourceService sameAsResourceService;
   @Autowired
-  private KGGremlinDAO gremlinDAO;
+  private ClassEntropyService classEntropyService;
   @Autowired
-  private SPARQLService sparqlService;
+  private LeastCommonSubSumersService leastCommonSubSumersService;
   @Autowired
-  private GremlinService gremlinService;
-  @Autowired
-  private CacheManager cacheManager;
-  @Autowired
-  private ClassInformationService classInformationService;
-  @Autowired
-  private AnalysisPipelineProcessor processor;
-  @Autowired
-  private SimilarityMetricStoreService similarityMetricStoreService;
-
   private ResnikSimilarityMetricService resnikSimilarityMetricService;
-
-  @PostConstruct
-  public void setUpInstance() {
-    musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
-  }
 
   @Before
   public void setUp() throws InterruptedException {
     musicPintaResource.waitForAllDAOsBeingReady();
-    SameAsResourceService sameAsResourceService = new SameAsResourceWithSPARQLService(sparqlService,
-        processor, cacheManager);
     sameAsResourceService.compute();
-    ClassEntropyService classEntropyService = new ClassEntropyWithGremlinService(gremlinService,
-        classInformationService, processor);
     classEntropyService.compute();
-    LeastCommonSubSumersService leastCommonSubSumersService = new LCSWithInMemoryTreeService(
-        sparqlService, classInformationService, sameAsResourceService, processor,
-        cacheManager);
     leastCommonSubSumersService.compute();
-    resnikSimilarityMetricService = new ResnikSimilarityMetricServiceImpl(sparqlService,
-        classEntropyService, leastCommonSubSumersService, processor, similarityMetricStoreService);
   }
 
   @Test

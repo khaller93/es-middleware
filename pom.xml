@@ -37,9 +37,9 @@
     <rdf4j.version>2.2.4</rdf4j.version>
     <tinkerpop.version>3.3.2</tinkerpop.version>
     <apache-commons-rdf.version>0.5.0</apache-commons-rdf.version>
-    <apache-commons-text.version>1.4</apache-commons-text.version>
-    <guava.version>24.1-jre</guava.version>
-    <docker.spotify.plugin.version>1.4.3</docker.spotify.plugin.version>
+    <apache-commons-text.version>1.6</apache-commons-text.version>
+    <guava.version>27.0.1-jre</guava.version>
+    <docker.spotify.plugin.version>1.4.9</docker.spotify.plugin.version>
     <docker.image.prefix>ess</docker.image.prefix>
   </properties>
 

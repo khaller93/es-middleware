@@ -53,7 +53,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedInMemoryGremlinDAO.class,
     ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class, ThreadPoolConfig.class,
     SameAsResourceWithSPARQLService.class, SpringCacheConfig.class,
-    ClassInformationServiceImpl.class, AnalysisPipelineProcessorDummy.class})
+    ClassInformationServiceImpl.class, AnalysisPipelineProcessorDummy.class,
+    MusicPintaInstrumentsResource.class, LCSWithInMemoryTreeService.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -63,30 +64,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class LeastCommonSubsumerServiceTests {
 
   @Rule
+  @Autowired
   public MusicPintaInstrumentsResource musicPintaResource;
   @Autowired
-  private KGSparqlDAO sparqlDAO;
-  @Autowired
-  private KGGremlinDAO gremlinDAO;
-  @Autowired
-  private SPARQLService sparqlService;
-  @Autowired
-  private AnalysisPipelineProcessor processor;
-  @Autowired
-  private CacheManager cacheManager;
-  @Autowired
-  private ClassInformationService classInformationService;
-  @Autowired
-  private SameAsResourceService sameAsResourceService;
-
   private LeastCommonSubSumersService leastCommonSubSumersService;
 
-  @PostConstruct
-  public void setUpBean() {
-    musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
-    leastCommonSubSumersService = new LCSWithInMemoryTreeService(sparqlService,
-        classInformationService, sameAsResourceService, processor, cacheManager);
-  }
 
   @Before
   public void setUp() throws Exception {

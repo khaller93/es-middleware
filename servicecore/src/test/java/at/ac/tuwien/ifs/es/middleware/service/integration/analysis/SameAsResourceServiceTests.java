@@ -48,7 +48,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {SimpleSPARQLService.class, SimpleGremlinService.class,
     RDF4JLuceneFullTextSearchDAO.class, RDF4JMemoryStoreWithLuceneSparqlDAO.class,
     ClonedInMemoryGremlinDAO.class, ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class,
-    ThreadPoolConfig.class, SpringCacheConfig.class, AnalysisPipelineProcessorDummy.class})
+    ThreadPoolConfig.class, SpringCacheConfig.class, AnalysisPipelineProcessorDummy.class,
+    MusicPintaInstrumentsResource.class, SameAsResourceWithSPARQLService.class
+})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -58,31 +60,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class SameAsResourceServiceTests {
 
   @Rule
+  @Autowired
   public MusicPintaInstrumentsResource musicPintaResource;
   @Autowired
-  private KGSparqlDAO sparqlDAO;
-  @Autowired
-  private KGGremlinDAO gremlinDAO;
-  @Autowired
-  private SPARQLService sparqlService;
-  @Autowired
-  private AnalysisPipelineProcessor processor;
-  @Autowired
-  private CacheManager cacheManager;
-
   private SameAsResourceService sameAsResourceService;
-
-  @PostConstruct
-  public void setUpInstance() {
-    musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
-  }
-
-  @Before
-  public void setUp() throws InterruptedException {
-    musicPintaResource.waitForAllDAOsBeingReady();
-    sameAsResourceService = new SameAsResourceWithSPARQLService(sparqlService, processor,
-        cacheManager);
-  }
 
   @Test
   public void computeTheSameAsResources_mustReturnMapForAllKnownResources() {

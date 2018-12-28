@@ -47,7 +47,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedInMemoryGremlinDAO.class,
     ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class, ThreadPoolConfig.class,
     SameAsResourceWithSPARQLService.class, SpringCacheConfig.class,
-    AnalysisPipelineProcessor.class, AnalysisPipelineProcessorDummy.class})
+    AnalysisPipelineProcessor.class, AnalysisPipelineProcessorDummy.class,
+    ClassInformationServiceImpl.class, MusicPintaInstrumentsResource.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -58,25 +59,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class ClassInformationServiceTests {
 
   @Rule
+  @Autowired
   public MusicPintaInstrumentsResource musicPintaResource;
   @Autowired
-  private KGSparqlDAO sparqlDAO;
-  @Autowired
-  private KGGremlinDAO gremlinDAO;
-  @Autowired
-  private SPARQLService sparqlService;
-  @Autowired
-  private AnalysisPipelineProcessor processor;
-  @Autowired
-  private SameAsResourceService sameAsResourceService;
-
   private ClassInformationService classInformationService;
-
-  @PostConstruct
-  public void setUpBean() {
-    musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
-    classInformationService = new ClassInformationServiceImpl(sparqlService, processor);
-  }
 
   @Before
   public void setUp() throws Exception {

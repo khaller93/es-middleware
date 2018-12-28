@@ -49,7 +49,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     RDF4JLuceneFullTextSearchDAO.class, ThreadPoolConfig.class, LDSDWithSPARQLMetricService.class,
     SimpleSPARQLService.class, AnalysisPipelineProcessorDummy.class, SpringCacheConfig.class,
     JPAConfiguration.class, SimilarityMetricStoreService.class, SimilarityMetricResult.class,
-    SimilarityMetricKey.class})
+    SimilarityMetricKey.class, MusicPintaInstrumentsResource.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -61,18 +61,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class UnweightedLDSDMetricServiceTests {
 
   @Rule
+  @Autowired
   public MusicPintaInstrumentsResource musicPintaResource;
   @Autowired
-  public KGSparqlDAO sparqlDAO;
-  @Autowired
-  private KGGremlinDAO gremlinDAO;
-  @Autowired
   private LinkedDataSemanticDistanceMetricService ldsdMetricService;
-
-  @PostConstruct
-  public void setUpInstance() {
-    musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
-  }
 
   @Before
   public void setUp() throws InterruptedException {

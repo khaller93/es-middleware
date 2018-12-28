@@ -50,7 +50,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {SimpleGremlinService.class, RDF4JLuceneFullTextSearchDAO.class,
     RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedInMemoryGremlinDAO.class,
     ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class, ThreadPoolConfig.class,
-    AnalysisPipelineProcessorDummy.class})
+    AnalysisPipelineProcessorDummy.class, MusicPintaInstrumentsResource.class,
+    PageRankCentralityMetricWithGremlinService.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -60,30 +61,16 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class PageRankCentralityMetricServiceTests {
 
   @Rule
+  @Autowired
   public MusicPintaInstrumentsResource musicPintaResource;
   @Autowired
-  public KGSparqlDAO sparqlDAO;
+  private KGSparqlDAO sparqlDAO;
   @Autowired
-  public KGGremlinDAO gremlinDAO;
-  @Autowired
-  public TaskExecutor taskExecutor;
-  @Autowired
-  public GremlinService gremlinService;
-  @Autowired
-  private AnalysisPipelineProcessor processor;
-
   private PageRankCentralityMetricService pageRankCentralityMetricService;
-
-  @PostConstruct
-  public void setUpInstance() {
-    musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
-  }
 
   @Before
   public void setUp() throws InterruptedException {
     musicPintaResource.waitForAllDAOsBeingReady();
-    pageRankCentralityMetricService = new PageRankCentralityMetricWithGremlinService(gremlinService,
-        processor);
   }
 
   @Test

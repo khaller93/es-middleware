@@ -1,7 +1,5 @@
 package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema;
 
-import org.apache.tinkerpop.gremlin.structure.T;
-
 /**
  * @author Kevin Haller
  * @version 1.0

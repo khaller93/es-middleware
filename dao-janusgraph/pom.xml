@@ -12,7 +12,7 @@
   <artifactId>middleware.dao-janusgraph</artifactId>
 
   <properties>
-    <janusgraph.version>0.3.0</janusgraph.version>
+    <janusgraph.version>0.3.1</janusgraph.version>
   </properties>
 
   <dependencies>

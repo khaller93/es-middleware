@@ -37,6 +37,7 @@ import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.rdf.api.IRI;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -70,23 +71,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 })
 public class DynamicExploratoryMusicPintaFlowTest {
 
+  @Rule
+  @Autowired
+  public MusicPintaInstrumentsResource musicPintaResource;
   @Autowired
   private TestRestTemplate restTemplate;
   @Autowired
   private ObjectMapper parameterMapper;
-  @Autowired
-  @Qualifier("getSparqlDAO")
-  private KGSparqlDAO sparqlDAO;
-  @Autowired
-  @Qualifier("getGremlinDAO")
-  private KGGremlinDAO gremlinDAO;
-  @Rule
-  public MusicPintaInstrumentsResource musicPintaResource;
-
-  @PostConstruct
-  public void setUpBean() {
-    this.musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
-  }
 
   private final static Map<String, String> jsonTestMap = new HashMap<>();
 
@@ -108,6 +99,11 @@ public class DynamicExploratoryMusicPintaFlowTest {
         jsonTestMap.put(e.getKey(), IOUtils.toString(in, "utf-8"));
       }
     }
+  }
+
+  @Before
+  public void setUp() throws Exception {
+    musicPintaResource.waitForAllDAOsBeingReady();
   }
 
   @Test

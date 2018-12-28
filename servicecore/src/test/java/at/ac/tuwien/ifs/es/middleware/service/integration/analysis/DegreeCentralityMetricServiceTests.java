@@ -39,6 +39,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
@@ -56,7 +57,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {SimpleGremlinService.class, RDF4JLuceneFullTextSearchDAO.class,
     RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedInMemoryGremlinDAO.class,
     ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class, ThreadPoolConfig.class,
-    AnalysisPipelineProcessorDummy.class})
+    AnalysisPipelineProcessorDummy.class, MusicPintaInstrumentsResource.class,
+    DegreeCentralityMetricWithGremlinService.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -66,30 +68,19 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class DegreeCentralityMetricServiceTests {
 
   @Rule
+  @Autowired
   public MusicPintaInstrumentsResource musicPintaResource;
   @Autowired
-  public KGSparqlDAO sparqlDAO;
+  private KGSparqlDAO sparqlDAO;
   @Autowired
-  public KGGremlinDAO gremlinDAO;
+  private GremlinService gremlinService;
   @Autowired
-  public TaskExecutor taskExecutor;
-  @Autowired
-  public GremlinService gremlinService;
-  @Autowired
-  private AnalysisPipelineProcessor processor;
-
   private DegreeCentralityMetricService degreeCentralityMetricService;
 
-  @PostConstruct
-  public void setUpInstance() {
-    musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
-  }
 
   @Before
   public void setUp() throws InterruptedException {
     musicPintaResource.waitForAllDAOsBeingReady();
-    degreeCentralityMetricService = new DegreeCentralityMetricWithGremlinService(gremlinService,
-        processor);
   }
 
   @Test
