@@ -27,7 +27,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.sparql.QueryResult;
  * @version 1.0
  * @since 1.0
  */
-public interface KGSparqlDAO {
+public interface KGSparqlDAO extends KGDAO {
 
   /**
    * Queries the knowledge graph using given SPARQL {@code query} and returns the result. The
@@ -51,12 +51,5 @@ public interface KGSparqlDAO {
    * successfully.
    */
   void update(String query) throws KnowledgeGraphSPARQLException;
-
-  /**
-   * Gets the current {@link KGDAOStatus} of this DAO.
-   *
-   * @return current {@link KGDAOStatus} of this DAO.
-   */
-  KGDAOStatus getSPARQLStatus();
 
 }

@@ -30,7 +30,7 @@ import org.apache.commons.rdf.api.RDFTerm;
  * @version 1.0
  * @since 1.0
  */
-public interface KGFullTextSearchDAO {
+public interface KGFullTextSearchDAO extends KGDAO {
 
   /**
    * Applies a full text search on the managed knowledge graph using the given {@code keyword} and
@@ -81,12 +81,5 @@ public interface KGFullTextSearchDAO {
    */
   List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
       Integer offset, Integer limit) throws KnowledgeGraphDAOException;
-
-  /**
-   * Gets the current {@link KGDAOStatus} of this DAO.
-   *
-   * @return current {@link KGDAOStatus} of this DAO.
-   */
-  KGDAOStatus getFTSStatus();
 
 }

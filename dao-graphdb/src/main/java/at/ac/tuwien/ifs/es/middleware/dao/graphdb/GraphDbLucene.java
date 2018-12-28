@@ -139,7 +139,7 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
   }
 
   @Override
-  public KGDAOStatus getFTSStatus() {
+  public KGDAOStatus getStatus() {
     return status;
   }
 

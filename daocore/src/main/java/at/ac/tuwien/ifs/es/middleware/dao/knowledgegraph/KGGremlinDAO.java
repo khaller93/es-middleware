@@ -32,14 +32,7 @@ import org.apache.tinkerpop.gremlin.structure.Graph.Features;
  * @version 1.0
  * @since 1.0
  */
-public interface KGGremlinDAO {
-
-  /**
-   * Gets the current {@link KGDAOStatus} of this DAO.
-   *
-   * @return current {@link KGDAOStatus} of this DAO.
-   */
-  KGDAOStatus getGremlinStatus();
+public interface KGGremlinDAO extends KGDAO {
 
   /**
    * Gets the graph features of this Gremlin DAO.

@@ -105,7 +105,7 @@ public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
   }
 
   @Override
-  public KGDAOStatus getSPARQLStatus() {
+  public KGDAOStatus getStatus() {
     return status;
   }
 

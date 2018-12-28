@@ -92,7 +92,7 @@ public class StardogKnowledgeGraphDAO extends RDF4JSparqlDAO implements
   }
 
   @Override
-  public KGDAOStatus getFTSStatus() {
+  public KGDAOStatus getStatus() {
     return ftsStatus;
   }
 

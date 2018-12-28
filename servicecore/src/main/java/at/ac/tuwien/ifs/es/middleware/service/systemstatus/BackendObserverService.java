@@ -52,9 +52,9 @@ public class BackendObserverService {
    */
   public Map<String, KGDAOStatus> getBackendServiceStatusMap() {
     Map<String, KGDAOStatus> backendServiceStatusMap = new HashMap<>();
-    backendServiceStatusMap.put(SPARQL_DAO, sparqlDAO.getSPARQLStatus());
-    backendServiceStatusMap.put(FULLTEXTSEARCH_DAO, fullTextSearchDAO.getFTSStatus());
-    backendServiceStatusMap.put(Gremlin_DAO, gremlinDAO.getGremlinStatus());
+    backendServiceStatusMap.put(SPARQL_DAO, sparqlDAO.getStatus());
+    backendServiceStatusMap.put(FULLTEXTSEARCH_DAO, fullTextSearchDAO.getStatus());
+    backendServiceStatusMap.put(Gremlin_DAO, gremlinDAO.getStatus());
     return backendServiceStatusMap;
   }
 }
