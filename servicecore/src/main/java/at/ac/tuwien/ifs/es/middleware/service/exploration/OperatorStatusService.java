@@ -1,7 +1,5 @@
-package at.ac.tuwien.ifs.es.middleware.service.systemstatus;
+package at.ac.tuwien.ifs.es.middleware.service.exploration;
 
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation.AggregationOperator;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.AcquisitionOperator;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.AcquisitionSource;
@@ -16,24 +14,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * This service allows the client to analyze the provided features, abilities as well as the health
- * status of the middleware.
+ * This service allows the client to analyze the provided operators.
  *
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
  */
 @Service
-public class SystemStatusService {
+public class OperatorStatusService {
 
   private ExplorationFlowRegistry explorationFlowRegistry;
-  private BackendObserverService backendObserverService;
 
   @Autowired
-  public SystemStatusService(ExplorationFlowRegistry explorationFlowRegistry,
-      BackendObserverService backendObserverService) {
+  public OperatorStatusService(ExplorationFlowRegistry explorationFlowRegistry) {
     this.explorationFlowRegistry = explorationFlowRegistry;
-    this.backendObserverService = backendObserverService;
   }
 
   /**
@@ -68,14 +62,5 @@ public class SystemStatusService {
       opList.add(entry.getKey());
     }
     return returnMap;
-  }
-
-  /**
-   * Checks the health of the backend services.
-   *
-   * @return the health of the backend services.
-   */
-  public Map<String, KGDAOStatus> checkHealthOfBackend() {
-    return backendObserverService.getBackendServiceStatusMap();
   }
 }

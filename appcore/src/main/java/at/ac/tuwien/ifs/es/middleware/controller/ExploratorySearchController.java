@@ -5,15 +5,19 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.meta.TimeMetadata;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.request.DynamicExplorationFlowRequest;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.OperatorStatusService;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.factory.CommonExplorationFlowFactory;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.factory.DynamicExplorationFlowFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,15 +43,19 @@ public class ExploratorySearchController {
 
   private CommonExplorationFlowFactory commonExplorationFlowFactory;
   private DynamicExplorationFlowFactory dynamicExplorationFlowFactory;
+  private OperatorStatusService operatorStatusService;
 
   private ObjectMapper payloadMapper;
 
+  @Autowired
   public ExploratorySearchController(
-      @Autowired CommonExplorationFlowFactory commonExplorationFlowFactory,
-      @Autowired DynamicExplorationFlowFactory dynamicExplorationFlowFactory,
-      @Autowired ObjectMapper payloadMapper) {
+      CommonExplorationFlowFactory commonExplorationFlowFactory,
+      DynamicExplorationFlowFactory dynamicExplorationFlowFactory,
+      OperatorStatusService operatorStatusService,
+      ObjectMapper payloadMapper) {
     this.commonExplorationFlowFactory = commonExplorationFlowFactory;
     this.dynamicExplorationFlowFactory = dynamicExplorationFlowFactory;
+    this.operatorStatusService = operatorStatusService;
     this.payloadMapper = payloadMapper;
   }
 
@@ -76,6 +84,15 @@ public class ExploratorySearchController {
         .constructFullTextSearchFlow(keyword, languages, classes, limit, offset).execute();
     context.setMetadataFor("time", payloadMapper.valueToTree(new TimeMetadata(timestampEntered)));
     return context;
+  }
+
+  @GetMapping(value = "/operators")
+  @ApiOperation(value = "Gets the provided exploration operators of this micro service.")
+  @ApiResponses({
+      @ApiResponse(code = 200, message = "A map with supported operators, where the key is the type of the operator.")
+  })
+  public Map<String, List<String>> getExplorationFlowOperators() {
+    return operatorStatusService.getExplorationFlowOperators();
   }
 
 }
