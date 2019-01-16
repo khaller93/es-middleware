@@ -8,13 +8,12 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricKey;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricResult;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.entity.SimilarityMetricKey;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.entity.SimilarityMetricResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricStoreService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,10 +26,10 @@ import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This class is an implementation of {@link LDSDWithSPARQLMetricService} using the {@link
@@ -144,6 +143,7 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
 
   @Override
   @SuppressWarnings("unchecked")
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void compute() {
     Instant issueTimestamp = Instant.now();
     logger.info("Starting to computes Linked Data Semantic Distance metric.");

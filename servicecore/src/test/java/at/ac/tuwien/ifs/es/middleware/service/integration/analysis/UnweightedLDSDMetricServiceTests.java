@@ -6,8 +6,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.ThreadPoolConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
@@ -16,15 +14,14 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLucene
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.JPAConfiguration;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricKey;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricResult;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.entity.SimilarityMetricKey;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.entity.SimilarityMetricResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricStoreService;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.ldsd.LDSDWithSPARQLMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.ldsd.LinkedDataSemanticDistanceMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
-import javax.annotation.PostConstruct;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;

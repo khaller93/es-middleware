@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity;
+package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.entity;
 
 import static com.google.common.base.Preconditions.checkArgument;
 

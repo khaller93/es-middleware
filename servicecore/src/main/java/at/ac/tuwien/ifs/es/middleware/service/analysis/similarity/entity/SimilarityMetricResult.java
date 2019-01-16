@@ -1,9 +1,10 @@
-package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity;
+package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.entity;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.Table;
 
 /**
  * This class represents a result of a similarity metric.
@@ -13,6 +14,7 @@ import javax.persistence.Entity;
  * @since 1.0
  */
 @Entity
+@Table(name="similarity_metric_result")
 public final class SimilarityMetricResult {
 
   @EmbeddedId

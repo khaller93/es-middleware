@@ -1,5 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity;
 
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.entity.SimilarityMetricKey;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.entity.SimilarityMetricResult;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

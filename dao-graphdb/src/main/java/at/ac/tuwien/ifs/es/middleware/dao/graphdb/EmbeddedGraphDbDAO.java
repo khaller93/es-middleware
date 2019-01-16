@@ -1,13 +1,12 @@
 package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOFailedEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSetupException;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Model;
@@ -79,8 +78,7 @@ public class EmbeddedGraphDbDAO extends RDF4JSparqlDAO implements GraphDbSparqlD
       this.repositoryManager.initialize();
       this.init(prepareRepository(repositoryManager, repositoryConfig));
     } catch (RepositoryException re) {
-      getApplicationContext()
-          .publishEvent(new SPARQLDAOFailedEvent(this, "Triplestore could not be setup", re));
+      setStatus(new KGDAOFailedStatus("Triplestore could not be setup", re));
       throw new KnowledgeGraphSetupException(re);
     }
   }

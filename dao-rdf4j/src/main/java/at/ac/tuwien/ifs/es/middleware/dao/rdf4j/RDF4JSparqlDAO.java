@@ -1,9 +1,9 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOFailedEvent;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOReadyEvent;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOUpdatedEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.SparqlDAOStateChangeEvent;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.MalformedSPARQLQueryException;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.SPARQLExecutionException;
@@ -15,8 +15,9 @@ import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOReadyStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
-import java.io.Closeable;
-import java.io.IOException;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOUpdatingStatus;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.locks.Lock;
@@ -69,8 +70,7 @@ public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
 
   public RDF4JSparqlDAO(ApplicationContext applicationContext) {
     this.applicationContext = applicationContext;
-    this.notificationScheduler = new NotificationScheduler(applicationContext, updateInterval,
-        updateIntervalTimout);
+    this.notificationScheduler = new NotificationScheduler(updateInterval, updateIntervalTimout);
     this.status = new KGDAOInitStatus();
   }
 
@@ -84,15 +84,11 @@ public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
     this.repository = repository;
     try {
       this.repository.initialize();
+      setStatus(new KGDAOReadyStatus());
     } catch (RepositoryException re) {
-      applicationContext
-          .publishEvent(
-              new SPARQLDAOFailedEvent(this, "Initialization of triplestore failed.", re));
-      status = new KGDAOFailedStatus("Initialization of triplestore failed.", re);
+      setStatus(new KGDAOFailedStatus("Initialization of triplestore failed.", re));
       throw re;
     }
-    applicationContext.publishEvent(new SPARQLDAOReadyEvent(this));
-    this.status = new KGDAOReadyStatus();
   }
 
   /**
@@ -109,13 +105,15 @@ public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
     return status;
   }
 
-  /**
-   * Gets the application context maintained by this DAO.
-   *
-   * @return {@link ApplicationContext} that is maintained by this DAO.
-   */
-  protected ApplicationContext getApplicationContext() {
-    return applicationContext;
+
+  protected synchronized void setStatus(KGDAOStatus status) {
+    checkArgument(status != null, "The specified status must not be null.");
+    if (!this.status.getCode().equals(status.getCode())) {
+      KGDAOStatus prevStatus = this.status;
+      this.status = status;
+      applicationContext.publishEvent(new SparqlDAOStateChangeEvent(this, status, prevStatus,
+          Instant.now()));
+    }
   }
 
   @Override
@@ -153,6 +151,8 @@ public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
 
   @Override
   public void update(String query) throws KnowledgeGraphSPARQLException {
+    checkArgument(query != null && !query.isEmpty(),
+        "The given query string must be specified and not be null or empty.");
     logger.trace("Update {} was requested to be executed", query.replaceAll("\\n", "\\\\n"));
     try (RepositoryConnection con = repository.getConnection()) {
       con.prepareUpdate(query).execute();
@@ -178,5 +178,84 @@ public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
     if (repository != null) {
       repository.shutDown();
     }
+  }
+
+  /**
+   * This class represents an util for handling {@link SparqlDAOStateChangeEvent}.
+   *
+   * @author Kevin Haller
+   * @version 1.0
+   * @since 1.0
+   */
+  class NotificationScheduler {
+
+    private Timer timer = new Timer();
+    private Lock notifyLock = new ReentrantLock();
+
+    private long updateInterval;
+    private long updateIntervalTimeout;
+
+    private NotificationTask notificationTask;
+
+    NotificationScheduler(long updateInterval, long updateIntervalTimeout) {
+      this.updateInterval = updateInterval;
+      this.updateIntervalTimeout = updateIntervalTimeout;
+    }
+
+    /**
+     * This method shall be called if an update should be recognized.
+     */
+    public void updated() {
+      notifyLock.lock();
+      try {
+        if (notificationTask == null) {
+          setStatus(new KGDAOUpdatingStatus());
+          notificationTask = new NotificationTask(Instant.now());
+          timer.schedule(notificationTask, updateInterval);
+        } else {
+          notificationTask.update(Instant.now());
+        }
+      } finally {
+        notifyLock.unlock();
+      }
+    }
+
+    private final class NotificationTask extends TimerTask {
+
+      private Instant initTimestamp;
+      private Instant lastCallTimestamp;
+
+      public NotificationTask(Instant initTimestamp) {
+        this.initTimestamp = initTimestamp;
+      }
+
+      public void update(Instant now) {
+        lastCallTimestamp = now;
+      }
+
+      @Override
+      public void run() {
+        Instant now = Instant.now();
+        if (initTimestamp.plusMillis(updateIntervalTimeout).isBefore(now)) {
+          publishUpdate(now);
+        } else if (lastCallTimestamp == null) {
+          publishUpdate(now);
+        } else {
+          timer.schedule(this, Date.from(lastCallTimestamp.plusMillis(updateInterval)));
+        }
+      }
+    }
+
+    private void publishUpdate(Instant now) {
+      notifyLock.lock();
+      try {
+        logger.debug("An update event of the SPARQL DAO is published for timestamp {}.", now);
+        setStatus(new KGDAOReadyStatus());
+        notificationTask = null;
+      } finally {
+        notifyLock.unlock();
+      }
+    }
+
   }
 }

@@ -23,15 +23,14 @@ class AnalysisPipeline {
 
   private static final Logger logger = LoggerFactory.getLogger(AnalysisPipeline.class);
 
-  private Instant daoTimestamp;
+  private long eventId;
   private List<Entry> entries;
   private TaskExecutor taskExecutor;
 
   private Lock pipelineLock = new ReentrantLock();
 
-  private AnalysisPipeline(Instant daoTimestamp,
-      List<Entry> entries, TaskExecutor taskExecutor) {
-    this.daoTimestamp = daoTimestamp;
+  private AnalysisPipeline(long eventId, List<Entry> entries, TaskExecutor taskExecutor) {
+    this.eventId = eventId;
     this.entries = new LinkedList<>(entries);
     this.taskExecutor = taskExecutor;
   }
@@ -39,13 +38,12 @@ class AnalysisPipeline {
   /**
    * Creates a new {@link AnalysisPipeline} that computes the registered pipeline.
    *
-   * @param daoTimestamp {@link Instant} of the change that initiated the update.
+   * @param eventId {@link Long} id of the event causing a change to the knowledge graph.
    * @param entries a list of all the analysis services as {@link AnalysisPipelineProcessor.Entry}.
    * @param taskExecutor that shall be used to execute the single analysis tasks.
    */
-  public static AnalysisPipeline of(Instant daoTimestamp, List<Entry> entries,
-      TaskExecutor taskExecutor) {
-    return new AnalysisPipeline(daoTimestamp, entries, taskExecutor);
+  public static AnalysisPipeline of(long eventId, List<Entry> entries, TaskExecutor taskExecutor) {
+    return new AnalysisPipeline(eventId, entries, taskExecutor);
   }
 
   /**
@@ -89,9 +87,9 @@ class AnalysisPipeline {
 
     @Override
     public void run() {
-      logger.info("{} was put into the pipeline '{}'.", analysisService, daoTimestamp);
+      logger.info("{} was put into the pipeline '{}'.", analysisService, eventId);
       analysisService.compute();
-      logger.info("{} has been computed in the pipeline '{}'.", analysisService, daoTimestamp);
+      logger.info("{} has been computed in the pipeline '{}'.", analysisService, eventId);
       logger.debug("{} offers {}.", analysisService, implementedServices);
       registerAvailabilityOf(implementedServices.toArray(new Class[0]));
     }

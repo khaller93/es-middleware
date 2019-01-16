@@ -1,17 +1,25 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.FTSDAOStateChangeEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.SparqlDAOStateChangeEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.LuceneIndexedRDF4JSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSetupException;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOReadyStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.text.StringSubstitutor;
@@ -20,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -52,17 +61,38 @@ public class RDF4JLuceneFullTextSearchDAO implements KGFullTextSearchDAO {
 
   private KGDAOStatus status;
   private KGSparqlDAO sparqlDAO;
+  private ApplicationContext context;
 
   @Autowired
-  public RDF4JLuceneFullTextSearchDAO(@Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO) {
+  public RDF4JLuceneFullTextSearchDAO(@Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO,
+      ApplicationContext context) {
     this.sparqlDAO = sparqlDAO;
+    this.context = context;
+    this.status = new KGDAOInitStatus();
+  }
+
+  @PostConstruct
+  public void setUp() {
     if (!(sparqlDAO instanceof LuceneIndexedRDF4JSparqlDAO)) {
-      throw new KnowledgeGraphSetupException(
-          String.format(
-              "The given SPARQL DAO must be indexed with Lucene and implement the '%s' interface.",
-              RDF4JLuceneFullTextSearchDAO.class.getName()));
+      String message = String.format(
+          "The given SPARQL DAO must be indexed with Lucene and implement the '%s' interface.",
+          RDF4JLuceneFullTextSearchDAO.class.getName());
+      RuntimeException exception = new KnowledgeGraphSetupException(message);
+      setStatus(new KGDAOFailedStatus(message, exception));
+      throw exception;
+    } else {
+      setStatus(new KGDAOReadyStatus());
     }
-    status = new KGDAOReadyStatus();
+  }
+
+  protected synchronized void setStatus(KGDAOStatus status) {
+    checkArgument(status != null, "The specified status must not be null.");
+    if (!this.status.getCode().equals(status.getCode())) {
+      KGDAOStatus prevStatus = this.status;
+      this.status = status;
+      context.publishEvent(new FTSDAOStateChangeEvent(this, status, prevStatus,
+          Instant.now()));
+    }
   }
 
   /**

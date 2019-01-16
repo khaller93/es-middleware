@@ -1,13 +1,17 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearchDAOUpdatedEvent;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.gremlin.GremlinDAOUpdatedEvent;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOUpdatedEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.DAOStateChangeEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.FTSDAOStateChangeEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.GremlinDAOStateChangeEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.SparqlDAOStateChangeEvent;
+import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus.CODE;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.fts.FullTextSearchService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import com.google.common.collect.Sets;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -16,9 +20,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
@@ -33,70 +39,101 @@ public class AnalysisPipelineProcessorImpl implements AnalysisPipelineProcessor 
 
   private static final Logger logger = LoggerFactory.getLogger(AnalysisPipelineProcessorImpl.class);
 
-  private ConcurrentLinkedQueue<Entry> analysisServices = new ConcurrentLinkedQueue<>();
+  private ConcurrentLinkedQueue<Entry> analysisServices;
+  private Map<Long, AnalysisPipeline> analysisPipelineMap;
 
-  private Map<Instant, AnalysisPipeline> analysisPipelineMap = new HashMap<>();
-  private Lock pipelineLock = new ReentrantLock();
-
+  private Lock pipelineLock;
   private TaskExecutor taskExecutor;
 
+  private KGSparqlDAO sparqlDAO;
+  private KGGremlinDAO gremlinDAO;
+  private KGFullTextSearchDAO fullTextSearchDAO;
+  @Value("${esm.analysis.computeOnStart:#{false}}")
+  private boolean computeAnalysisOnStart;
+
   @Autowired
-  public AnalysisPipelineProcessorImpl(TaskExecutor taskExecutor) {
+  public AnalysisPipelineProcessorImpl(TaskExecutor taskExecutor, KGSparqlDAO sparqlDAO,
+      KGGremlinDAO gremlinDAO, KGFullTextSearchDAO fullTextSearchDAO) {
     this.taskExecutor = taskExecutor;
+    this.sparqlDAO = sparqlDAO;
+    this.gremlinDAO = gremlinDAO;
+    this.fullTextSearchDAO = fullTextSearchDAO;
+    this.analysisPipelineMap = new HashMap<>();
+    this.analysisServices = new ConcurrentLinkedQueue<>();
+    this.pipelineLock = new ReentrantLock();
   }
 
-  @EventListener
-  public void onSPARQLReadyEvent(SPARQLDAOUpdatedEvent event) {
-    logger.debug("Recognized a SPARQL update event {}.", event);
-    pipelineLock.lock();
-    try {
-      Instant daoTimestamp = event.getDAOTimestamp();
-      AnalysisPipeline analysisPipeline = analysisPipelineMap.get(daoTimestamp);
-      if (analysisPipeline == null) {
-        analysisPipeline = AnalysisPipeline
-            .of(daoTimestamp, analysisServices.stream().map(Entry::deepCopy).collect(
-                Collectors.toList()), taskExecutor);
-        analysisPipelineMap.put(daoTimestamp, analysisPipeline);
-      }
-      analysisPipeline.registerAvailabilityOf(SPARQLService.class);
-    } finally {
-      pipelineLock.unlock();
+  @PostConstruct
+  public void setUp() {
+    logger.info("!>>>> {}. SPARQL DAO: {}, Gremlin DAO: {}, FTS DAO: {}", computeAnalysisOnStart,
+        sparqlDAO.getStatus().getCode(), gremlinDAO.getStatus().getCode(),
+        fullTextSearchDAO.getStatus().getCode());
+    if (computeAnalysisOnStart) {
+      logger.info("Analysis will be computed at startup.");
+      //TODO: think about safe pipeline.
+      taskExecutor.execute(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            Thread.sleep(30000);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+          if (CODE.READY.equals(sparqlDAO.getStatus().getCode())) {
+            informPipelineAboutChange(-1L, SPARQLService.class);
+          }
+          if (CODE.READY.equals(gremlinDAO.getStatus().getCode())) {
+            informPipelineAboutChange(-1L, GremlinService.class);
+          }
+          if (CODE.READY.equals(fullTextSearchDAO.getStatus().getCode())) {
+            informPipelineAboutChange(-1L, FullTextSearchService.class);
+          }
+        }
+      });
     }
   }
 
   @EventListener
-  public void onSPARQLReadyEvent(FullTextSearchDAOUpdatedEvent event) {
-    logger.debug("Recognized a FullTextSearch update event {}.", event);
-    pipelineLock.lock();
-    try {
-      Instant daoTimestamp = event.getDAOTimestamp();
-      AnalysisPipeline analysisPipeline = analysisPipelineMap.get(daoTimestamp);
-      if (analysisPipeline == null) {
-        analysisPipeline = AnalysisPipeline
-            .of(daoTimestamp, analysisServices.stream().map(Entry::deepCopy).collect(
-                Collectors.toList()), taskExecutor);
-        analysisPipelineMap.put(daoTimestamp, analysisPipeline);
-      }
-      analysisPipeline.registerAvailabilityOf(FullTextSearchService.class);
-    } finally {
-      pipelineLock.unlock();
+  public void onSPARQLReadyEvent(SparqlDAOStateChangeEvent event) {
+    logger.debug("Recognized a SPARQL DAO change event {}.", event);
+    if (CODE.READY.equals(event.getStatus().getCode())) {
+      informPipelineAboutChange(event.getEventId(), SPARQLService.class);
+    } else {
+      logger.debug("SPARQL DAO state change event {} was ignored.", event);
     }
   }
 
   @EventListener
-  public void onSPARQLReadyEvent(GremlinDAOUpdatedEvent event) {
-    logger.debug("Recognized a Gremlin update event {}.", event);
+  public void onFTSReadyEvent(FTSDAOStateChangeEvent event) {
+    logger.debug("Recognized a FullTextSearch DAO change event {}.", event);
+    if (CODE.READY.equals(event.getStatus().getCode())) {
+      informPipelineAboutChange(event.getEventId(), FullTextSearchService.class);
+    } else {
+      logger.debug("SPARQL DAO state change event {} was ignored.", event);
+    }
+  }
+
+  @EventListener
+  public void onGremlinReadyEvent(GremlinDAOStateChangeEvent event) {
+    logger.debug("Recognized a Gremlin DAO change event {}.", event);
+    if (CODE.READY.equals(event.getStatus().getCode())) {
+      informPipelineAboutChange(event.getEventId(), GremlinService.class);
+    } else {
+      logger.debug("Gremlin DAO state change event {} was ignored.", event);
+    }
+  }
+
+  private void informPipelineAboutChange(long eventId, Class<?> serviceClass) {
     pipelineLock.lock();
     try {
-      Instant daoTimestamp = event.getDAOTimestamp();
-      AnalysisPipeline analysisPipeline = analysisPipelineMap.get(daoTimestamp);
+      AnalysisPipeline analysisPipeline = analysisPipelineMap.get(eventId);
       if (analysisPipeline == null) {
         analysisPipeline = AnalysisPipeline
-            .of(daoTimestamp, analysisServices.stream().map(Entry::deepCopy).collect(
-                Collectors.toList()), taskExecutor);
-        analysisPipelineMap.put(daoTimestamp, analysisPipeline);
+            .of(eventId, analysisServices.stream().map(Entry::deepCopy)
+                .collect(Collectors.toList()), taskExecutor);
+        analysisPipelineMap.put(eventId, analysisPipeline);
       }
-      analysisPipeline.registerAvailabilityOf(GremlinService.class);
+      analysisPipeline.registerAvailabilityOf(serviceClass);
     } finally {
       pipelineLock.unlock();
     }

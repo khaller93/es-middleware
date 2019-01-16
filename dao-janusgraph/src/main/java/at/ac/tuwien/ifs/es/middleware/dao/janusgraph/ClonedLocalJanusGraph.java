@@ -41,8 +41,8 @@ import org.springframework.stereotype.Component;
  * @since 1.0
  */
 @Lazy
-@Component("LocalSyncingJanusGraph")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+@Component("LocalSyncingJanusGraph")
 public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
 
   private static final Logger logger = LoggerFactory.getLogger(ClonedLocalJanusGraph.class);
@@ -77,11 +77,11 @@ public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
       mgmt.buildIndex("byIRI", Vertex.class).addKey(iriProperty)
           .unique().buildCompositeIndex();
     } else {
-      try {
+      /*try {
         mgmt.updateIndex(mgmt.getGraphIndex("byIRI"), SchemaAction.REINDEX).get();
       } catch (InterruptedException | ExecutionException e) {
         logger.error("Updating the IRI index failed. {}", e.getMessage());
-      }
+      }*/
     }
     /* build and maintain version index */
     PropertyKey versionProperty = mgmt.getPropertyKey("version");
@@ -89,7 +89,7 @@ public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
       versionProperty = mgmt.makePropertyKey("version").dataType(Date.class)
           .cardinality(Cardinality.SINGLE).make();
     }
-    if (mgmt.getGraphIndex("byVersion") == null) {
+    /* if (mgmt.getGraphIndex("byVersion") == null) {
       mgmt.buildIndex("byVersion", Vertex.class).addKey(versionProperty).buildCompositeIndex();
     } else {
       try {
@@ -97,16 +97,16 @@ public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
       } catch (InterruptedException | ExecutionException e) {
         logger.error(". {}", e.getMessage());
       }
-    }
+    }*/
     mgmt.commit();
     /* wait for index to be ready */
     try {
       GraphIndexStatusWatcher byIRIWatcher = ManagementSystem.awaitGraphIndexStatus(graph, "byIRI")
           .status(SchemaStatus.ENABLED);
-      GraphIndexStatusWatcher byVersionWatcher = ManagementSystem
-          .awaitGraphIndexStatus(graph, "byVersion").status(SchemaStatus.ENABLED);
+      /*GraphIndexStatusWatcher byVersionWatcher = ManagementSystem
+          .awaitGraphIndexStatus(graph, "byVersion").status(SchemaStatus.ENABLED);*/
       byIRIWatcher.call();
-      byVersionWatcher.call();
+      //byVersionWatcher.call();
     } catch (InterruptedException e) {
       logger.error("Waiting for the availability of the IRI/version index failed. {}",
           e.getMessage());
@@ -129,11 +129,11 @@ public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
     } catch (ExecutionException | InterruptedException e) {
       logger.error("Building the IRI index failed. {}", e);
     }
-    try {
+/*    try {
       mgmt.updateIndex(mgmt.getGraphIndex("byVersion"), SchemaAction.REINDEX).get();
     } catch (ExecutionException | InterruptedException e) {
       logger.error("Building the version index failed. {}", e);
-    }
+    }*/
     mgmt.commit();
     try {
       GraphIndexStatusWatcher byIRIWatcher = ManagementSystem.awaitGraphIndexStatus(graph, "byIRI")
@@ -141,7 +141,7 @@ public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
       GraphIndexStatusWatcher byVersionWatcher = ManagementSystem.awaitGraphIndexStatus(graph, "byVersion")
           .status(SchemaStatus.ENABLED);
       byIRIWatcher.call();
-      byVersionWatcher.call();
+//      byVersionWatcher.call();
       logger.info("Reindexing of the IRI/version was successful.");
     } catch (InterruptedException e) {
       logger.error("Waiting for the availability of the version index failed. {}", e.getMessage());

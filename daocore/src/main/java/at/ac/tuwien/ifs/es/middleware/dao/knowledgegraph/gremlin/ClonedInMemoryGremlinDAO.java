@@ -25,9 +25,9 @@ import org.springframework.stereotype.Component;
  * @version 1.0
  * @since 1.0
  */
-@Lazy
-@Component("ClonedInMemoryGremlin")
-@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+//@Lazy
+//@Component("ClonedInMemoryGremlin")
+//@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class ClonedInMemoryGremlinDAO extends AbstractClonedGremlinDAO {
 
   private static final PGS schema = PGS.with("kind", T.id, T.id,

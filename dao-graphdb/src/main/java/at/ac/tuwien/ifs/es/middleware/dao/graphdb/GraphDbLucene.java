@@ -1,12 +1,11 @@
 package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearchDAOFailedEvent;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearchDAOReadyEvent;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearchDAOUpdatedEvent;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.fts.FullTextSearchDAOUpdatingEvent;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.sparql.SPARQLDAOUpdatedEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.FTSDAOStateChangeEvent;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.SparqlDAOStateChangeEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
@@ -15,6 +14,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOReadyStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOUpdatingStatus;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,27 +100,42 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
       taskExecutor.execute(() -> {
         try (RepositoryConnection con = ((RDF4JSparqlDAO) sparqlDAO).getRepository()
             .getConnection()) {
-          con.prepareUpdate(
-              String.format(INSERT_INDEX_DATA_QUERY, graphDbLuceneConfig.getConfigTriples(),
-                  graphDbLuceneConfig.getLuceneIndexIRI()));
-          context.publishEvent(new FullTextSearchDAOReadyEvent(GraphDbLucene.this));
-          this.status = new KGDAOReadyStatus();
+          con.prepareUpdate(String.format(INSERT_INDEX_DATA_QUERY,
+              graphDbLuceneConfig.getConfigTriples(), graphDbLuceneConfig.getLuceneIndexIRI()));
+          setStatus(new KGDAOReadyStatus());
         } catch (Exception e) {
-          context.publishEvent(new FullTextSearchDAOFailedEvent(GraphDbLucene.this,
-              "Initializing the GraphDb Lucene index failed.", e));
-          this.status = new KGDAOFailedStatus("Initializing the GraphDb Lucene index failed.", e);
+          setStatus(new KGDAOFailedStatus("Initializing the GraphDb Lucene index failed.", e));
           throw e;
         }
       });
     } else {
-      context.publishEvent(new FullTextSearchDAOReadyEvent(this));
-      this.status = new KGDAOReadyStatus();
+      setStatus(new KGDAOReadyStatus());
+    }
+  }
+
+  protected synchronized void setStatus(KGDAOStatus status) {
+    checkArgument(status != null, "The specified status must not be null.");
+    if (!this.status.getCode().equals(status.getCode())) {
+      KGDAOStatus prevStatus = this.status;
+      this.status = status;
+      context.publishEvent(new FTSDAOStateChangeEvent(this, status, prevStatus,
+          Instant.now()));
+    }
+  }
+
+  protected synchronized void setStatus(KGDAOStatus status, long eventId) {
+    checkArgument(status != null, "The specified status must not be null.");
+    if (!this.status.getCode().equals(status.getCode())) {
+      KGDAOStatus prevStatus = this.status;
+      this.status = status;
+      context.publishEvent(new FTSDAOStateChangeEvent(this, eventId, status, prevStatus,
+          Instant.now()));
     }
   }
 
   @Override
-  public List<Map<String, RDFTerm>> searchFullText(String keyword,
-      List<BlankNodeOrIRI> classes, Integer offset, Integer limit) {
+  public List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
+      Integer offset, Integer limit) {
     logger
         .debug("FTS call for {} was triggered with parameters: offset={}, limit={}, and classes={}",
             keyword, offset, limit, classes);
@@ -174,29 +189,21 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
       con.prepareUpdate(String.format(BATCH_UPDATE_QUERY, graphDbLuceneConfig.getLuceneIndexIRI()));
     } catch (Exception e) {
       logger.error("Error while updating the Lucene update. {}", e.getMessage());
-      context.publishEvent(new FullTextSearchDAOFailedEvent(GraphDbLucene.this,
-          "Initializing the GraphDb Lucene index failed.", e));
-      this.status = new KGDAOFailedStatus("Updating the GraphDb Lucene index failed.", e);
+      setStatus(new KGDAOFailedStatus("Updating the GraphDb Lucene index failed.", e));
       throw e;
     }
   }
 
   @EventListener
-  public void handleSPARQLDAOUpdated(SPARQLDAOUpdatedEvent updatedEvent) {
+  public void handleSPARQLDAOStateChange(SparqlDAOStateChangeEvent event) {
     logger.info("The SPARQL DAO was updated, and lucene index will be updated now too.");
-    context.publishEvent(new FullTextSearchDAOUpdatingEvent(this));
-    this.status = new KGDAOUpdatingStatus();
+    setStatus(new KGDAOUpdatingStatus());
     taskExecutor.execute(() -> {
       try {
         performBatchUpdateOfIndex();
-        context.publishEvent(
-            new FullTextSearchDAOUpdatedEvent(GraphDbLucene.this, updatedEvent.getDAOTimestamp()));
-        this.status = new KGDAOReadyStatus();
+        setStatus(new KGDAOReadyStatus(), event.getEventId());
       } catch (Exception e) {
-        context.publishEvent(
-            new FullTextSearchDAOFailedEvent(GraphDbLucene.this,
-                "Updating the lucene index failed.", e));
-        this.status = new KGDAOFailedStatus("Updating the lucene index failed.", e);
+        setStatus(new KGDAOFailedStatus("Updating the lucene index failed.", e));
         throw e;
       }
     });

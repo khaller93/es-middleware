@@ -9,8 +9,8 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LeastCommonSubSumersService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricKey;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricResult;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.entity.SimilarityMetricKey;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.entity.SimilarityMetricResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricStoreService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import com.google.common.collect.Sets;
@@ -30,10 +30,10 @@ import org.apache.commons.rdf.api.RDFTerm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This is an implementation of {@link ResnikSimilarityMetricService} which tries to pre-compute the
@@ -112,6 +112,7 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
   }
 
   @Override
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void compute() {
     Instant issueTimestamp = Instant.now();
     logger.info("Started to compute the Resnik similarity metric.");
