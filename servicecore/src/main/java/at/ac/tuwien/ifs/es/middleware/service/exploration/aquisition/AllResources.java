@@ -24,8 +24,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * This is an implementation of {@link AcquisitionSource} that acquires all resources, potentially
- * only of specific classes or part of specific namespaces.
+ * This is an implementation get {@link AcquisitionSource} that acquires all resources, potentially
+ * only get specific classes or part get specific namespaces.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -111,14 +111,14 @@ public class AllResources implements AcquisitionSource<AllResourcesPayload> {
       allQueryTemplate = ALL_GRAPH_QUERY;
       valuesMap.put("namespace", prepareNamespaceFilterBlock(payload.getNamespaces()));
     }
-    /* prepare the filter including instances of given classes */
+    /* prepare the filter including instances get given classes */
     final List<Resource> includedClasses = payload.getIncludedClasses();
     if (includedClasses != null && !includedClasses.isEmpty()) {
       valuesMap.put("include", prepareFilter(payload.getIncludedClasses()));
     } else {
       valuesMap.put("include", "");
     }
-    /* prepare the filter excluding instances of given classes */
+    /* prepare the filter excluding instances get given classes */
     final List<Resource> excludedClasses = payload.getExcludedClasses();
     if (excludedClasses != null && !excludedClasses.isEmpty()) {
       valuesMap.put("exclude",

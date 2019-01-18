@@ -9,11 +9,10 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LeastCommonSubSumersService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.entity.SimilarityMetricKey;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.entity.SimilarityMetricResult;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricStoreService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.similarity.entity.SimilarityMetricKey;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.similarity.entity.SimilarityMetricResult;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.similarity.SimilarityMetricStoreService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
-import com.google.common.collect.Sets;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
@@ -36,7 +35,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * This is an implementation of {@link ResnikSimilarityMetricService} which tries to pre-compute the
+ * This is an implementation get {@link ResnikSimilarityMetricService} which tries to pre-compute the
  * values for all resources.
  *
  * @author Kevin Haller
@@ -89,8 +88,8 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
 
   @PostConstruct
   private void setUp() {
-    processor.registerAnalysisService(this, true, false, false,
-        Sets.newHashSet(ClassEntropyService.class, LeastCommonSubSumersService.class));
+   // processor.registerAnalysisService(this, true, false, false,
+   //     Sets.newHashSet(ClassEntropyService.class, LeastCommonSubSumersService.class));
   }
 
   @Override

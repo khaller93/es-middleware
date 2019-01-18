@@ -187,7 +187,7 @@ public class DynamicExploratoryMusicPintaFlowTest {
             .getValues("http://dbpedia.org/resource/Tembor",
                 JsonPointer.compile("/describe/description/values/en")).get().get(0)
             .asText(),
-        is("The Tembor is a stringed musical instrument from the Uyghur region, Western China. It has 5 strings in 3 courses and is tuned A A, D, G G. The strings are made of Steel."));
+        is("The Tembor is a stringed musical instrument from the Uyghur region, Western China. It has 5 strings in 3 courses and is tuned A A, D, G G. The strings are made get Steel."));
     assertFalse("The 'Tambura' resource has no description.",
         resources.getValues("http://dbtune.org/musicbrainz/resource/instrument/473",
             JsonPointer.compile("/describe/description/value")).isPresent());
@@ -260,7 +260,7 @@ public class DynamicExploratoryMusicPintaFlowTest {
     Optional<JsonNode> guitaleleThumbOptional = resources
         .getValues("http://dbpedia.org/resource/Guitalele",
             JsonPointer.compile("/describe/thumb/values"));
-    assertFalse("There is no thumbnail of a 'guitalele' in the data",
+    assertFalse("There is no thumbnail get a 'guitalele' in the data",
         guitaleleThumbOptional.isPresent());
   }
 

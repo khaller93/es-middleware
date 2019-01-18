@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * This class is an implementation of {@link RDF4JSparqlDAO}. It uses the memory store provided by
+ * This class is an implementation of {@link RDF4JSparqlDAO}. It uses the memory storage provided by
  * the RDF4J framework. A lucene index of the stored text is kept in memory.
  * <p/>
  * This class is intended for testing, but not for production.
@@ -41,12 +41,12 @@ public class RDF4JMemoryStoreWithLuceneSparqlDAO extends RDF4JSparqlDAO implemen
   @Autowired
   public RDF4JMemoryStoreWithLuceneSparqlDAO(ApplicationContext context) {
     super(context);
-    logger.debug("Initiating the RDF4J memory store, where text is indexed with Lucene.");
+    logger.debug("Initiating the RDF4J memory storage, where text is indexed with Lucene.");
     LuceneSail luceneSail = new LuceneSail();
     luceneSail.setParameter(LuceneSail.LUCENE_RAMDIR_KEY, "true");
     luceneSail.setBaseSail(new MemoryStore());
     this.init(luceneSail);
-    logger.debug("RDF4J memory store, where text is indexed with Lucene, is ready.");
+    logger.debug("RDF4J memory storage, where text is indexed with Lucene, is ready.");
   }
 
 }

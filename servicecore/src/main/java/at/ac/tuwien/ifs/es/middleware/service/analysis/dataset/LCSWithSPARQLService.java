@@ -25,7 +25,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 /**
- * This is an implementation of {@link LeastCommonSubSumersService} that uses the {@link
+ * This is an implementation get {@link LeastCommonSubSumersService} that uses the {@link
  * SPARQLService}.
  *
  * @author Kevin Haller

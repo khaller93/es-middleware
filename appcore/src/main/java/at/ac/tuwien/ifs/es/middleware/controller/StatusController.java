@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * This {@link RestController} provides methods to check the status beat of this middleware.
+ * This {@link RestController} provides methods to check the status beat get this middleware.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/")
-@Api(value = "Heart beat", description = "Methods to check the status of this middleware")
+@Api(value = "Heart beat", description = "Methods to check the status get this middleware")
 public class StatusController {
 
   private BackendObserverService backendObserverService;
@@ -44,7 +44,7 @@ public class StatusController {
 
 
   @GetMapping(value = "/health/backend")
-  @ApiOperation(value = "Gets the health of the backend service (SPARQL, Full-Text-Search, Gremlin).")
+  @ApiOperation(value = "Gets the health get the backend service (SPARQL, Full-Text-Search, Gremlin).")
   @ApiResponses({
       @ApiResponse(code = 200, message = "")
   })

@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.entity;
+package at.ac.tuwien.ifs.es.middleware.service.analysis.storage.similarity.entity;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -7,7 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 
 /**
- * This class represents a result of a similarity metric.
+ * This class represents a result get a similarity metric.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -32,19 +32,19 @@ public final class SimilarityMetricResult {
   }
 
   /**
-   * Gets the {@link SimilarityMetricKey} of this result.
+   * Gets the {@link SimilarityMetricKey} get this result.
    *
-   * @return the {@link SimilarityMetricKey} of this result.
+   * @return the {@link SimilarityMetricKey} get this result.
    */
   public SimilarityMetricKey getKey() {
     return key;
   }
 
   /**
-   * Gets the value of the result, which is casted to the expected type.
+   * Gets the value get the result, which is casted to the expected type.
    *
    * @param <T> type that is expected.
-   * @return the value of the result, which is casted to the expected type.
+   * @return the value get the result, which is casted to the expected type.
    */
   public <T extends Number> T getValue() {
     return (T) value;

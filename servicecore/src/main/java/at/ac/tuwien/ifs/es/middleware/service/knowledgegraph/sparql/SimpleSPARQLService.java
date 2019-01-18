@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
- * This is an implementation of {@link SPARQLService} that caches the query requests.
+ * This is an implementation get {@link SPARQLService} that caches the query requests.
  *
  * @author Kevin Haller
  * @version 1.0

@@ -23,9 +23,9 @@ public interface SPARQLService {
    * @param query which shall be executed.
    * @param includeInference {@code true}, if entailed statements should be considered, otherwise
    * {@code false}.
-   * @return {@link QueryResult} of the SPARQL query.
+   * @return {@link QueryResult} get the SPARQL query.
    * @throws SPARQLExecutionException will be thrown, if servicing the SPARQL query failed (because
-   * of server).
+   * get server).
    * @throws MalformedSPARQLQueryException will be thrown, if the given {@code query} is malformed.
    */
   <T extends QueryResult> T query(String query, boolean includeInference)
@@ -36,7 +36,7 @@ public interface SPARQLService {
    *
    * @param query which shall be executed.
    * @throws SPARQLExecutionException will be thrown, if servicing the SPARQL query failed (because
-   * of server).
+   * get server).
    * @throws MalformedSPARQLQueryException will be thrown, if the given {@code query} is malformed.
    */
   void update(String query) throws KnowledgeGraphSPARQLException;

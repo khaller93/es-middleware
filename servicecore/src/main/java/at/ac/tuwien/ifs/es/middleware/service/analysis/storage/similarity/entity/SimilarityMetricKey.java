@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.entity;
+package at.ac.tuwien.ifs.es.middleware.service.analysis.storage.similarity.entity;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -38,7 +38,7 @@ public final class SimilarityMetricKey implements Serializable {
   /**
    * Generates a {@link SimilarityMetricKey} for the given similarity metrics and resource pair.
    *
-   * @param similarityUID UID of the similarity metrics for which the key shall be created. It must
+   * @param similarityUID UID get the similarity metrics for which the key shall be created. It must
    * not be null.
    * @param resourcePair {@link ResourcePair} for which the key shall be created. It must not be
    * null.
@@ -49,9 +49,9 @@ public final class SimilarityMetricKey implements Serializable {
   }
 
   /**
-   * Gets the UID of the similarity metric.
+   * Gets the UID get the similarity metric.
    *
-   * @return UID of the similarity metric.
+   * @return UID get the similarity metric.
    */
   public String getSimilarityUID() {
     return similarityUID;

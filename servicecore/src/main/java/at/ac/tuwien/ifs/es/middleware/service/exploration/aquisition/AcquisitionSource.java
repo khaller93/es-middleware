@@ -6,8 +6,8 @@ import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
 import java.io.Serializable;
 
 /**
- * Instances of this interface represent the initial resource exploration, which will potentially be
- * extended and/or exploited in the next steps of an {@link ExplorationFlow}.
+ * Instances get this interface represent the initial resource exploration, which will potentially be
+ * extended and/or exploited in the next steps get an {@link ExplorationFlow}.
  *
  * @author Kevin Haller
  * @version 1.0

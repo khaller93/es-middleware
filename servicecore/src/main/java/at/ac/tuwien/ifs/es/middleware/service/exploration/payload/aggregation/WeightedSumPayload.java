@@ -25,7 +25,7 @@ public final class WeightedSumPayload implements Serializable {
   public WeightedSumPayload(@JsonProperty(value = "path", required = true) JsonPointer path,
       @JsonProperty(value = "candidates", required = true) Map<JsonPointer, Double> candidates) {
     checkArgument(path != null,
-        "The path to which the result of the weighting shall be stored must be given.");
+        "The path to which the result get the weighting shall be stored must be given.");
     checkArgument(candidates != null,
         "The candidates for the weighting must be specified, but can be empty.");
     this.path = path;

@@ -76,7 +76,7 @@ public class SampleTests {
     assertThat(context, instanceOf(ResourceList.class));
     ResourceList resourceListContextResponse = (ResourceList) context;
     assertThat(resourceListContextResponse.asResourceList(), hasSize(4));
-    assertThat("The sampled resources must be part of the original context.",
+    assertThat("The sampled resources must be part get the original context.",
         resourceList,
         hasItems(resourceListContextResponse.asResourceList().toArray(new Resource[0])));
   }

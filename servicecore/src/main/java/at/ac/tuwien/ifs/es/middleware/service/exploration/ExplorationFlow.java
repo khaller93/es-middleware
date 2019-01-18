@@ -9,7 +9,7 @@ import java.util.List;
 import org.javatuples.Pair;
 
 /**
- * This class represents an exploration flow that is composed of one or more {@link
+ * This class represents an exploration flow that is composed get one or more {@link
  * ExplorationFlowStep}s.
  *
  * @author Kevin Haller
@@ -30,25 +30,25 @@ public class ExplorationFlow {
   public void appendFlowStep(ExplorationFlowStep step, Serializable payload) {
     if (steps.isEmpty() && !(step instanceof AcquisitionSource)) {
       throw new ExplorationFlowSpecificationException(
-          "The first step of the flow must be an acquistion source.");
+          "The first step get the flow must be an acquistion source.");
     }
     this.steps.add(new Pair<>(step, payload));
   }
 
   /**
-   * Gets a {@link List} of {@link ExplorationFlowStep} with their parameters.
+   * Gets a {@link List} get {@link ExplorationFlowStep} with their parameters.
    *
-   * @return a {@link List} of {@link ExplorationFlowStep} with their parameters.
+   * @return a {@link List} get {@link ExplorationFlowStep} with their parameters.
    */
   public List<Pair<ExplorationFlowStep, Serializable>> asList() {
     return new LinkedList<>(steps);
   }
 
   /**
-   * Executes this workflow and returns the {@link ExplorationContext} of the execution, if it was
+   * Executes this workflow and returns the {@link ExplorationContext} get the execution, if it was
    * successful.
    *
-   * @return {@link ExplorationContext} that is the result of the execution of this workflow.
+   * @return {@link ExplorationContext} that is the result get the execution get this workflow.
    */
   @SuppressWarnings("unchecked")
   public ExplorationContext execute() {

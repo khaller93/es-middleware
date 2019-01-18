@@ -7,13 +7,16 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.FTSDAOStateChangeEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.SparqlDAOStateChangeEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.LuceneIndexedRDF4JSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSetupException;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.Facet;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOReadyStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
+import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.FacetedSearchQueryBuilder;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +58,7 @@ public class RDF4JLuceneFullTextSearchDAO implements KGFullTextSearchDAO {
           + "    search:score ?score\n"
           + "  ] .\n"
           + "  ${class-filter}\n"
+          + "  ${facets}\n"
           + "} ORDER BY DESC(?score)\n"
           + "${offset}\n"
           + "${limit}\n";
@@ -116,16 +120,23 @@ public class RDF4JLuceneFullTextSearchDAO implements KGFullTextSearchDAO {
   }
 
   @Override
-  public List<Map<String, RDFTerm>> searchFullText(String keyword,
-      List<BlankNodeOrIRI> classes, Integer offset, Integer limit) {
-    logger
-        .debug("FTS call for {} was triggered with parameters: offset={}, limit={}, and classes={}",
-            keyword, offset, limit, classes);
+  public List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
+      Integer offset, Integer limit) {
+    return searchFullText(keyword, classes, offset, limit, null);
+  }
+
+  @Override
+  public List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
+      Integer offset, Integer limit, List<Facet> facets) throws KnowledgeGraphDAOException {
+       logger.debug("FTS call for {} was triggered with parameters: offset={}, limit={}, and classes={}",
+        keyword, offset, limit, classes);
     Map<String, String> valueMap = new HashMap<>();
     valueMap.put("keyword", keyword);
     valueMap.put("class-filter", prepareFilter(classes));
     valueMap.put("offset", offset != null ? "OFFSET " + offset.toString() : "");
     valueMap.put("limit", limit != null ? "LIMIT " + limit.toString() : "");
+    valueMap.put("facets", facets != null && !facets.isEmpty() ? FacetedSearchQueryBuilder
+        .buildFacets("resource", facets) : "");
     String filledFtsQuery = new StringSubstitutor(valueMap).replace(FTS_QUERY);
     return sparqlDAO.<SelectQueryResult>query(filledFtsQuery, true).value();
   }

@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.exception;
 
 /**
- * This exception shall be thrown, if the specification of the exploration flow is invalid.
+ * This exception shall be thrown, if the specification get the exploration flow is invalid.
  *
  * @author Kevin Haller
  * @version 1.0

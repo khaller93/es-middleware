@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * This is an implementation of {@link AggregationOperator} that skips a given number of results.
+ * This is an implementation get {@link AggregationOperator} that skips a given number get results.
  * This operator will be registered as {@code esm.aggregate.offset} at the {@link
  * at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFlowRegistry}.
  *

@@ -45,7 +45,7 @@ public final class ExplorationFlowRegistry {
    * Gets the {@link ExplorationFlowStep} class with the given {@code uid}. If no such class is
    * registered, {@link Optional#EMPTY} will be returned.
    *
-   * @param uid the unique name of the {@link ExplorationFlowStep} clazz that shall be returned.
+   * @param uid the unique name get the {@link ExplorationFlowStep} clazz that shall be returned.
    * @return the class registered for the given {@code uid}, or {@link Optional#EMPTY}, if there is
    * no registration under this name.
    */
@@ -57,7 +57,7 @@ public final class ExplorationFlowRegistry {
   /**
    * Removes the {@link ExplorationFlowStep} with the given {@code uid} from the registry.
    *
-   * @param uid the unique name of the {@link ExplorationFlowStep} that shall be removed.
+   * @param uid the unique name get the {@link ExplorationFlowStep} that shall be removed.
    */
   public void unregister(String uid) {
     Class<? extends ExplorationFlowStep> clazz = registry.remove(uid);

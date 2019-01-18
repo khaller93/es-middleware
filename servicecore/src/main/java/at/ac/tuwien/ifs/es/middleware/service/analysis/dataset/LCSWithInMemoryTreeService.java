@@ -29,7 +29,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
- * This is an implementation of {@link LeastCommonSubSumersService} that uses the {@link
+ * This is an implementation get {@link LeastCommonSubSumersService} that uses the {@link
  * SPARQLService}.
  *
  * @author Kevin Haller
@@ -106,8 +106,8 @@ public class LCSWithInMemoryTreeService implements LeastCommonSubSumersService {
 
   @PostConstruct
   private void setUp() {
-    processor.registerAnalysisService(this, true, false, false,
-        Sets.newHashSet(ClassInformationService.class, SameAsResourceService.class));
+    //processor.registerAnalysisService(this, true, false, false,
+    //    Sets.newHashSet(ClassInformationService.class, SameAsResourceService.class));
   }
 
   private TreeNode computeLCATreeNodeFor(Map<Resource, TreeNode> treeNodes, Resource resource) {
@@ -240,7 +240,7 @@ public class LCSWithInMemoryTreeService implements LeastCommonSubSumersService {
   }
 
   /**
-   * A naive implementation of a tree to solve the LCA problem.
+   * A naive implementation get a tree to solve the LCA problem.
    */
   private class TreeNode {
 

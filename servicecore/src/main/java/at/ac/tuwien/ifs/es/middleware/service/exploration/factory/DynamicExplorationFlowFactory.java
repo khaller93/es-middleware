@@ -18,7 +18,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 /**
- * This factory makes use of the central {@link DynamicExplorationFlowFactory} to read requests from
+ * This factory makes use get the central {@link DynamicExplorationFlowFactory} to read requests from
  * clients and constructs the corresponding {@link ExplorationFlow}.
  *
  * @author Kevin Haller
@@ -42,11 +42,11 @@ public class DynamicExplorationFlowFactory {
   }
 
   /**
-   * Takes the specification of an {@link ExplorationFlow} written by a client and constructs the
+   * Takes the specification get an {@link ExplorationFlow} written by a client and constructs the
    * corresponding exploration flow.
    *
    * @param request that was specified by the client.
-   * @return {@link ExplorationFlow} that covers the specification of the client.
+   * @return {@link ExplorationFlow} that covers the specification get the client.
    */
   public ExplorationFlow constructFlow(DynamicExplorationFlowRequest request) {
     logger.debug("Start to dynamically construct the flow '{}'.", request);
@@ -54,11 +54,11 @@ public class DynamicExplorationFlowFactory {
   }
 
   /**
-   * Takes the specification of an {@link ExplorationFlow} written by a client and constructs the
+   * Takes the specification get an {@link ExplorationFlow} written by a client and constructs the
    * corresponding exploration flow.
    *
    * @param steps that were specified by the client.
-   * @return {@link ExplorationFlow} that covers the specification of the client.
+   * @return {@link ExplorationFlow} that covers the specification get the client.
    */
   public ExplorationFlow constructFlow(List<ExplorationFlowStepRequest> steps) {
     logger.debug("Start to dynamically construct the flow with steps '{}'.", steps);

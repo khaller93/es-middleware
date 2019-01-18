@@ -21,7 +21,8 @@ public class SpringCacheConfig {
         new ConcurrentMapCache("fts"),
         new ConcurrentMapCache("sameas"),
         new ConcurrentMapCache("lcs"),
-        new ConcurrentMapCache("similarity")));
+        new ConcurrentMapCache("similarity"),
+        new ConcurrentMapCache("centrality")));
     return cacheManager;
   }
 

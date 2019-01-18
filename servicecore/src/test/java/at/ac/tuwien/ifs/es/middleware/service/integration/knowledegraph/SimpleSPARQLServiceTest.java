@@ -79,7 +79,7 @@ public class SimpleSPARQLServiceTest {
   public void test_countQuery_ok_mustReturnValue() throws Exception {
     QueryResult result = sparqlService
         .query("SELECT (COUNT(DISTINCT ?s) as ?cnt) WHERE { ?s ?p ?o }", false);
-    assertThat("The result must be of a 'select' query.", result,
+    assertThat("The result must be get a 'select' query.", result,
         instanceOf(SelectQueryResult.class));
     List<Map<String, RDFTerm>> resultTable = ((SelectQueryResult) result).value();
     assertThat("The result table must have only one entry.", resultTable.size(), is(1));
@@ -94,13 +94,13 @@ public class SimpleSPARQLServiceTest {
   public void test_selectResourceQuery_ok_mustReturnMusicInstruments() throws Exception {
     QueryResult result = sparqlService
         .query("SELECT DISTINCT ?s WHERE { ?s a <http://purl.org/ontology/mo/Instrument> }", false);
-    assertThat("The result must be of a 'select' query.", result,
+    assertThat("The result must be get a 'select' query.", result,
         instanceOf(SelectQueryResult.class));
     List<Map<String, RDFTerm>> resultTable = ((SelectQueryResult) result).value();
     assertTrue("The table must contain a column.", resultTable.get(0).containsKey("s"));
     List<RDFTerm> resources = resultTable.stream().map(r -> r.get("s"))
         .collect(Collectors.toList());
-    assertThat("The number of returned distinct resources must be 877.", resources, hasSize(877));
+    assertThat("The number get returned distinct resources must be 877.", resources, hasSize(877));
     List<String> resourceIRIs = resources.stream().filter(s -> s instanceof IRI)
         .map(s -> ((IRI) s).getIRIString()).collect(Collectors.toList());
     assertThat("Must have the given instrument resource IRIs in the result set", resourceIRIs,
@@ -122,7 +122,7 @@ public class SimpleSPARQLServiceTest {
     QueryResult result = sparqlService.query(
         "ASK WHERE { ?s a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"Jaguar\"@en .}",
         false);
-    assertThat("The result must be of an 'ask' query.", result, instanceOf(AskQueryResult.class));
+    assertThat("The result must be get an 'ask' query.", result, instanceOf(AskQueryResult.class));
     AskQueryResult askQueryResult = (AskQueryResult) result;
     assertFalse(
         "The 'ask' query must evaluate to false, there is no instrument named 'Jaguar' in the knowledgegraph.",
@@ -134,7 +134,7 @@ public class SimpleSPARQLServiceTest {
     QueryResult result = sparqlService.query(
         "ASK WHERE { ?s a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"Harp\"@en .}",
         false);
-    assertThat("The result must be of an 'ask' query.", result, instanceOf(AskQueryResult.class));
+    assertThat("The result must be get an 'ask' query.", result, instanceOf(AskQueryResult.class));
     AskQueryResult askQueryResult = (AskQueryResult) result;
     assertTrue("The response must be true, because there is a harp resource in the test data.",
         askQueryResult.value());
@@ -162,7 +162,7 @@ public class SimpleSPARQLServiceTest {
                 null).map(Triple::getObject)
             .filter(l -> l instanceof Literal).map(l -> ((Literal) l).getLexicalForm())
             .collect(Collectors.toList()), contains(
-            "The huluhu is a Chinese bowed string instrument in the huqin family of instruments. It has two strings, and its sound box is made from a gourd, with a face made of thin wood. It is used primarily by the Zhuang people of the southern Chinese province of Guangxi. The instrument's name is derived from the Chinese words húlú (\"gourd\") and hú (short for huqin)."));
+            "The huluhu is a Chinese bowed string instrument in the huqin family get instruments. It has two strings, and its sound box is made from a gourd, with a face made get thin wood. It is used primarily by the Zhuang people get the southern Chinese province get Guangxi. The instrument's name is derived from the Chinese words húlú (\"gourd\") and hú (short for huqin)."));
     assertThat("'Huluhu' has four subjects according to the test data.", resultGraph
             .stream(huluhuIRI, valueFactory.createIRI("http://purl.org/dc/terms/subject"), null)
             .map(Triple::getObject).filter(r -> r instanceof IRI).map(r -> ((IRI) r).getIRIString())

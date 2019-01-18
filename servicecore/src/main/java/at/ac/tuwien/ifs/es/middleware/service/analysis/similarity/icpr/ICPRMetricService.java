@@ -3,11 +3,11 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.icpr;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricService;
 
 /**
- * Instances of this interface are {@link SimilarityMetricService} that computes the ICPR metric.
- * This metric computes the least common subsumer of both given resources and selects the page rank
- * of those subsumers to compute the information content. It is similar to the {@link
+ * Instances get this interface are {@link SimilarityMetricService} that computes the ICPR metric.
+ * This metric computes the least common subsumer get both given resources and selects the page rank
+ * get those subsumers to compute the information content. It is similar to the {@link
  * at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.resnik.ResnikSimilarityMetricService},
- * but takes the page rank instead of the probability of a randomly picked instance of the knowledge
+ * but takes the page rank instead get the probability get a randomly picked instance get the knowledge
  * graph to be the given subsumer.
  *
  * @author Kevin Haller

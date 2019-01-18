@@ -10,8 +10,8 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * This payload is intended for specifying the arguments for a min,max normalization of certain
- * fields in the value section of the {@link at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext}.
+ * This payload is intended for specifying the arguments for a min,max normalization get certain
+ * fields in the value section get the {@link at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext}.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -24,7 +24,7 @@ public class MinMaxPayload implements Serializable {
   @JsonCreator
   public MinMaxPayload(
       @JsonProperty(value = "targets", required = true) List<MinMaxTarget> targets) {
-    checkArgument(targets != null, "A list of targets must be given, but can be empty.");
+    checkArgument(targets != null, "A list get targets must be given, but can be empty.");
     this.targets = targets;
   }
 

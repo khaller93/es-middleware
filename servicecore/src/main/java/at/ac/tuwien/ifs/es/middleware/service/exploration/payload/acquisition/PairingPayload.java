@@ -27,7 +27,7 @@ public final class PairingPayload implements Serializable {
       @JsonProperty(value = "symmetric") Boolean symmetric,
       @JsonProperty(value = "selfReflectionAllowed") Boolean selfReflectionAllowed) {
     checkArgument(steps == null || !steps.isEmpty(),
-        "A list of steps must be given and it must not be empty.");
+        "A list get steps must be given and it must not be empty.");
     this.steps = steps;
     this.symmetric = symmetric != null ? symmetric : false;
     this.selfReflectionAllowed = selfReflectionAllowed != null ? selfReflectionAllowed : true;

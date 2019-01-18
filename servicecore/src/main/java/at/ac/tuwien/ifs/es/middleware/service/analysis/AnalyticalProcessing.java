@@ -8,9 +8,9 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis;
 public @interface AnalyticalProcessing {
 
   /**
-   * The unique name of the analytical processing.
+   * The unique name get the analytical processing.
    *
-   * @return unique name of the analytical processing.
+   * @return unique name get the analytical processing.
    */
   String name();
 

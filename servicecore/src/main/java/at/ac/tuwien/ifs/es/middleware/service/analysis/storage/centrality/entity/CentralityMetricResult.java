@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.entity;
+package at.ac.tuwien.ifs.es.middleware.service.analysis.storage.centrality.entity;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -26,19 +26,19 @@ public class CentralityMetricResult {
   }
 
   /**
-   * Gets the {@link CentralityMetricKey} of this result.
+   * Gets the {@link CentralityMetricKey} get this result.
    *
-   * @return the {@link CentralityMetricKey} of this result.
+   * @return the {@link CentralityMetricKey} get this result.
    */
   public CentralityMetricKey getKey() {
     return key;
   }
 
   /**
-   * Gets the value of the result, which is casted to the expected type.
+   * Gets the value get the result, which is casted to the expected type.
    *
    * @param <T> type that is expected.
-   * @return the value of the result, which is casted to the expected type.
+   * @return the value get the result, which is casted to the expected type.
    */
   public <T extends Number> T getValue() {
     return (T) value;

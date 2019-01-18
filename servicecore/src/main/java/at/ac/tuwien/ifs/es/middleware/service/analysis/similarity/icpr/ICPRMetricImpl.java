@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
- * This class is an implementation of {@link ICPRMetricService} that uses the {@link
+ * This class is an implementation get {@link ICPRMetricService} that uses the {@link
  * LeastCommonSubSumersService} and {@link PageRankCentralityMetricService}.
  *
  * @author Kevin Haller

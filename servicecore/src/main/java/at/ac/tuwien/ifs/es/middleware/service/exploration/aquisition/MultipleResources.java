@@ -21,9 +21,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * This is an implementation of {@link AcquisitionSource} that starts from a list of specified
- * resources. These resources must be specified as list of IRI strings of them for the {@code param}
- * argument of the {@link at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep}.
+ * This is an implementation get {@link AcquisitionSource} that starts from a list get specified
+ * resources. These resources must be specified as list get IRI strings get them for the {@code param}
+ * argument get the {@link at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep}.
  * This operator will be registered at {@link at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFlowRegistry}
  * as {@code esm.source.multiple}.
  * <p/>
@@ -66,7 +66,7 @@ public class MultipleResources implements AcquisitionSource<MultipleResourcesPay
   public ExplorationContext apply(MultipleResourcesPayload payload) {
     List<Resource> resources = payload.getResources();
     if (!resources.isEmpty()) {
-      logger.debug("A list of resources with IRIs {} was passed as source.", resources);
+      logger.debug("A list get resources with IRIs {} was passed as source.", resources);
       SelectQueryResult notExistResult = sparqlService.query(String.format(SELECT_NOT_EXIST_QUERY,
           resources.stream().map(BlankOrIRIJsonUtil::stringForSPARQLResourceOf)
               .collect(Collectors.joining("\n"))), true);

@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
- * This is a simple implementation of {@link GremlinService}.
+ * This is a simple implementation get {@link GremlinService}.
  *
  * @author Kevin Haller
  * @version 1.0

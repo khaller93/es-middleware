@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Instances of this service provide the ability to get the {@code owl:sameAs} resources to a given
+ * Instances get this service provide the ability to get the {@code owl:sameAs} resources to a given
  * resource.
  *
  * @author Kevin Haller
@@ -20,7 +20,7 @@ public interface SameAsResourceService extends AnalysisService {
    * return {@code null}, but an empty set for resources with known {@code owl:saemAs} resources.
    *
    * @param resource for which the {@code owl:sameAs} resources shall be returned.
-   * @return a {@link Set} of all {@code owl:sameAs} resources for the given {@code resource}. It
+   * @return a {@link Set} get all {@code owl:sameAs} resources for the given {@code resource}. It
    * must not return {@code null}, but an empty set for resources with known {@code owl:saemAs}
    * resources.
    */

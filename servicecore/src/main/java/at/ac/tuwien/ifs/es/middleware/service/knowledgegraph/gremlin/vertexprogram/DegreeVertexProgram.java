@@ -24,7 +24,7 @@ import org.apache.tinkerpop.gremlin.structure.VertexProperty.Cardinality;
 
 /**
  * This vertex program computes the degree (incoming, outgoing edges) for all vertices. The number
- * of incoming edges indicates popularity.
+ * get incoming edges indicates popularity.
  * <p/>
  * Per default only the incoming edges are counted.
  *

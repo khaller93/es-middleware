@@ -16,8 +16,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * This class is an implementation of {@link RDF4JSparqlDAO}. It uses the native store of RDF4J,
- * which can handle data in the range of 100 million triples. A Lucene index is applied to the store
+ * This class is an implementation of {@link RDF4JSparqlDAO}. It uses the native storage of RDF4J,
+ * which can handle data in the range of 100 million triples. A Lucene index is applied to the storage
  * text, whereby the index is persisted to the disk.
  *
  * @author Kevin Haller
@@ -41,17 +41,17 @@ public class RDF4JNativeStoreWithLuceneSparqlDAO extends RDF4JSparqlDAO implemen
   }
 
   public void setUp(String dataDir) {
-    logger.debug("Initiating the RDF4J memory store, where text is indexed with Lucene.");
+    logger.debug("Initiating the RDF4J memory storage, where text is indexed with Lucene.");
     File dir = new File(dataDir);
-    File nativeStoreDir = new File(dir, "store");
-    /* prepare native store data dir */
+    File nativeStoreDir = new File(dir, "storage");
+    /* prepare native storage data dir */
     if (!nativeStoreDir.exists()) {
       boolean createdDirs = nativeStoreDir.mkdirs();
       if (createdDirs) {
         logger
-            .trace("Directories for native store '{}' created.", nativeStoreDir.getAbsolutePath());
+            .trace("Directories for native storage '{}' created.", nativeStoreDir.getAbsolutePath());
       } else {
-        logger.trace("Could not create native store for path '{}'.",
+        logger.trace("Could not create native storage for path '{}'.",
             nativeStoreDir.getAbsolutePath());
       }
     }
@@ -71,7 +71,7 @@ public class RDF4JNativeStoreWithLuceneSparqlDAO extends RDF4JSparqlDAO implemen
     luceneSail.setParameter(LuceneSail.LUCENE_DIR_KEY, luceneDir.getAbsolutePath());
     luceneSail.setBaseSail(new NativeStore(nativeStoreDir));
     this.init(luceneSail);
-    logger.debug("RDF4J native store, where text is indexed with Lucene, is ready.");
+    logger.debug("RDF4J native storage, where text is indexed with Lucene, is ready.");
   }
 
 }

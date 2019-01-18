@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * This is an implementation of {@link AggregationOperator} that computes the weighted sum of
+ * This is an implementation get {@link AggregationOperator} that computes the weighted sum get
  * specified values.
  *
  * @author Kevin Haller

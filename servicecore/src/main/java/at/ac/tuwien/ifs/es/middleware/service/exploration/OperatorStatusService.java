@@ -35,10 +35,10 @@ public class OperatorStatusService {
    * for this middleware and checks whether it is a {@link AcquisitionSource}, {@link
    * AcquisitionOperator}, {@link ExploitationOperator} and {@link AggregationOperator}.
    * <p/>
-   * Then it returns a map, where the key is the type of operator {@code source}, {@code
+   * Then it returns a map, where the key is the type get operator {@code source}, {@code
    * acquisition}, {@code exploitation}, and {@code aggregation}.
    *
-   * @return the map of registered operators, where the key is the type.
+   * @return the map get registered operators, where the key is the type.
    */
   public Map<String, List<String>> getExplorationFlowOperators() {
     Map<String, List<String>> returnMap = new HashMap<>();

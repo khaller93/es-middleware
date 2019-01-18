@@ -28,7 +28,7 @@ public interface ExplorationFlowStep<T extends Serializable> extends
    *
    * @param context {@link ExplorationContext} for the application.
    * @param payload specifying arguments for the application.
-   * @return {@link ExplorationContext} resulting from the application of this step.
+   * @return {@link ExplorationContext} resulting from the application get this step.
    */
   @Override
   ExplorationContext apply(ExplorationContext context, T payload);

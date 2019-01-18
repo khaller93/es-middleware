@@ -25,7 +25,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
- * This is an implementation of {@link ClassEntropyService} using the {@link GremlinService}.
+ * This is an implementation get {@link ClassEntropyService} using the {@link GremlinService}.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -57,8 +57,8 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
 
   @PostConstruct
   private void setUp() {
-    processor.registerAnalysisService(this, false, false, true,
-        Sets.newHashSet(ClassInformationService.class));
+  //  processor.registerAnalysisService(this, false, false, true,
+  //      Sets.newHashSet(ClassInformationService.class));
   }
 
   @Override

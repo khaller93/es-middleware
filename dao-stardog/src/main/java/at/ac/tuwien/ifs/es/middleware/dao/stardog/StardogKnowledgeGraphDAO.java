@@ -4,12 +4,14 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.Facet;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOReadyStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
+import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.FacetedSearchQueryBuilder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +52,7 @@ public class StardogKnowledgeGraphDAO extends RDF4JSparqlDAO implements
       + "?resource ?p ?l.\n"
       + "(?l ?score) <tag:stardog:api:property:textMatch> '${keyword}'.\n"
       + "${classes-filter}\n"
+      + "${facets}\n"
       + "}\n"
       + "ORDER BY DESC(?score)"
       + "${offset}\n"
@@ -86,7 +89,7 @@ public class StardogKnowledgeGraphDAO extends RDF4JSparqlDAO implements
     try {
       this.init(sparqlRepository);
       this.ftsStatus = new KGDAOReadyStatus();
-    } catch (Exception e){
+    } catch (Exception e) {
       this.ftsStatus = new KGDAOFailedStatus("Setting up the full-text-search failed.", e);
     }
   }
@@ -98,7 +101,13 @@ public class StardogKnowledgeGraphDAO extends RDF4JSparqlDAO implements
 
   @Override
   public List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
-      Integer offset, Integer limit) throws KnowledgeGraphDAOException {
+      Integer offset, Integer limit) {
+    return searchFullText(keyword, classes, offset, limit, null);
+  }
+
+  @Override
+  public List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
+      Integer offset, Integer limit, List<Facet> facets) throws KnowledgeGraphDAOException {
     logger.debug("Searching for '{}' of classes {} with limit={}, offset={}.", keyword, classes,
         offset, limit);
     Map<String, String> queryValuesMap = new HashMap<>();
@@ -117,6 +126,8 @@ public class StardogKnowledgeGraphDAO extends RDF4JSparqlDAO implements
     }
     queryValuesMap.put("offset", offset != null ? String.format("OFFSET %d", offset) : "");
     queryValuesMap.put("limit", limit != null ? String.format("LIMIT %d", limit) : "");
+    queryValuesMap.put("facets", facets != null && !facets.isEmpty() ? FacetedSearchQueryBuilder
+        .buildFacets("resource", facets) : "");
     String searchQuery = new StringSubstitutor(queryValuesMap).replace(SEARCH_QUERY);
     logger
         .trace("Searching with '{}' for '{}' of classes {} with limit={}, offset={}.", searchQuery,

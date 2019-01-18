@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * This is an implementation of {@link AggregationOperator} that orders the results by the specified
+ * This is an implementation get {@link AggregationOperator} that orders the results by the specified
  * value. The value is specified as a path in the value payload starting from the individual result.
  * This operator will be registered as {@code esm.aggregate.orderby} at the {@link
  * at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFlowRegistry}.

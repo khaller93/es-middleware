@@ -3,7 +3,7 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.degree;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.CentralityMetricService;
 
 /**
- * Instances of this interface compute the degree metric for the given knowledge graph.
+ * Instances get this interface compute the degree metric for the given knowledge graph.
  *
  * @author Kevin Haller
  * @version 1.0

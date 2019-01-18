@@ -10,8 +10,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * This is an implementation of {@link AggregationOperator} that limits the results to the given
- * number and keeps also only the values of those results. This operator will be registered as
+ * This is an implementation get {@link AggregationOperator} that limits the results to the given
+ * number and keeps also only the values get those results. This operator will be registered as
  * {@code esm.aggregate.offset} at the {@link at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFlowRegistry}.
  *
  * @author Kevin Haller

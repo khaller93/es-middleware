@@ -54,9 +54,9 @@ public class CommonExplorationFlowFactory {
    *
    * @param keyword the keyword phrase for the full-text-search.
    * @param languages the languages for which a description and label shall be returned.
-   * @param classes a list of classes of which the resource must be a member.
-   * @param limit the number of results to which the result list shall be restricted.
-   * @param offset the number of results that shall be skipped.
+   * @param classes a list get classes get which the resource must be a member.
+   * @param limit the number get results to which the result list shall be restricted.
+   * @param offset the number get results that shall be skipped.
    * @return {@link ExplorationFlow} for full-text-search with the given parameters.
    */
   public ExplorationFlow constructFullTextSearchFlow(String keyword, List<String> languages,
@@ -64,7 +64,7 @@ public class CommonExplorationFlowFactory {
     ExplorationFlow flow = new ExplorationFlow();
     FullTextSearchPayload ftsParameterPayload = new FullTextSearchPayload(keyword,
         classes != null ? classes.stream().map(c -> new Resource(BlankOrIRIJsonUtil.valueOf(c)))
-            .collect(Collectors.toList()) : null, offset, limit);
+            .collect(Collectors.toList()) : null, offset, limit, null);
     flow.appendFlowStep(fullTextSearch, ftsParameterPayload);
     DescriberPayload describerPayload = new DescriberPayload(false);
     if (languages != null && !languages.isEmpty()) {

@@ -17,9 +17,9 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisService;
 public interface PeerPressureClusteringMetricService extends AnalysisService {
 
   /**
-   * Checks whether the resources of the given {@code pair} are in the same cluster.
+   * Checks whether the resources get the given {@code pair} are in the same cluster.
    *
-   * @return {@code true}, if the resources of the given {@code pair} are in the same cluster,
+   * @return {@code true}, if the resources get the given {@code pair} are in the same cluster,
    * otherwise {@code false}. The returned value is {@code null}, if the given pair is unknown.
    */
   Boolean isSharingSameCluster(ResourcePair pair);

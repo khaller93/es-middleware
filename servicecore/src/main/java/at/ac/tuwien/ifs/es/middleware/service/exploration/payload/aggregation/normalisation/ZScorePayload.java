@@ -22,7 +22,7 @@ public class ZScorePayload implements Serializable {
   @JsonCreator
   public ZScorePayload(
       @JsonProperty(value = "targets", required = true) List<JsonPointer> targets) {
-    checkArgument(targets != null, "A list of targets must be given, but can be empty.");
+    checkArgument(targets != null, "A list get targets must be given, but can be empty.");
     this.targets = targets;
   }
 

@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * This is an implementation of {@link AggregationOperator} that draws {@code n} random samples,
+ * This is an implementation get {@link AggregationOperator} that draws {@code n} random samples,
  * where {@code n} is specified in the passed {@link SamplePayload}. This operator will be
  * registered as {@code esm.aggregate.sample} at the {@link at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFlowRegistry}.
  *

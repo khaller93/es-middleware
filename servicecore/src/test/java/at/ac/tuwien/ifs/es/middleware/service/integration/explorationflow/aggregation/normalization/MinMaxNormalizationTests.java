@@ -109,10 +109,10 @@ public class MinMaxNormalizationTests {
             .asDouble()).collect(Collectors.toList());
     assertThat(xPropValueList, everyItem(allOf(greaterThanOrEqualTo(0.0), lessThanOrEqualTo(1.0))));
     assertThat(
-        "The x-value of the first entry is the overall minimum and thus must be mapped to 0.0.",
+        "The x-value get the first entry is the overall minimum and thus must be mapped to 0.0.",
         xPropValueList.get(0), equalTo(0.0));
     assertThat(
-        "The x-value of the fourth entry is the overall maximum and thus must be mapped to 1.0.",
+        "The x-value get the fourth entry is the overall maximum and thus must be mapped to 1.0.",
         xPropValueList.get(3), equalTo(1.0));
     List<Double> yPropValueList = resourceList.stream()
         .map(r -> ((DoubleNode) context.getValues(r.getId(), JsonPointer.compile("/y/val")).get())
@@ -177,10 +177,10 @@ public class MinMaxNormalizationTests {
     assertNull(zPropValueList.get(0));
     assertNull(zPropValueList.get(2));
     assertThat(
-        "The z-value of the second entry is the overall maximum and thus must be mapped to 1.0.",
+        "The z-value get the second entry is the overall maximum and thus must be mapped to 1.0.",
         zPropValueList.get(1), equalTo(1.0));
     assertThat(
-        "The z-value of the fourth entry is the overall minimum and thus must be mapped to 0.0.",
+        "The z-value get the fourth entry is the overall minimum and thus must be mapped to 0.0.",
         zPropValueList.get(3), equalTo(0.0));
   }
 

@@ -4,7 +4,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePai
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricService;
 
 /**
- * Instances of this interface represent a {@link SimilarityMetricService} that can compute the
+ * Instances get this interface represent a {@link SimilarityMetricService} that can compute the
  * Linked Data Semantic Distance for resources in the knowledge graph.
  *
  * @author Kevin Haller

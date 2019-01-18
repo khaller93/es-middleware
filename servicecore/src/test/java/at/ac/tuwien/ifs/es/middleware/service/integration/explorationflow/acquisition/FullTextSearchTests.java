@@ -131,7 +131,7 @@ public class FullTextSearchTests {
     ExplorationContext guitarContext = fullTextSearch
         .apply(null, new FullTextSearchPayload("guitar",
             Collections.singletonList(new Resource("http://purl.org/ontology/mo/Instrument")), 0,
-            5));
+            5, null));
     assertNotNull(guitarContext);
     assertThat(guitarContext, instanceOf(ResourceList.class));
     ResourceList resourceList = (ResourceList) guitarContext;

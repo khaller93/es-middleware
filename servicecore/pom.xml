@@ -25,27 +25,27 @@
       <artifactId>middleware.daocore</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>sparql-builder</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <!-- JPA -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
-    <!--<dependency>
+    <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <version>1.4.197</version>
-    </dependency>-->
+    </dependency>
     <dependency>
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
       <version>8.0.13</version>
     </dependency>
     <!-- Utils -->
-    <dependency>
-      <groupId>org.javatuples</groupId>
-      <artifactId>javatuples</artifactId>
-      <version>1.2</version>
-    </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-text</artifactId>

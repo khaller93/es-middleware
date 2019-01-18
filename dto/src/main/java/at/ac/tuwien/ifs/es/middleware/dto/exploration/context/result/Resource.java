@@ -5,6 +5,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.ResourceJsonUtil;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.util.Objects;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 
 /**
@@ -49,7 +50,7 @@ public final class Resource implements IdentifiableResult {
 
     Resource resource1 = (Resource) o;
 
-    return resource != null ? resource.equals(resource1.resource) : resource1.resource == null;
+    return Objects.equals(resource, resource1.resource);
   }
 
   @Override

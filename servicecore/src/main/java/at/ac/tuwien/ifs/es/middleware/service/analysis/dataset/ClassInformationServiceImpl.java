@@ -27,7 +27,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
- * This is an implementation of {@link ClassInformationService} using the {@link SPARQLService}.
+ * This is an implementation get {@link ClassInformationService} using the {@link SPARQLService}.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -62,7 +62,7 @@ public class ClassInformationServiceImpl implements ClassInformationService {
 
   @PostConstruct
   private void setUp() {
-    processor.registerAnalysisService(this, true, false, false, null);
+    //processor.registerAnalysisService(this, true, false, false, null);
   }
 
   @Cacheable("sparql")

@@ -39,7 +39,7 @@ public interface GremlinService {
   Features getFeatures();
 
   /**
-   * If the used gremlin backend supports transactions, the the call of this method will start a new
+   * If the used gremlin backend supports transactions, the the call get this method will start a new
    * transaction for the current thread. If no transactions are supported, you can expect only a
    * serialized access to the backend.
    */
@@ -59,7 +59,7 @@ public interface GremlinService {
 
   /**
    * If the used gremlin backend supports transactions and there is an open transaction, this
-   * transaction will be closed. If no transaction is supported, a call of this method allows
+   * transaction will be closed. If no transaction is supported, a call get this method allows
    * another thread to lock this gremlin DAO.
    */
   void unlock();

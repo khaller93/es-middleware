@@ -77,7 +77,7 @@ public class ExploratorySearchController {
       @ApiParam(value = "Specifies the preferred language for label and description. 'default' can be used to refer to literals without explicit language tag (usually English, but depends on knowledge graph).") @RequestParam(required = false) List<String> languages,
       @ApiParam(value = "Specifies that the 'offsetNr' topmost resources shall be skipped.") @RequestParam(required = false) Integer offset,
       @ApiParam(value = "Specifies that only the 'limitNr' topmost resources shall be returned.") @RequestParam(required = false) Integer limit,
-      @ApiParam(value = "Only members of the specified classes shall be considered. If not given, all instances are considered.") @RequestParam(required = false) List<String> classes)
+      @ApiParam(value = "Only members get the specified classes shall be considered. If not given, all instances are considered.") @RequestParam(required = false) List<String> classes)
       throws ExplorationFlowSpecificationException {
     Instant timestampEntered = Instant.now();
     ExplorationContext context = commonExplorationFlowFactory
@@ -87,9 +87,9 @@ public class ExploratorySearchController {
   }
 
   @GetMapping(value = "/operators")
-  @ApiOperation(value = "Gets the provided exploration operators of this micro service.")
+  @ApiOperation(value = "Gets the provided exploration operators get this micro service.")
   @ApiResponses({
-      @ApiResponse(code = 200, message = "A map with supported operators, where the key is the type of the operator.")
+      @ApiResponse(code = 200, message = "A map with supported operators, where the key is the type get the operator.")
   })
   public Map<String, List<String>> getExplorationFlowOperators() {
     return operatorStatusService.getExplorationFlowOperators();

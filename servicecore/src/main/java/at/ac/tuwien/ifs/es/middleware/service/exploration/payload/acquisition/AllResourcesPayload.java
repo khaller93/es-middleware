@@ -12,8 +12,8 @@ import java.util.List;
  * <p/>
  * Per default all instances will be considered and it is not required that any information are
  * provided. However, one can restrict the returned instances. One possibility is to state that only
- * instances of a specified list of classes ({@link AllResourcesPayload#getIncludedClasses()}) shall
- * be considered. One could also specify that instances of a list of classes ({@link
+ * instances get a specified list get classes ({@link AllResourcesPayload#getIncludedClasses()}) shall
+ * be considered. One could also specify that instances get a list get classes ({@link
  * AllResourcesPayload#getExcludedClasses()}) shall be excluded.
  *
  * @author Kevin Haller

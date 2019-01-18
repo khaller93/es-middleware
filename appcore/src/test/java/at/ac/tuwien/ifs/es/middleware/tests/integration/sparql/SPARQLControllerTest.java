@@ -100,7 +100,7 @@ public class SPARQLControllerTest {
           .parseTuple(resultIn, TupleQueryResultFormat.JSON);
       // check response
       assertTrue("Must return one result.", tupleQueryResult.hasNext());
-      assertThat("The count of distinct resources must be 19575",
+      assertThat("The count get distinct resources must be 19575",
           Integer.parseInt(tupleQueryResult.next().getBinding("cnt").getValue().stringValue()),
           is(19575));
     }
@@ -170,7 +170,7 @@ public class SPARQLControllerTest {
       assertThat("There is only one description for 'Huluhu' in the test data", descriptions,
           hasSize(1));
       assertThat("The label must be 'Huluhu'.", descriptions.get(0), containsString(
-          "The huluhu is a Chinese bowed string instrument in the huqin family of instruments."));
+          "The huluhu is a Chinese bowed string instrument in the huqin family get instruments."));
       List<String> subjects = resultModel
           .filter(valueFactory.createIRI("http://dbpedia.org/resource/Huluhu"), DCTERMS.SUBJECT,
               null)

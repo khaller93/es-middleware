@@ -4,9 +4,9 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.CentralityMetricStoreService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.entity.CentralityMetricKey;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.entity.CentralityMetricResult;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.centrality.CentralityMetricStoreRepository;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.centrality.CentralityMetricStoreService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.centrality.entity.CentralityMetricResult;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import java.time.Instant;
 import java.util.Optional;
@@ -23,9 +23,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * This is an implementation of {@link DegreeCentralityMetricService} that uses the {@link
+ * This is an implementation get {@link DegreeCentralityMetricService} that uses the {@link
  * at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService} to compute the
- * degree of resources.
+ * degree get resources.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -43,15 +43,18 @@ public class DegreeCentralityMetricWithGremlinService implements DegreeCentralit
 
   private GremlinService gremlinService;
   private CentralityMetricStoreService centralityMetricStoreService;
+  private CentralityMetricStoreRepository centralityMetricStoreRepository;
   private PGS schema;
   private AnalysisPipelineProcessor processor;
 
   @Autowired
   public DegreeCentralityMetricWithGremlinService(GremlinService gremlinService,
       CentralityMetricStoreService centralityMetricStoreService,
+      CentralityMetricStoreRepository centralityMetricStoreRepository,
       AnalysisPipelineProcessor processor) {
     this.gremlinService = gremlinService;
     this.centralityMetricStoreService = centralityMetricStoreService;
+    this.centralityMetricStoreRepository = centralityMetricStoreRepository;
     this.schema = gremlinService.getPropertyGraphSchema();
     this.processor = processor;
   }
@@ -64,7 +67,7 @@ public class DegreeCentralityMetricWithGremlinService implements DegreeCentralit
   @Override
   public Long getValueFor(Resource resource) {
     Optional<CentralityMetricResult> optionalDegreeValue = centralityMetricStoreService
-        .findById(CentralityMetricKey.of(DEGREE_PROP_NAME, resource));
+        .findById(DEGREE_PROP_NAME, resource);
     return optionalDegreeValue.map(CentralityMetricResult::<Long>getValue).orElse(null);
   }
 
@@ -73,12 +76,11 @@ public class DegreeCentralityMetricWithGremlinService implements DegreeCentralit
   public void compute() {
     Instant issueTimestamp = Instant.now();
     logger.info("Starting to compute degree metric.");
-    centralityMetricStoreService.saveAll(gremlinService
+    centralityMetricStoreRepository.saveAll(gremlinService
         .traversal().V().group()
         .by(__.map(traverser -> schema.iri().<String>apply((Element) traverser.get())))
         .by(__.inE().count()).next().entrySet().stream()
-        .map(e -> new CentralityMetricResult(
-            CentralityMetricKey.of(DEGREE_PROP_NAME, (String) e.getKey()),
+        .map(e -> centralityMetricStoreService.get(DEGREE_PROP_NAME, (String) e.getKey(),
             (Number) e.getValue())).collect(Collectors.toList()));
     logger.info("Degree metric issued on {} computed on {}.", issueTimestamp, Instant.now());
   }

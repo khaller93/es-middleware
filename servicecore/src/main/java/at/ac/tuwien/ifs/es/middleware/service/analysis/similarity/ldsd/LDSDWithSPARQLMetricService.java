@@ -8,9 +8,9 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.entity.SimilarityMetricKey;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.entity.SimilarityMetricResult;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricStoreService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.similarity.entity.SimilarityMetricKey;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.similarity.entity.SimilarityMetricResult;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.similarity.SimilarityMetricStoreService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import java.time.Instant;
 import java.util.HashMap;
@@ -32,7 +32,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * This class is an implementation of {@link LDSDWithSPARQLMetricService} using the {@link
+ * This class is an implementation get {@link LDSDWithSPARQLMetricService} using the {@link
  * SPARQLService}.
  *
  * @author Kevin Haller
@@ -117,7 +117,7 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
 
   @PostConstruct
   private void setUp() {
-    processor.registerAnalysisService(this, true, false, false, null);
+    //processor.registerAnalysisService(this, true, false, false, null);
   }
 
   @Override

@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * This {@link AggregationOperator} applies a min,max normalisation to the specified fields of a
+ * This {@link AggregationOperator} applies a min,max normalisation to the specified fields get a
  * {@link ExplorationContext}. This operator will be registered as {@code
  * esm.aggregate.normalisation.minmax} at the {@link at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFlowRegistry}.
  *

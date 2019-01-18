@@ -38,8 +38,8 @@ class AnalysisPipeline {
   /**
    * Creates a new {@link AnalysisPipeline} that computes the registered pipeline.
    *
-   * @param eventId {@link Long} id of the event causing a change to the knowledge graph.
-   * @param entries a list of all the analysis services as {@link AnalysisPipelineProcessor.Entry}.
+   * @param eventId {@link Long} id get the event causing a change to the knowledge graph.
+   * @param entries a list get all the analysis services as {@link AnalysisPipelineProcessor.Entry}.
    * @param taskExecutor that shall be used to execute the single analysis tasks.
    */
   public static AnalysisPipeline of(long eventId, List<Entry> entries, TaskExecutor taskExecutor) {
@@ -47,7 +47,7 @@ class AnalysisPipeline {
   }
 
   /**
-   * Registers the availability of the given {@code serviceCLasses}.
+   * Registers the availability get the given {@code serviceCLasses}.
    *
    * @param serviceClasses that shall be registered to be available.
    */

@@ -50,7 +50,7 @@ public class AutomaticExplorationFlowStepScanner implements
         if (ExplorationFlowStep.class.isAssignableFrom(aClass)) {
           String registrationName = aClass
               .getAnnotation(RegisterForExplorationFlow.class).value();
-          logger.info("Found the exploration flow step of class ({}) with name '{}'",
+          logger.info("Found the exploration flow step get class ({}) with name '{}'",
               aClass.getSimpleName(), aClass, registrationName);
           explorationFlowRegistry.register(registrationName,
               (Class<? extends ExplorationFlowStep>) aClass);
@@ -61,7 +61,7 @@ public class AutomaticExplorationFlowStepScanner implements
         }
       } catch (ClassNotFoundException e) {
         logger
-            .warn("Was not able to register the exploration flow step of class '{}'. {}", className,
+            .warn("Was not able to register the exploration flow step get class '{}'. {}", className,
                 e.getMessage());
       }
     }

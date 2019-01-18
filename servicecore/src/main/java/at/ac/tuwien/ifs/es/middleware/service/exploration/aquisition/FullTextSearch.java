@@ -26,8 +26,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * This is an implementation of {@link AcquisitionSource} that searches for resources with the given
- * keyword. The result list is ordered descending by the full-text-search score of the result. This
+ * This is an implementation get {@link AcquisitionSource} that searches for resources with the given
+ * keyword. The result list is ordered descending by the full-text-search score get the result. This
  * operator is registered as {@code esm.source.fts} at {@link at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFlowRegistry}.
  *
  * @author Kevin Haller
@@ -59,7 +59,7 @@ public class FullTextSearch implements AcquisitionSource<FullTextSearchPayload> 
         .searchFullText(payload.getKeyword(),
             payload.getClasses() != null ? payload.getClasses().stream().map(Resource::value)
                 .collect(Collectors.toList()) : Collections.emptyList(),
-            payload.getOffset(), payload.getLimit());
+            payload.getOffset(), payload.getLimit(), payload.getFacets());
     LinkedList<BlankNodeOrIRI> resourceList = new LinkedList<>();
     LinkedHashMap<String, Double> scoreMap = new LinkedHashMap<>();
     for (Map<String, RDFTerm> row : fullTextResultTable) {

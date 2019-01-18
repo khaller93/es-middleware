@@ -7,6 +7,8 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.FTSDAOStateChangeEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.SparqlDAOStateChangeEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.Facet;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
@@ -14,6 +16,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOReadyStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOUpdatingStatus;
+import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.FacetedSearchQueryBuilder;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +58,7 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
       + "  ?resource <${name}> \"${keyword}\" ; \n"
       + "     luc:score ?score .\n"
       + "  ${class-filter}\n"
+      + "  ${facets}\n"
       + "} ORDER BY DESC (?score)\n"
       + "${offset}\n"
       + "${limit}\n";
@@ -136,6 +140,12 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
   @Override
   public List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
       Integer offset, Integer limit) {
+    return searchFullText(keyword, classes, offset, limit, null);
+  }
+
+  @Override
+  public List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
+      Integer offset, Integer limit, List<Facet> facets) throws KnowledgeGraphDAOException {
     logger
         .debug("FTS call for {} was triggered with parameters: offset={}, limit={}, and classes={}",
             keyword, offset, limit, classes);
@@ -145,6 +155,8 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
     valueMap.put("class-filter", prepareFilter(classes));
     valueMap.put("offset", offset != null ? "OFFSET " + offset.toString() : "");
     valueMap.put("limit", limit != null ? "LIMIT " + limit.toString() : "");
+    valueMap.put("facets", facets != null && !facets.isEmpty() ? FacetedSearchQueryBuilder
+        .buildFacets("resource", facets) : "");
     String filledFtsQuery = new StringSubstitutor(valueMap)
         .replace(FTS_QUERY);
     logger.trace(

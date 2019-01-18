@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 
 
 /**
- * This class is an implementation of {@link PeerPressureClusteringMetricService} that uses the
+ * This class is an implementation get {@link PeerPressureClusteringMetricService} that uses the
  * {@link GremlinService}.
  *
  * @author Kevin Haller
@@ -56,7 +56,7 @@ public class PeerPressureClusteringMetricWithGremlinService implements
 
   @PostConstruct
   private void setUp() {
-    processor.registerAnalysisService(this, false, false, true, null);
+    //processor.registerAnalysisService(this, false, false, true, null);
   }
 
   @Override

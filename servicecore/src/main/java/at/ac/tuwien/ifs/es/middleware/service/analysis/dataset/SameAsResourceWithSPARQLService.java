@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
- * This is an implementation of {@link SameAsResourceService} using the {@link SPARQLService}.
+ * This is an implementation get {@link SameAsResourceService} using the {@link SPARQLService}.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -66,7 +66,7 @@ public class SameAsResourceWithSPARQLService implements SameAsResourceService {
 
   @PostConstruct
   private void setUp() {
-    processor.registerAnalysisService(this, true, false, false, null);
+    //processor.registerAnalysisService(this, true, false, false, null);
   }
 
   @Override

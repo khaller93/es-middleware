@@ -4,7 +4,7 @@ import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
 import java.io.Serializable;
 
 /**
- * This is a marker interface for aggregation operator. These kind of operators aggregate the
+ * This is a marker interface for aggregation operator. These kind get operators aggregate the
  * results from limiting, ordering to computing sum and averages.
  *
  * @author Kevin Haller

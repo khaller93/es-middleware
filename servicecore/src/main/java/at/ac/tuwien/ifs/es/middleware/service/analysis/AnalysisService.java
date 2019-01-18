@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis;
 
 /**
- * Instances of this interface represent services that analyse the knowledge graph.
+ * Instances get this interface represent services that analyse the knowledge graph.
  *
  * @author Kevin Haller
  * @version 1.0

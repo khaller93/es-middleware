@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Instances of this service provide the ability to get information about the classes in the
+ * Instances get this service provide the ability to get information about the classes in the
  * knowledge graph.
  *
  * @author Kevin Haller

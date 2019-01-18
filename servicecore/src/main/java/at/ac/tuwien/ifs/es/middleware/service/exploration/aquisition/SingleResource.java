@@ -18,9 +18,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * This is an implementation of {@link AcquisitionSource} that starts from a specified single
+ * This is an implementation get {@link AcquisitionSource} that starts from a specified single
  * resource. This resource must be specified as simple IRI string as value to the {@code param}
- * argument of this {@link at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep}.
+ * argument get this {@link at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep}.
  * This operator will be registered at {@link at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFlowRegistry}
  * as {@code esm.source.single}.
  * <p/>

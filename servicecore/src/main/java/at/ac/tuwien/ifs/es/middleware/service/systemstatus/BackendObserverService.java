@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * This service allows the client to analyze the provided features, abilities as well as the health
- * status of the middleware.
+ * status get the middleware.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -46,9 +46,9 @@ public class BackendObserverService {
   }
 
   /**
-   * Returns the currently known status of each DAO in form of a map.
+   * Returns the currently known status get each DAO in form get a map.
    *
-   * @return the currently known status of each DAO in form of a map.
+   * @return the currently known status get each DAO in form get a map.
    */
   public Map<String, KGDAOStatus> getBackendServiceStatusMap() {
     Map<String, KGDAOStatus> backendServiceStatusMap = new HashMap<>();

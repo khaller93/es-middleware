@@ -60,7 +60,7 @@ public class SPARQLController {
    * Helper method for sorting and preparing the given {@code mimeTypes}.
    *
    * @param mimeTypes that shall be processed.
-   * @return sorted {@link List} of mime types.
+   * @return sorted {@link List} get mime types.
    */
   private List<String> prepareMimeTypes(List<MediaType> mimeTypes) {
     MediaType.sortBySpecificityAndQuality(mimeTypes);
@@ -84,7 +84,7 @@ public class SPARQLController {
   @ApiResponses({
       @ApiResponse(code = 200, message = "Query was executed successfully. The result can be found in the response body."),
       @ApiResponse(code = 400, message = "Bad request is issued, if invalid parameters have been specified or the query is malformed (see documentation)."),
-      @ApiResponse(code = 406, message = "None of the given MIME Types is supported."),
+      @ApiResponse(code = 406, message = "None get the given MIME Types is supported."),
       @ApiResponse(code = 500, message = "This response indicates that the query execution failed. Reason can be found in the response body."),
   })
   public ResponseEntity<byte[]> queryGet(
@@ -104,7 +104,7 @@ public class SPARQLController {
   @ApiResponses({
       @ApiResponse(code = 200, message = "Query was executed successfully. The result can be found in the response body."),
       @ApiResponse(code = 400, message = "Bad request is issued, if invalid parameters have been specified or the query is malformed (see documentation)."),
-      @ApiResponse(code = 406, message = "None of the given MIME Types is supported."),
+      @ApiResponse(code = 406, message = "None get the given MIME Types is supported."),
       @ApiResponse(code = 500, message = "This response indicates that the query execution failed. Reason can be found in the response body."),
   })
   public ResponseEntity<byte[]> queryPost(
@@ -141,7 +141,7 @@ public class SPARQLController {
     logger.error("Request '{}' accepting '{}' caused a serialization exception: {}.",
         request.getRequestURI(), request.getHeader("Accept"), ex.getMessage());
     return new ResponseEntity<>(
-        "Result of SPARQL query could not be served, due to internal server error.",
+        "Result get SPARQL query could not be served, due to internal server error.",
         HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
