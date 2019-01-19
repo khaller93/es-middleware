@@ -57,8 +57,8 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
 
   @PostConstruct
   private void setUp() {
-  //  processor.registerAnalysisService(this, false, false, true,
-  //      Sets.newHashSet(ClassInformationService.class));
+    processor.registerAnalysisService(this, false, false, true,
+        Sets.newHashSet(ClassInformationService.class));
   }
 
   @Override

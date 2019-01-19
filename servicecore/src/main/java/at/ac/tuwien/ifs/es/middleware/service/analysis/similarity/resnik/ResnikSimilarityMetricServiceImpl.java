@@ -9,34 +9,33 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LeastCommonSubSumersService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.similarity.entity.SimilarityMetricKey;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.similarity.entity.SimilarityMetricResult;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.similarity.SimilarityMetricStoreService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
+import com.google.common.collect.Sets;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.BinaryOperator;
 import javax.annotation.PostConstruct;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
+import org.mapdb.BTreeMap;
+import org.mapdb.DB;
+import org.mapdb.Serializer;
+import org.mapdb.serializer.SerializerArrayTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
- * This is an implementation get {@link ResnikSimilarityMetricService} which tries to pre-compute the
- * values for all resources.
+ * This is an implementation get {@link ResnikSimilarityMetricService} which tries to pre-compute
+ * the values for all resources.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -66,39 +65,49 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
       + "LIMIT ${limit}";
 
 
-  private SPARQLService sparqlService;
-  private ClassEntropyService classEntropyService;
-  private LeastCommonSubSumersService leastCommonSubSumersService;
-  private AnalysisPipelineProcessor processor;
-  private SimilarityMetricStoreService similarityMetricStoreService;
+  private final SPARQLService sparqlService;
+  private final ClassEntropyService classEntropyService;
+  private final LeastCommonSubSumersService leastCommonSubSumersService;
+  private final DB mapDB;
+  private final AnalysisPipelineProcessor processor;
+
+  private final BTreeMap<Object[], Double> resnikValueMap;
 
   @Autowired
   public ResnikSimilarityMetricServiceImpl(
       SPARQLService sparqlService,
       ClassEntropyService classEntropyService,
       LeastCommonSubSumersService leastCommonSubSumersService,
-      AnalysisPipelineProcessor processor,
-      SimilarityMetricStoreService similarityMetricStoreService) {
+      DB mapDB, AnalysisPipelineProcessor processor) {
     this.sparqlService = sparqlService;
     this.classEntropyService = classEntropyService;
     this.leastCommonSubSumersService = leastCommonSubSumersService;
+    this.mapDB = mapDB;
+    this.resnikValueMap = mapDB.treeMap(RESNIK_SIMILARITY_UID)
+        .keySerializer(new SerializerArrayTuple(Serializer.STRING, Serializer.STRING))
+        .valueSerializer(Serializer.DOUBLE).createOrOpen();
     this.processor = processor;
-    this.similarityMetricStoreService = similarityMetricStoreService;
   }
 
   @PostConstruct
   private void setUp() {
-   // processor.registerAnalysisService(this, true, false, false,
-   //     Sets.newHashSet(ClassEntropyService.class, LeastCommonSubSumersService.class));
+    processor.registerAnalysisService(this, true, false, false,
+        Sets.newHashSet(ClassEntropyService.class, LeastCommonSubSumersService.class));
+  }
+
+  private static Object[] simKey(ResourcePair resourcePair) {
+    return new Object[]{
+        resourcePair.getFirst(),
+        resourcePair.getSecond()
+    };
   }
 
   @Override
   public Double getValueFor(ResourcePair resourcePair) {
     checkArgument(resourcePair != null, "The given resource pair must not be null.");
-    Optional<SimilarityMetricResult> metricsResult = similarityMetricStoreService
-        .findById(SimilarityMetricKey.of(RESNIK_SIMILARITY_UID, resourcePair));
-    if (metricsResult.isPresent()) {
-      return metricsResult.get().getValue();
+    Double value = resnikValueMap.get(simKey(resourcePair));
+    if (value != null) {
+      return value;
     } else {
       return computeIC(resourcePair);
     }
@@ -106,12 +115,11 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
 
   private Double computeIC(ResourcePair pair) {
     Set<Resource> classes = leastCommonSubSumersService.getLeastCommonSubSumersFor(pair);
-    return classes.stream().map(clazz -> classEntropyService.getEntropyForClass(clazz))
+    return classes.stream().map(classEntropyService::getEntropyForClass)
         .reduce(0.0, BinaryOperator.maxBy(Double::compareTo));
   }
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void compute() {
     Instant issueTimestamp = Instant.now();
     logger.info("Started to compute the Resnik similarity metric.");
@@ -133,28 +141,25 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
       }
     } while (results.size() == LOAD_LIMIT);
     /* compute Resnik metric for resource pairs */
-    int i = 0;
     logger.debug("Size: {}", resourceSet.size());
     final long bulkSize = 100000;
-    List<SimilarityMetricResult> metricResultsBulk = new LinkedList<>();
+    Map<Object[], Double> metricResultsBulk = new HashMap<>();
     for (Resource resourceA : resourceSet) {
       for (Resource resourceB : resourceSet) {
         ResourcePair pair = ResourcePair.of(resourceA, resourceB);
-        Double clazzSumIC = computeIC(pair);
-        metricResultsBulk
-            .add(new SimilarityMetricResult(SimilarityMetricKey.of(RESNIK_SIMILARITY_UID, pair),
-                clazzSumIC));
+        metricResultsBulk.put(simKey(pair), computeIC(pair));
         if (metricResultsBulk.size() == bulkSize) {
           logger.debug("Bulk loaded {} Resnik metric results.", bulkSize);
-          similarityMetricStoreService.saveAll(metricResultsBulk);
-          metricResultsBulk = new LinkedList<>();
+          resnikValueMap.putAll(metricResultsBulk);
+          metricResultsBulk = new HashMap<>();
         }
       }
     }
     if (!metricResultsBulk.isEmpty()) {
       logger.debug("Bulk loaded {} Resnik results.", metricResultsBulk.size());
-      similarityMetricStoreService.saveAll(metricResultsBulk);
+      resnikValueMap.putAll(metricResultsBulk);
     }
+    mapDB.commit();
     logger.info("Resnik similarity measurement issued on {} computed on {}.", issueTimestamp,
         Instant.now());
   }

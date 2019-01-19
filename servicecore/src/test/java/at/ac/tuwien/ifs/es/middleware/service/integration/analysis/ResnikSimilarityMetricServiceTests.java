@@ -12,8 +12,6 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchD
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.JPAConfiguration;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.similarity.SimilarityMetricStoreService;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyWithGremlinService;
@@ -51,7 +49,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     ClonedInMemoryGremlinDAO.class, ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class,
     ThreadPoolConfig.class, ClassInformationServiceImpl.class, SpringCacheConfig.class,
     SameAsResourceWithSPARQLService.class, AnalysisPipelineProcessorDummy.class,
-    JPAConfiguration.class, SimilarityMetricStoreService.class,
     MusicPintaInstrumentsResource.class, ResnikSimilarityMetricServiceImpl.class,
     LCSWithInMemoryTreeService.class, ClassEntropyWithGremlinService.class,
     SameAsResourceWithSPARQLService.class

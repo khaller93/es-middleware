@@ -3,7 +3,6 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisEventStatus;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
@@ -18,14 +17,14 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
+import org.mapdb.BTreeMap;
+import org.mapdb.DB;
+import org.mapdb.Serializer;
+import org.mapdb.serializer.SerializerArrayTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -83,31 +82,39 @@ public class LCSWithInMemoryTreeService implements LeastCommonSubSumersService {
           + "OFFSET %d\n"
           + "LIMIT %d";
 
-  private SPARQLService sparqlService;
-  private ClassInformationService classInformationService;
-  private SameAsResourceService sameAsResourceService;
-  private AnalysisPipelineProcessor processor;
+  private final SPARQLService sparqlService;
+  private final ClassInformationService classInformationService;
+  private final SameAsResourceService sameAsResourceService;
+  private final DB mapDB;
+  private final AnalysisPipelineProcessor processor;
 
-  private Cache lcsCache;
+  private final BTreeMap<Object[], Set<String>> subsumerMap;
 
   @Autowired
   public LCSWithInMemoryTreeService(
       SPARQLService sparqlService,
       ClassInformationService classInformationService,
       SameAsResourceService sameAsResourceService,
-      AnalysisPipelineProcessor processor,
-      CacheManager cacheManager) {
+      DB mapDB,
+      AnalysisPipelineProcessor processor) {
     this.sparqlService = sparqlService;
     this.classInformationService = classInformationService;
     this.sameAsResourceService = sameAsResourceService;
+    this.mapDB = mapDB;
+    this.subsumerMap = mapDB
+        .treeMap(LCS_UID, new SerializerArrayTuple(Serializer.STRING, Serializer.STRING),
+            Serializer.JAVA).createOrOpen();
     this.processor = processor;
-    this.lcsCache = cacheManager.getCache("lcs");
   }
 
   @PostConstruct
   private void setUp() {
-    //processor.registerAnalysisService(this, true, false, false,
-    //    Sets.newHashSet(ClassInformationService.class, SameAsResourceService.class));
+    processor.registerAnalysisService(this, true, false, false,
+        Sets.newHashSet(ClassInformationService.class, SameAsResourceService.class));
+  }
+
+  private static Object[] simKey(ResourcePair resourcePair) {
+    return new Object[]{resourcePair.getFirst().getId(), resourcePair.getSecond().getId()};
   }
 
   private TreeNode computeLCATreeNodeFor(Map<Resource, TreeNode> treeNodes, Resource resource) {
@@ -224,16 +231,18 @@ public class LCSWithInMemoryTreeService implements LeastCommonSubSumersService {
         ResourcePair resourcePair = ResourcePair.of(resourceARow.getKey(), resourceBRow.getKey());
         Set<Resource> lcaSet = computeLCA(treeNodeMap, resourceARow.getValue(),
             resourceBRow.getValue());
-        lcsCache.put(resourcePair, lcaSet);
+        subsumerMap.put(simKey(resourcePair),
+            lcaSet.stream().map(Resource::getId).collect(Collectors.toSet()));
       }
     }
+    mapDB.commit();
   }
 
   @Override
   public Set<Resource> getLeastCommonSubSumersFor(ResourcePair resourcePair) {
-    Set<Resource> lcsSet = (Set<Resource>) lcsCache.get(resourcePair, Set.class);
-    if (lcsSet != null) {
-      return lcsSet;
+    Set<String> resourceSet = subsumerMap.get(simKey(resourcePair));
+    if (resourceSet != null) {
+      return resourceSet.stream().map(Resource::new).collect(Collectors.toSet());
     } else {
       return Sets.newHashSet();
     }

@@ -4,23 +4,19 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.centrality.CentralityMetricStoreRepository;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.centrality.CentralityMetricStoreService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.centrality.entity.CentralityMetricResult;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import java.time.Instant;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Element;
+import org.mapdb.DB;
+import org.mapdb.HTreeMap;
+import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This is an implementation get {@link DegreeCentralityMetricService} that uses the {@link
@@ -42,19 +38,19 @@ public class DegreeCentralityMetricWithGremlinService implements DegreeCentralit
   public static final String DEGREE_PROP_NAME = "esm.service.analytics.centrality.degree";
 
   private GremlinService gremlinService;
-  private CentralityMetricStoreService centralityMetricStoreService;
-  private CentralityMetricStoreRepository centralityMetricStoreRepository;
+  private DB mapDB;
   private PGS schema;
   private AnalysisPipelineProcessor processor;
 
+  private HTreeMap<String, Long> degreeMap;
+
   @Autowired
   public DegreeCentralityMetricWithGremlinService(GremlinService gremlinService,
-      CentralityMetricStoreService centralityMetricStoreService,
-      CentralityMetricStoreRepository centralityMetricStoreRepository,
-      AnalysisPipelineProcessor processor) {
+      DB mapDB, AnalysisPipelineProcessor processor) {
     this.gremlinService = gremlinService;
-    this.centralityMetricStoreService = centralityMetricStoreService;
-    this.centralityMetricStoreRepository = centralityMetricStoreRepository;
+    this.mapDB = mapDB;
+    this.degreeMap = mapDB.hashMap(DEGREE_PROP_NAME, Serializer.STRING, Serializer.LONG)
+        .createOrOpen();
     this.schema = gremlinService.getPropertyGraphSchema();
     this.processor = processor;
   }
@@ -66,22 +62,20 @@ public class DegreeCentralityMetricWithGremlinService implements DegreeCentralit
 
   @Override
   public Long getValueFor(Resource resource) {
-    Optional<CentralityMetricResult> optionalDegreeValue = centralityMetricStoreService
-        .findById(DEGREE_PROP_NAME, resource);
-    return optionalDegreeValue.map(CentralityMetricResult::<Long>getValue).orElse(null);
+    return degreeMap.get(resource.getId());
   }
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void compute() {
     Instant issueTimestamp = Instant.now();
     logger.info("Starting to compute degree metric.");
-    centralityMetricStoreRepository.saveAll(gremlinService
+    gremlinService
         .traversal().V().group()
         .by(__.map(traverser -> schema.iri().<String>apply((Element) traverser.get())))
-        .by(__.inE().count()).next().entrySet().stream()
-        .map(e -> centralityMetricStoreService.get(DEGREE_PROP_NAME, (String) e.getKey(),
-            (Number) e.getValue())).collect(Collectors.toList()));
+        .by(__.inE().count()).next().forEach((iri, value) -> {
+      degreeMap.put((String) iri, (Long) value);
+    });
+    mapDB.commit();
     logger.info("Degree metric issued on {} computed on {}.", issueTimestamp, Instant.now());
   }
 

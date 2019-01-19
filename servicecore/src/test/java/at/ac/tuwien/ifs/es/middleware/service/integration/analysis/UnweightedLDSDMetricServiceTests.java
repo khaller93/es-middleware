@@ -13,10 +13,6 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchD
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.JPAConfiguration;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.similarity.entity.SimilarityMetricKey;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.similarity.entity.SimilarityMetricResult;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.storage.similarity.SimilarityMetricStoreService;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.ldsd.LDSDWithSPARQLMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.ldsd.LinkedDataSemanticDistanceMetricService;
@@ -45,8 +41,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     ClonedInMemoryGremlinDAO.class, RDF4JMemoryStoreWithLuceneSparqlDAO.class,
     RDF4JLuceneFullTextSearchDAO.class, ThreadPoolConfig.class, LDSDWithSPARQLMetricService.class,
     SimpleSPARQLService.class, AnalysisPipelineProcessorDummy.class, SpringCacheConfig.class,
-    JPAConfiguration.class, SimilarityMetricStoreService.class, SimilarityMetricResult.class,
-    SimilarityMetricKey.class, MusicPintaInstrumentsResource.class})
+    MusicPintaInstrumentsResource.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",

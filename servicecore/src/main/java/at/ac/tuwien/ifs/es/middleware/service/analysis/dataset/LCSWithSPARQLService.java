@@ -3,7 +3,6 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisEventStatus;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import com.google.common.collect.Sets;
@@ -14,13 +13,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
+import org.mapdb.BTreeMap;
+import org.mapdb.DB;
+import org.mapdb.Serializer;
+import org.mapdb.serializer.SerializerArrayTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -39,7 +41,7 @@ public class LCSWithSPARQLService implements LeastCommonSubSumersService {
 
   private static final Logger logger = LoggerFactory.getLogger(LeastCommonSubSumersService.class);
 
-  public static final String LCS_UID = "esm.service.analytics.dataset.leastcommonsubsummers";
+  public static final String LCS_UID = "esm.service.analytics.dataset.leastcommonsubsumers";
 
   private static final String LEAST_COMMON_SUBSUMER_QUERY =
       "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
@@ -56,13 +58,22 @@ public class LCSWithSPARQLService implements LeastCommonSubSumersService {
           + "    FILTER(isIRI(?class)).\n"
           + "}";
 
-  private SPARQLService sparqlService;
-  private Cache lcsCache;
+  private final SPARQLService sparqlService;
+  private final DB mapDb;
+
+  private final BTreeMap<Object[], Set<String>> subsumerMap;
 
   @Autowired
-  public LCSWithSPARQLService(SPARQLService sparqlService, CacheManager cacheManager) {
+  public LCSWithSPARQLService(SPARQLService sparqlService, DB mapDb) {
     this.sparqlService = sparqlService;
-    this.lcsCache = cacheManager.getCache("lcs");
+    this.mapDb = mapDb;
+    this.subsumerMap = mapDb
+        .treeMap(LCS_UID, new SerializerArrayTuple(Serializer.STRING, Serializer.STRING),
+            Serializer.JAVA).createOrOpen();
+  }
+
+  private static Object[] simKey(ResourcePair resourcePair) {
+    return new Object[]{resourcePair.getFirst().getId(), resourcePair.getSecond().getId()};
   }
 
   @Override
@@ -71,29 +82,28 @@ public class LCSWithSPARQLService implements LeastCommonSubSumersService {
     logger.info("Starting to compute least common subsummers for all resource pairs.");
     List<Map<String, RDFTerm>> resultMap = ((SelectQueryResult) sparqlService
         .query(LEAST_COMMON_SUBSUMER_QUERY, true)).value();
-    Map<ResourcePair, Set<Resource>> subsumerMap = new HashMap<>();
+    Map<ResourcePair, Set<Resource>> subsumerIntermediateMap = new HashMap<>();
     for (Map<String, RDFTerm> row : resultMap) {
       Resource left = new Resource((BlankNodeOrIRI) row.get("resource1"));
       Resource right = new Resource((BlankNodeOrIRI) row.get("resource2"));
       BiFunction<ResourcePair, Set<Resource>, Set<Resource>> comp = (pair, resources) ->
           resources != null ? resources : new HashSet<>();
       Resource clazz = new Resource((BlankNodeOrIRI) row.get("class"));
-      subsumerMap.compute(ResourcePair.of(left, right), comp).add(clazz);
+      subsumerIntermediateMap.compute(ResourcePair.of(left, right), comp).add(clazz);
     }
-    if (lcsCache != null) {
-      for (Map.Entry<ResourcePair, Set<Resource>> entry : subsumerMap.entrySet()) {
-        lcsCache.put(entry.getKey(), entry.getValue());
-      }
-    }
+    subsumerMap.putAll(subsumerIntermediateMap.entrySet().stream().collect(Collectors
+        .toMap(e -> simKey(e.getKey()),
+            e -> e.getValue().stream().map(Resource::getId).collect(Collectors.toSet()))));
+    mapDb.commit();
     logger.info("Least common subsummers for all resource pairs issued on {} computed on {}.",
         issueTimestamp, Instant.now());
   }
 
   @Override
   public synchronized Set<Resource> getLeastCommonSubSumersFor(ResourcePair resourcePair) {
-    Set<Resource> lcsSet = (Set<Resource>) lcsCache.get(resourcePair, Set.class);
-    if (lcsSet != null) {
-      return lcsSet;
+    Set<String> resourceSet = subsumerMap.get(simKey(resourcePair));
+    if (resourceSet != null) {
+      return resourceSet.stream().map(Resource::new).collect(Collectors.toSet());
     } else {
       return Sets.newHashSet();
     }

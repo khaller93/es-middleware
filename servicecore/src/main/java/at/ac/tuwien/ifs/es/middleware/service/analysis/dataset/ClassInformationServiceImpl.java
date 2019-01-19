@@ -62,7 +62,7 @@ public class ClassInformationServiceImpl implements ClassInformationService {
 
   @PostConstruct
   private void setUp() {
-    //processor.registerAnalysisService(this, true, false, false, null);
+    processor.registerAnalysisService(this, true, false, false, null);
   }
 
   @Cacheable("sparql")

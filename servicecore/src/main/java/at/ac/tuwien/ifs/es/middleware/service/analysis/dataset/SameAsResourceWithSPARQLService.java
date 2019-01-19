@@ -12,14 +12,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
+import org.mapdb.DB;
+import org.mapdb.HTreeMap;
+import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -51,29 +53,33 @@ public class SameAsResourceWithSPARQLService implements SameAsResourceService {
           + "LIMIT %d";
 
 
-  private SPARQLService sparqlService;
-  private Cache sameAsCache;
-  private AnalysisPipelineProcessor processor;
+  private final SPARQLService sparqlService;
+  private final DB mapDB;
+  private final AnalysisPipelineProcessor processor;
+
+  private final HTreeMap<String, Set<String>> sameAsMap;
 
   @Autowired
-  public SameAsResourceWithSPARQLService(SPARQLService sparqlService,
-      AnalysisPipelineProcessor processor,
-      CacheManager cacheManager) {
+  public SameAsResourceWithSPARQLService(SPARQLService sparqlService, DB mapDB,
+      AnalysisPipelineProcessor processor) {
     this.sparqlService = sparqlService;
+    this.mapDB = mapDB;
+    this.sameAsMap = mapDB
+        .hashMap("esm.service.analytics.dataset.sameas", Serializer.STRING, Serializer.JAVA)
+        .createOrOpen();
     this.processor = processor;
-    this.sameAsCache = cacheManager.getCache("sameas");
   }
 
   @PostConstruct
   private void setUp() {
-    //processor.registerAnalysisService(this, true, false, false, null);
+    processor.registerAnalysisService(this, true, false, false, null);
   }
 
   @Override
   public void compute() {
     Instant startedTime = Instant.now();
     logger.debug("Start to compute the 'owl:sameAs' mapping.");
-    Map<Resource, Set<Resource>> sameAsMap = new HashMap<>();
+    Map<Resource, Set<Resource>> sameAsIntermediateMap = new HashMap<>();
     int offset = 0;
     List<Map<String, RDFTerm>> results;
     do {
@@ -82,7 +88,7 @@ public class SameAsResourceWithSPARQLService implements SameAsResourceService {
       if (results != null) {
         for (Map<String, RDFTerm> row : results) {
           Resource keyResource = new Resource((BlankNodeOrIRI) row.get("s"));
-          sameAsMap.compute(keyResource, (resource, sameAsSet) ->
+          sameAsIntermediateMap.compute(keyResource, (resource, sameAsSet) ->
               sameAsSet != null ? sameAsSet : new HashSet<>())
               .add(new Resource((BlankNodeOrIRI) row.get("same")));
         }
@@ -92,20 +98,18 @@ public class SameAsResourceWithSPARQLService implements SameAsResourceService {
         break;
       }
     } while (results.size() == LOAD_LIMIT);
-    if (sameAsCache != null) {
-      for (Map.Entry<Resource, Set<Resource>> entry : sameAsMap.entrySet()) {
-        sameAsCache.put(entry.getKey(), entry.getValue());
-      }
-    }
+    sameAsMap.putAll(sameAsIntermediateMap.entrySet().stream()
+        .collect(Collectors.toMap(e -> e.getKey().getId(),
+            e -> e.getValue().stream().map(Resource::getId).collect(Collectors.toSet()))));
     logger.debug("'owl:sameAs' mapping issued at {} computed on {}.", startedTime, Instant.now());
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public Set<Resource> getSameAsResourcesFor(Resource resource) {
-    Set<Resource> sameAsSet = (Set<Resource>) sameAsCache.get(resource, Set.class);
+    Set<String> sameAsSet = ((Set<String>) sameAsMap.get(resource.getId()));
     if (sameAsSet != null) {
-      return sameAsSet;
+      return sameAsSet.stream().map(Resource::new).collect(Collectors.toSet());
     } else {
       return Sets.newHashSet();
     }
