@@ -5,20 +5,26 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import java.io.IOException;
 import java.util.Optional;
 import org.apache.commons.rdf.api.BlankNode;
+import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Literal;
+import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.RDFTerm;
+import org.apache.commons.rdf.simple.SimpleRDF;
 import org.springframework.boot.jackson.JsonComponent;
 
 @JsonComponent
 public final class RDFTermJsonComponent {
 
   public enum TYPE {IRI, BNODE, LITERAL}
+
+  private static RDF rdfFactory = new SimpleRDF();
 
   /**
    * This class is a custom {@link JsonSerializer} for {@link RDFTerm} superclass. It delegates the
@@ -145,7 +151,95 @@ public final class RDFTermJsonComponent {
     @Override
     public RDFTerm deserialize(JsonParser p, DeserializationContext ctxt)
         throws IOException, JsonProcessingException {
-      return null;
+      JsonNode node = p.getCodec().readTree(p);
+      String type = node.get("@type").asText();
+      if (TYPE.IRI.name().toLowerCase().equals(type)) {
+        return rdfFactory.createIRI(node.get("id").asText());
+      } else if (TYPE.BNODE.name().toLowerCase().equals(type)) {
+        return rdfFactory.createBlankNode(node.get("id").asText());
+      } else if (TYPE.LITERAL.name().toLowerCase().equals(type)) {
+        return readLiteral(node);
+      } else {
+        throw new IllegalArgumentException(
+            String.format("The type must be 'iri', 'bnode' or 'literal', but was %s.", type));
+      }
+    }
+  }
+
+  public static class LiteralDeserializer extends JsonDeserializer<Literal> {
+
+    @Override
+    public Literal deserialize(JsonParser p, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException {
+      JsonNode node = p.getCodec().readTree(p);
+      String type = node.get("@type").asText();
+      if (TYPE.LITERAL.name().toLowerCase().equals(type)) {
+        return readLiteral(node);
+      } else {
+        throw new IllegalArgumentException(
+            String.format("The type must be 'iri', 'bnode' or 'literal', but was %s.", type));
+      }
+    }
+  }
+
+  private static Literal readLiteral(JsonNode literalNode) {
+    String value = literalNode.get("value").asText();
+    if (literalNode.has("language")) {
+      return rdfFactory.createLiteral(value, literalNode.get("language").asText());
+    } else if (literalNode.has("datatype")) {
+      return rdfFactory.createLiteral(value, literalNode.get("datatype").asText());
+    } else {
+      return rdfFactory.createLiteral(value);
+    }
+  }
+
+  public static class BlankNodeOrIRIDeserializer extends JsonDeserializer<BlankNodeOrIRI> {
+
+    @Override
+    public BlankNodeOrIRI deserialize(JsonParser p, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException {
+      JsonNode node = p.getCodec().readTree(p);
+      String type = node.get("@type").asText();
+      if (TYPE.IRI.name().toLowerCase().equals(type)) {
+        return rdfFactory.createIRI(node.get("id").asText());
+      } else if (TYPE.BNODE.name().toLowerCase().equals(type)) {
+        return rdfFactory.createBlankNode(node.get("id").asText());
+      } else {
+        throw new IllegalArgumentException(
+            String.format("The type must be 'iri or 'bnode', but was %s.", type));
+      }
+    }
+  }
+
+  public static class IRIDeserializer extends JsonDeserializer<IRI> {
+
+    @Override
+    public IRI deserialize(JsonParser p, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException {
+      JsonNode iriNode = p.getCodec().readTree(p);
+      String type = iriNode.get("@type").asText();
+      if (TYPE.IRI.name().toLowerCase().equals(type)) {
+        return rdfFactory.createIRI(iriNode.get("id").asText());
+      } else {
+        throw new IllegalArgumentException(
+            String.format("The type must be 'iri', but was %s.", type));
+      }
+    }
+  }
+
+  public static class BNodeDeserializer extends JsonDeserializer<BlankNode> {
+
+    @Override
+    public BlankNode deserialize(JsonParser p, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException {
+      JsonNode bNode = p.getCodec().readTree(p);
+      String type = bNode.get("@type").asText();
+      if (TYPE.BNODE.name().toLowerCase().equals(type)) {
+        return rdfFactory.createBlankNode(bNode.get("id").asText());
+      } else {
+        throw new IllegalArgumentException(
+            String.format("The type must be 'bnode', but was %s.", type));
+      }
     }
   }
 
