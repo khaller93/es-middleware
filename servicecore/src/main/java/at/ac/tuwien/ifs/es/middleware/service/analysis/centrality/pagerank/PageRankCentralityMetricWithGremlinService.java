@@ -4,7 +4,6 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.MapDB;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import java.time.Instant;
 import javax.annotation.PostConstruct;
@@ -59,7 +58,7 @@ public class PageRankCentralityMetricWithGremlinService implements PageRankCentr
 
   @PostConstruct
   private void setUp() {
-   // processor.registerAnalysisService(this, false, false, true, null);
+    processor.registerAnalysisService(this, false, false, true, null);
   }
 
   @Override
@@ -71,13 +70,22 @@ public class PageRankCentralityMetricWithGremlinService implements PageRankCentr
   public void compute() {
     Instant issueTimestamp = Instant.now();
     logger.info("Starting to compute page rank metric.");
-    gremlinService.traversal().withComputer().V().pageRank()
-        .group()
-        .by(__.map(traverser -> schema.iri().<String>apply((Element) traverser.get())))
-        .by(__.values(PageRankVertexProgram.PAGE_RANK)).next().forEach((iri, value) -> {
-      pageRankMap.put((String) iri, (Double) value);
-    });
-    mapDB.commit();
+    gremlinService.lock();
+    try {
+      gremlinService.traversal().withComputer().V().pageRank()
+          .group()
+          .by(__.map(traverser -> schema.iri().<String>apply((Element) traverser.get())))
+          .by(__.values(PageRankVertexProgram.PAGE_RANK)).next().forEach((iri, value) -> {
+        pageRankMap.put((String) iri, (Double) value);
+      });
+      mapDB.commit();
+      gremlinService.commit();
+    } catch (Exception e) {
+      gremlinService.rollback();
+      throw e;
+    } finally {
+      gremlinService.unlock();
+    }
     logger.info("Page rank issued on {} computed on {}.", issueTimestamp, Instant.now());
   }
 

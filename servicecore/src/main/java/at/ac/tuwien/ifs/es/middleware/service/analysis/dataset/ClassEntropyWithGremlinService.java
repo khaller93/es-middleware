@@ -17,7 +17,9 @@ import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSo
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.VertexProperty.Cardinality;
+import org.mapdb.DB;
+import org.mapdb.HTreeMap;
+import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,19 +42,26 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
 
   public static final String CLASS_ENTROPY_UID = "esm.service.analytics.dataset.classentropy";
 
-  private GremlinService gremlinService;
-  private ClassInformationService classInformationService;
-  private PGS schema;
-  private AnalysisPipelineProcessor processor;
+  private final GremlinService gremlinService;
+  private final ClassInformationService classInformationService;
+  private final PGS schema;
+  private final DB mapDB;
+  private final AnalysisPipelineProcessor processor;
+
+  private final HTreeMap<String, Double> classEntropyMap;
 
   @Autowired
   public ClassEntropyWithGremlinService(GremlinService gremlinService,
       ClassInformationService classInformationService,
+      DB mapDB,
       AnalysisPipelineProcessor processor) {
     this.gremlinService = gremlinService;
-    this.schema = gremlinService.getPropertyGraphSchema();
     this.classInformationService = classInformationService;
+    this.mapDB = mapDB;
+    this.classEntropyMap = mapDB.hashMap(CLASS_ENTROPY_UID, Serializer.STRING, Serializer.DOUBLE)
+        .createOrOpen();
     this.processor = processor;
+    this.schema = gremlinService.getPropertyGraphSchema();
   }
 
   @PostConstruct
@@ -63,13 +72,7 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
 
   @Override
   public Double getEntropyForClass(Resource resource) {
-    String resourceIRI = BlankOrIRIJsonUtil.stringValue(resource.value());
-    GraphTraversal<Vertex, Vertex> traversal = gremlinService.traversal().V()
-        .has(schema.iri().identifierAsString(), resourceIRI);
-    if (!traversal.hasNext()) {
-      return null;
-    }
-    return (Double) traversal.next().property(CLASS_ENTROPY_UID).orElse(null);
+    return classEntropyMap.get(resource.getId());
   }
 
   @Override
@@ -99,13 +102,12 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
                   return -Math.log(p);
                 }));
         for (Resource clazz : allClasses) {
-          gremlinService.traversal().V().has(schema.iri().identifierAsString(),
-              BlankOrIRIJsonUtil.stringValue(clazz.value()))
-              .property(Cardinality.single, CLASS_ENTROPY_UID,
-                  icClassMap.getOrDefault(clazz, -Math.log(1.0 / total))).iterate();
+          classEntropyMap
+              .put(clazz.getId(), icClassMap.getOrDefault(clazz, -Math.log(1.0 / total)));
         }
-        gremlinService.commit();
+        mapDB.commit();
       }
+      gremlinService.commit();
     } catch (Exception e) {
       gremlinService.rollback();
       throw e;

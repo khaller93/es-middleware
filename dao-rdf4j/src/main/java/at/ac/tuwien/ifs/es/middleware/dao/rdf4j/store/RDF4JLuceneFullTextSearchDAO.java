@@ -57,8 +57,7 @@ public class RDF4JLuceneFullTextSearchDAO implements KGFullTextSearchDAO {
           + "    search:query \"${keyword}\";\n"
           + "    search:score ?score\n"
           + "  ] .\n"
-          + "  ${class-filter}\n"
-          + "  ${facets}\n"
+          + "  ${body}\n"
           + "} ORDER BY DESC(?score)\n"
           + "${offset}\n"
           + "${limit}\n";
@@ -99,26 +98,6 @@ public class RDF4JLuceneFullTextSearchDAO implements KGFullTextSearchDAO {
     }
   }
 
-  /**
-   * Prepares a filter for the given list of class IRIs. This filter ensures that all returned
-   * resources of the full-text-search belong to at least one of the given classes.
-   *
-   * @param classes of which a returned resource must be a member (at least of one given class).
-   * @return a class filter for the full-text-search query.
-   */
-  private static String prepareFilter(List<BlankNodeOrIRI> classes) {
-    if (classes == null || classes.isEmpty()) {
-      return "";
-    } else if (classes.size() == 1) {
-      return String.format("?resource a/rdfs:subClassOf* %s .",
-          BlankOrIRIJsonUtil.stringForSPARQLResourceOf(classes.get(0)));
-    } else {
-      return classes.stream().map(clazz -> String.format("{?resource a/rdfs:subClassOf* %s}",
-          BlankOrIRIJsonUtil.stringForSPARQLResourceOf(clazz)))
-          .collect(Collectors.joining("\nUNION\n"));
-    }
-  }
-
   @Override
   public List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
       Integer offset, Integer limit) {
@@ -132,11 +111,16 @@ public class RDF4JLuceneFullTextSearchDAO implements KGFullTextSearchDAO {
         keyword, offset, limit, classes);
     Map<String, String> valueMap = new HashMap<>();
     valueMap.put("keyword", keyword);
-    valueMap.put("class-filter", prepareFilter(classes));
+    /* windowing */
     valueMap.put("offset", offset != null ? "OFFSET " + offset.toString() : "");
     valueMap.put("limit", limit != null ? "LIMIT " + limit.toString() : "");
-    valueMap.put("facets", facets != null && !facets.isEmpty() ? FacetedSearchQueryBuilder
-        .buildFacets("resource", facets) : "");
+    /* build facets */
+    FacetedSearchQueryBuilder queryBuilder = FacetedSearchQueryBuilder.forSubject("resource");
+    queryBuilder.includeInstancesOfClasses(classes);
+    if (facets != null) {
+      facets.forEach(queryBuilder::addPropertyFacet);
+    }
+    valueMap.put("body", queryBuilder.getQueryBody());
     String filledFtsQuery = new StringSubstitutor(valueMap).replace(FTS_QUERY);
     return sparqlDAO.<SelectQueryResult>query(filledFtsQuery, true).value();
   }

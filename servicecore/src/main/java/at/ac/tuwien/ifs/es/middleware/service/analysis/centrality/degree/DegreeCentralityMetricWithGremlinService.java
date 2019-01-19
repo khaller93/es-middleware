@@ -69,13 +69,22 @@ public class DegreeCentralityMetricWithGremlinService implements DegreeCentralit
   public void compute() {
     Instant issueTimestamp = Instant.now();
     logger.info("Starting to compute degree metric.");
-    gremlinService
-        .traversal().V().group()
-        .by(__.map(traverser -> schema.iri().<String>apply((Element) traverser.get())))
-        .by(__.inE().count()).next().forEach((iri, value) -> {
-      degreeMap.put((String) iri, (Long) value);
-    });
-    mapDB.commit();
+    gremlinService.lock();
+    try {
+      gremlinService
+          .traversal().V().group()
+          .by(__.map(traverser -> schema.iri().<String>apply((Element) traverser.get())))
+          .by(__.inE().count()).next().forEach((iri, value) -> {
+        degreeMap.put((String) iri, (Long) value);
+      });
+      mapDB.commit();
+      gremlinService.commit();
+    } catch (Exception e) {
+      gremlinService.rollback();
+      throw e;
+    } finally {
+      gremlinService.unlock();
+    }
     logger.info("Degree metric issued on {} computed on {}.", issueTimestamp, Instant.now());
   }
 

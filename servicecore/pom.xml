@@ -27,7 +27,7 @@
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>sparql-builder</artifactId>
+      <artifactId>middleware.sparql-builder</artifactId>
       <version>${project.version}</version>
     </dependency>
     <!-- Utils -->

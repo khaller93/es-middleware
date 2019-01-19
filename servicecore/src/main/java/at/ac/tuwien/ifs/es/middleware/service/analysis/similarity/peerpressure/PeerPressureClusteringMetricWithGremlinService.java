@@ -84,15 +84,25 @@ public class PeerPressureClusteringMetricWithGremlinService implements
   public void compute() {
     Instant issueTimestamp = Instant.now();
     logger.info("Starting to computes peer pressure clustering metric.");
-    gremlinService.traversal().withComputer().V()
-        .peerPressure()
-        .group()
-        .by(__.map(traverser -> schema.iri().<String>apply((Element) traverser.get())))
-        .by(__.values(PeerPressureVertexProgram.CLUSTER)).next().forEach((iri, value) -> {
-      peerClusterMap.put((String) iri, (Long) value);
-    });
-    gremlinService.commit();
-    mapDB.commit();
+    gremlinService.lock();
+    try {
+      gremlinService.traversal().withComputer().V()
+          .peerPressure()
+          .group()
+          .by(__.map(traverser -> schema.iri().<String>apply((Element) traverser.get())))
+          .by(__.values(PeerPressureVertexProgram.CLUSTER)).next().forEach((iri, value) -> {
+        logger.debug(">>>> {} <<<<< {}", iri.getClass().getSimpleName(),
+            value.getClass().getSimpleName());
+        //peerClusterMap.put((String) iri, (Long) value);
+      });
+      mapDB.commit();
+      gremlinService.commit();
+    } catch (Exception e) {
+      gremlinService.rollback();
+      throw e;
+    } finally {
+      gremlinService.unlock();
+    }
     logger.info("Peer pressure clustering issued on {} computed on {}.", issueTimestamp,
         Instant.now());
   }

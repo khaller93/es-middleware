@@ -57,16 +57,10 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
       + "SELECT ?resource ?score {\n"
       + "  ?resource <${name}> \"${keyword}\" ; \n"
       + "     luc:score ?score .\n"
-      + "  ${class-filter}\n"
-      + "  ${facets}\n"
+      + "  ${body}\n"
       + "} ORDER BY DESC (?score)\n"
       + "${offset}\n"
       + "${limit}\n";
-
-  private final static String[] FTS_CLASSES_FILTER = new String[]{
-      "\n?resource a %s .\n",
-      "\n?resource a ?class .\nFILTER(?class in (%s)) .\n"
-  };
 
   private static final String INSERT_INDEX_DATA_QUERY =
       "PREFIX luc: <http://www.ontotext.com/owlim/lucene#>\n"
@@ -152,11 +146,16 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
     Map<String, String> valueMap = new HashMap<>();
     valueMap.put("name", graphDbLuceneConfig.getLuceneIndexIRI());
     valueMap.put("keyword", keyword);
-    valueMap.put("class-filter", prepareFilter(classes));
+    /* build facets */
+    FacetedSearchQueryBuilder queryBuilder = FacetedSearchQueryBuilder.forSubject("resource");
+    queryBuilder.includeInstancesOfClasses(classes);
+    if (facets != null) {
+      facets.forEach(queryBuilder::addPropertyFacet);
+    }
+    valueMap.put("body", queryBuilder.getQueryBody());
+    /* windowing */
     valueMap.put("offset", offset != null ? "OFFSET " + offset.toString() : "");
     valueMap.put("limit", limit != null ? "LIMIT " + limit.toString() : "");
-    valueMap.put("facets", facets != null && !facets.isEmpty() ? FacetedSearchQueryBuilder
-        .buildFacets("resource", facets) : "");
     String filledFtsQuery = new StringSubstitutor(valueMap)
         .replace(FTS_QUERY);
     logger.trace(

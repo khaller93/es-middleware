@@ -58,11 +58,6 @@ public class StardogKnowledgeGraphDAO extends RDF4JSparqlDAO implements
       + "${offset}\n"
       + "${limit}";
 
-  private final static String[] FTS_CLASSES_FILTER = new String[]{
-      "\n?resource a %s .\n",
-      "\n?resource a ?class .\nFILTER(?class in (%s)) .\n"
-  };
-
   private StardogConfig stardogConfig;
 
   private KGDAOStatus ftsStatus;
@@ -112,22 +107,16 @@ public class StardogKnowledgeGraphDAO extends RDF4JSparqlDAO implements
         offset, limit);
     Map<String, String> queryValuesMap = new HashMap<>();
     queryValuesMap.put("keyword", keyword);
-    if (classes != null && !classes.isEmpty()) {
-      if (classes.size() == 1) {
-        queryValuesMap.put("classes-filter", String.format(FTS_CLASSES_FILTER[0],
-            BlankOrIRIJsonUtil.stringForSPARQLResourceOf(classes.get(0))));
-      } else {
-        queryValuesMap.put("classes-filter", String.format(FTS_CLASSES_FILTER[1],
-            classes.stream().map(BlankOrIRIJsonUtil::stringForSPARQLResourceOf).collect(
-                Collectors.joining(", "))));
-      }
-    } else {
-      queryValuesMap.put("classes-filter", "");
-    }
+    /* windowing */
     queryValuesMap.put("offset", offset != null ? String.format("OFFSET %d", offset) : "");
     queryValuesMap.put("limit", limit != null ? String.format("LIMIT %d", limit) : "");
-    queryValuesMap.put("facets", facets != null && !facets.isEmpty() ? FacetedSearchQueryBuilder
-        .buildFacets("resource", facets) : "");
+    /* build facets */
+    FacetedSearchQueryBuilder queryBuilder = FacetedSearchQueryBuilder.forSubject("resource");
+    queryBuilder.includeInstancesOfClasses(classes);
+    if (facets != null) {
+      facets.forEach(queryBuilder::addPropertyFacet);
+    }
+    queryValuesMap.put("body", queryBuilder.getQueryBody());
     String searchQuery = new StringSubstitutor(queryValuesMap).replace(SEARCH_QUERY);
     logger
         .trace("Searching with '{}' for '{}' of classes {} with limit={}, offset={}.", searchQuery,

@@ -121,7 +121,6 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
   @PostConstruct
   public void setUp() {
     if (CODE.READY.equals(sparqlDAO.getStatus().getCode())) {
-      logger.info(">>>>> {} , sync: {}", graph.vertices().hasNext(), syncOnStart);
       if (syncOnStart || !graph.vertices().hasNext()) {
         executeGraphConstruction(-1, Instant.now());
       } else {
@@ -335,8 +334,6 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
           && currentTimestamp.compareTo(issuedTimestamp) <= 0);
       if (successful) {
         logger.debug("An bulk load with timestamp '{}' has been committed.", issuedTimestamp);
-        setStatus(new KGDAOReadyStatus(), eventId);
-        AbstractClonedGremlinDAO.this.onBulkLoadCompleted();
         updateLock.lock();
         try {
           currentTimestamp = issuedTimestamp;
@@ -362,7 +359,8 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
       } finally {
         AbstractClonedGremlinDAO.this.unlock();
       }
-
+      AbstractClonedGremlinDAO.this.onBulkLoadCompleted();
+      setStatus(new KGDAOReadyStatus(), eventId);
     }
   }
 

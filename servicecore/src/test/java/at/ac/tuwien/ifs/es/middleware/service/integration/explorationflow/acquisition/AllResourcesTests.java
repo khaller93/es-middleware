@@ -81,7 +81,7 @@ public class AllResourcesTests {
   @Test
   public void getAllResources_mustReturnContextWithAll() {
     ExplorationContext context = allResources
-        .apply(null, new AllResourcesPayload(null, null, null));
+        .apply(null, new AllResourcesPayload(null, null, null, null));
     assertNotNull(context);
     assertThat(context, instanceOf(ResourceList.class));
     ResourceList resourceList = (ResourceList) context;
@@ -102,7 +102,7 @@ public class AllResourcesTests {
   public void getAllResourcesEmptyLists_mustReturnContextWithAll() {
     ExplorationContext context = allResources
         .apply(null, new AllResourcesPayload(Collections.emptyList(), Collections.emptyList(),
-            Collections.emptyList()));
+            Collections.emptyList(), null));
     assertNotNull(context);
     assertThat(context, instanceOf(ResourceList.class));
     ResourceList resourceList = (ResourceList) context;
@@ -124,7 +124,7 @@ public class AllResourcesTests {
     ExplorationContext context = allResources
         .apply(null, new AllResourcesPayload(
             Collections.singletonList(new Resource("http://purl.org/ontology/mo/Instrument")), null,
-            null));
+            null, null));
     assertNotNull(context);
     assertThat(context, instanceOf(ResourceList.class));
     ResourceList resourceList = (ResourceList) context;
@@ -147,7 +147,7 @@ public class AllResourcesTests {
     ExplorationContext context = allResources
         .apply(null, new AllResourcesPayload(null,
             Collections.singletonList(new Resource("http://purl.org/ontology/mo/Instrument")),
-            null));
+            null, null));
     assertNotNull(context);
     assertThat(context, instanceOf(ResourceList.class));
     ResourceList resourceList = (ResourceList) context;
@@ -164,7 +164,7 @@ public class AllResourcesTests {
         .apply(null, new AllResourcesPayload(
             Collections.singletonList(new Resource("http://purl.org/ontology/mo/Instrument")),
             Collections.singletonList(new Resource("http://www.w3.org/2000/01/rdf-schema#Class")),
-            null));
+            null, null));
     assertNotNull(context);
     assertThat(context, instanceOf(ResourceList.class));
     ResourceList resourceList = (ResourceList) context;

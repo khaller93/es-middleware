@@ -97,8 +97,8 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
 
   private static Object[] simKey(ResourcePair resourcePair) {
     return new Object[]{
-        resourcePair.getFirst(),
-        resourcePair.getSecond()
+        resourcePair.getFirst().getId(),
+        resourcePair.getSecond().getId()
     };
   }
 
@@ -141,7 +141,6 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
       }
     } while (results.size() == LOAD_LIMIT);
     /* compute Resnik metric for resource pairs */
-    logger.debug("Size: {}", resourceSet.size());
     final long bulkSize = 100000;
     Map<Object[], Double> metricResultsBulk = new HashMap<>();
     for (Resource resourceA : resourceSet) {
