@@ -19,10 +19,15 @@ import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.rdf.simple.SimpleRDF;
 import org.springframework.boot.jackson.JsonComponent;
 
+/**
+ * This class provides {@link JsonSerializer} and {@link JsonDeserializer} for {@link RDFTerm}.
+ *
+ * @author Kevin Haller
+ * @version 1.0
+ * @since 1.0
+ */
 @JsonComponent
 public final class RDFTermJsonComponent {
-
-  public enum TYPE {IRI, BNODE, LITERAL}
 
   private static RDF rdfFactory = new SimpleRDF();
 
@@ -92,18 +97,11 @@ public final class RDFTermJsonComponent {
     }
   }
 
-  private static void writeType(TYPE type, JsonGenerator generator) throws IOException {
-    generator.writeStringField("@type", type.name().toLowerCase());
-  }
-
   private static void writeIRI(IRI value, JsonGenerator generator) throws IOException {
     if (value == null) {
       generator.writeNull();
     } else {
-      generator.writeStartObject();
-      writeType(TYPE.IRI, generator);
-      generator.writeStringField("id", value.getIRIString());
-      generator.writeEndObject();
+      generator.writeString(value.getIRIString());
     }
   }
 
@@ -111,10 +109,7 @@ public final class RDFTermJsonComponent {
     if (value == null) {
       generator.writeNull();
     } else {
-      generator.writeStartObject();
-      writeType(TYPE.BNODE, generator);
-      generator.writeStringField("id", value.ntriplesString());
-      generator.writeEndObject();
+      generator.writeString(value.ntriplesString());
     }
   }
 
@@ -123,12 +118,11 @@ public final class RDFTermJsonComponent {
       generator.writeNull();
     } else {
       generator.writeStartObject();
-      writeType(TYPE.LITERAL, generator);
       String lexicalForm = value.getLexicalForm();
       if (lexicalForm == null) {
-        generator.writeNullField("value");
+        generator.writeNullField("literal");
       } else {
-        generator.writeStringField("value", lexicalForm);
+        generator.writeStringField("literal", lexicalForm);
       }
       IRI datatype = value.getDatatype();
       if (datatype != null) {
@@ -152,16 +146,24 @@ public final class RDFTermJsonComponent {
     public RDFTerm deserialize(JsonParser p, DeserializationContext ctxt)
         throws IOException, JsonProcessingException {
       JsonNode node = p.getCodec().readTree(p);
-      String type = node.get("@type").asText();
-      if (TYPE.IRI.name().toLowerCase().equals(type)) {
-        return rdfFactory.createIRI(node.get("id").asText());
-      } else if (TYPE.BNODE.name().toLowerCase().equals(type)) {
-        return rdfFactory.createBlankNode(node.get("id").asText());
-      } else if (TYPE.LITERAL.name().toLowerCase().equals(type)) {
-        return readLiteral(node);
+      if (node == null) {
+        throw new IllegalArgumentException("Must not be null.");
       } else {
-        throw new IllegalArgumentException(
-            String.format("The type must be 'iri', 'bnode' or 'literal', but was %s.", type));
+        if (node.isValueNode()) { // IRI or blank node
+          String text = node.asText();
+          if (text.startsWith("_:")) {
+            return rdfFactory.createBlankNode(text.substring(2));
+          } else {
+            return rdfFactory.createIRI(text);
+          }
+        } else if (node.isObject()) { // Literal
+          return readLiteral(node);
+        } else if (node.isNull()) {
+          return null;
+        } else {
+          throw new IllegalArgumentException(
+              "A valid IRI, blanknode string or literal object must be given.");
+        }
       }
     }
   }
@@ -172,24 +174,32 @@ public final class RDFTermJsonComponent {
     public Literal deserialize(JsonParser p, DeserializationContext ctxt)
         throws IOException, JsonProcessingException {
       JsonNode node = p.getCodec().readTree(p);
-      String type = node.get("@type").asText();
-      if (TYPE.LITERAL.name().toLowerCase().equals(type)) {
-        return readLiteral(node);
+      if (node == null) {
+        throw new IllegalArgumentException("Must not be null.");
       } else {
-        throw new IllegalArgumentException(
-            String.format("The type must be 'iri', 'bnode' or 'literal', but was %s.", type));
+        if (node.isObject()) {
+          return readLiteral(node);
+        } else if (node.isNull()) {
+          return null;
+        } else {
+          throw new IllegalArgumentException("A valid literal object must be given");
+        }
       }
     }
   }
 
   private static Literal readLiteral(JsonNode literalNode) {
-    String value = literalNode.get("value").asText();
-    if (literalNode.has("language")) {
-      return rdfFactory.createLiteral(value, literalNode.get("language").asText());
-    } else if (literalNode.has("datatype")) {
-      return rdfFactory.createLiteral(value, literalNode.get("datatype").asText());
+    if (!literalNode.has("literal")) {
+      throw new IllegalArgumentException("The literal object must specify a value.");
     } else {
-      return rdfFactory.createLiteral(value);
+      String value = literalNode.get("literal").asText();
+      if (literalNode.has("language")) {
+        return rdfFactory.createLiteral(value, literalNode.get("language").asText());
+      } else if (literalNode.has("datatype")) {
+        return rdfFactory.createLiteral(value, literalNode.get("datatype").asText());
+      } else {
+        return rdfFactory.createLiteral(value);
+      }
     }
   }
 
@@ -199,14 +209,17 @@ public final class RDFTermJsonComponent {
     public BlankNodeOrIRI deserialize(JsonParser p, DeserializationContext ctxt)
         throws IOException, JsonProcessingException {
       JsonNode node = p.getCodec().readTree(p);
-      String type = node.get("@type").asText();
-      if (TYPE.IRI.name().toLowerCase().equals(type)) {
-        return rdfFactory.createIRI(node.get("id").asText());
-      } else if (TYPE.BNODE.name().toLowerCase().equals(type)) {
-        return rdfFactory.createBlankNode(node.get("id").asText());
+      if (node.isValueNode()) {
+        String idNode = node.asText();
+        if (idNode.startsWith("_:")) {
+          return rdfFactory.createBlankNode(idNode.substring(2));
+        } else {
+          return rdfFactory.createIRI(idNode);
+        }
+      } else if (node.isNull()) {
+        return null;
       } else {
-        throw new IllegalArgumentException(
-            String.format("The type must be 'iri or 'bnode', but was %s.", type));
+        throw new IllegalArgumentException("Blank node must be specified as a string (e.g. _:a).");
       }
     }
   }
@@ -216,13 +229,17 @@ public final class RDFTermJsonComponent {
     @Override
     public IRI deserialize(JsonParser p, DeserializationContext ctxt)
         throws IOException, JsonProcessingException {
-      JsonNode iriNode = p.getCodec().readTree(p);
-      String type = iriNode.get("@type").asText();
-      if (TYPE.IRI.name().toLowerCase().equals(type)) {
-        return rdfFactory.createIRI(iriNode.get("id").asText());
+      JsonNode node = p.getCodec().readTree(p);
+      if (node == null) {
+        throw new IllegalArgumentException("Must not be null.");
       } else {
-        throw new IllegalArgumentException(
-            String.format("The type must be 'iri', but was %s.", type));
+        if (node.isValueNode()) {
+          return rdfFactory.createIRI(node.asText());
+        } else if (node.isNull()) {
+          return null;
+        } else {
+          throw new IllegalArgumentException("IRI must be specified as a string.");
+        }
       }
     }
   }
@@ -232,13 +249,23 @@ public final class RDFTermJsonComponent {
     @Override
     public BlankNode deserialize(JsonParser p, DeserializationContext ctxt)
         throws IOException, JsonProcessingException {
-      JsonNode bNode = p.getCodec().readTree(p);
-      String type = bNode.get("@type").asText();
-      if (TYPE.BNODE.name().toLowerCase().equals(type)) {
-        return rdfFactory.createBlankNode(bNode.get("id").asText());
+      JsonNode node = p.getCodec().readTree(p);
+      if (node == null) {
+        throw new IllegalArgumentException("Must not be null.");
       } else {
-        throw new IllegalArgumentException(
-            String.format("The type must be 'bnode', but was %s.", type));
+        if (node.isValueNode()) {
+          String bnode = node.asText();
+          if (bnode.startsWith("_:")) {
+            return rdfFactory.createBlankNode(bnode.substring(2));
+          } else {
+            throw new IllegalArgumentException("Blank node must start with '_:'.");
+          }
+        } else if (node.isNull()) {
+          return null;
+        } else {
+          throw new IllegalArgumentException(
+              "Blank node must be specified as a string (e.g. _:a).");
+        }
       }
     }
   }
