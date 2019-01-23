@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.integration;
 
 import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.ClassEntropyServiceTests;
-import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.ClassInformationServiceTests;
+import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.AllClassesServiceTests;
 import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.DegreeCentralityMetricServiceTests;
 import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.LeastCommonSubsumerServiceTests;
 import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.PageRankCentralityMetricServiceTests;
@@ -22,7 +22,7 @@ import org.junit.runners.Suite.SuiteClasses;
  */
 @RunWith(Suite.class)
 @SuiteClasses({ClassEntropyServiceTests.class, DegreeCentralityMetricServiceTests.class,
-    ClassInformationServiceTests.class, PageRankCentralityMetricServiceTests.class,
+    AllClassesServiceTests.class, PageRankCentralityMetricServiceTests.class,
     LeastCommonSubsumerServiceTests.class, PeerPressureClusteringMetricServiceTests.class,
     ResnikSimilarityMetricServiceTests.class, SameAsResourceServiceTests.class,
     UnweightedLDSDMetricServiceTests.class})

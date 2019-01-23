@@ -62,10 +62,13 @@ class AnalysisPipeline {
       Map<Boolean, List<AnalysisServiceEntry>> entrySplitMap = entries.stream()
           .collect(Collectors.groupingBy(AnalysisServiceEntry::hasOpenRequirements));
       this.entries = entrySplitMap.getOrDefault(true, Collections.emptyList());
-      logger.debug("Remaining services with unfulfilled requirements in the pipeline {}.", entries);
+      logger.debug("Waiting services in the pipeline with id '{}' : {}.", eventId,
+          entries.stream().map(AnalysisServiceEntry::getName).collect(Collectors.toList()));
       List<AnalysisServiceEntry> servicesReadyList = entrySplitMap
           .getOrDefault(false, Collections.emptyList());
-      logger.debug("Ready services in the pipeline {}.", servicesReadyList);
+      logger.debug("Ready services in the pipeline with id '{}': {}.", eventId,
+          servicesReadyList.stream().map(AnalysisServiceEntry::getName)
+              .collect(Collectors.toList()));
       servicesReadyList.forEach(entry -> {
         taskExecutor.execute(
             new Task(entry.getName(), entry.getAnalysisService(),

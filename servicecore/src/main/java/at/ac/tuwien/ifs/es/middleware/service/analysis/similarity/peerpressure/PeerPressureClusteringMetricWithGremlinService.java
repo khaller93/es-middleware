@@ -81,7 +81,7 @@ public class PeerPressureClusteringMetricWithGremlinService implements
           .group()
           .by(__.map(traverser -> schema.iri().<String>apply((Element) traverser.get())))
           .by(__.values(PeerPressureVertexProgram.CLUSTER)).next().forEach((iri, value) -> {
-        //peerClusterMap.put((String) iri, (Long) value);
+        peerClusterMap.put((String) iri, (Long) value);
       });
       mapDB.commit();
       gremlinService.commit();

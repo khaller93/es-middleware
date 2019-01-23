@@ -7,7 +7,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePai
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.AllResourcesService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.RP;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import java.time.Instant;

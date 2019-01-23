@@ -1,9 +1,10 @@
-package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset;
+package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import com.google.common.collect.Sets;
 import java.util.HashMap;
@@ -26,7 +27,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
- * This is an implementation get {@link LeastCommonSubSumersService} that uses the {@link
+ * This is an implementation get {@link LeastCommonSubsumersService} that uses the {@link
  * SPARQLService}.
  *
  * @author Kevin Haller
@@ -36,14 +37,14 @@ import org.springframework.stereotype.Service;
 @Primary
 @Service
 @RegisterForAnalyticalProcessing(name = LCSWithInMemoryTreeService.LCS_UID, requiresSPARQL = true, prerequisites = {
-    ClassInformationService.class, SameAsResourceService.class})
-public class LCSWithInMemoryTreeService implements LeastCommonSubSumersService {
+    AllClassesService.class, SameAsResourceService.class})
+public class LCSWithInMemoryTreeService implements LeastCommonSubsumersService {
 
-  private static final Logger logger = LoggerFactory.getLogger(LeastCommonSubSumersService.class);
+  private static final Logger logger = LoggerFactory.getLogger(LeastCommonSubsumersService.class);
 
   public static final String LCS_UID = "esm.service.analytics.dataset.lcs.tree";
 
-  private static final long LOAD_LIMIT = 10000;
+  private static final long LOAD_LIMIT = 100000L;
 
   private static final String ALL_SUBCLASSES_QUERY = "SELECT DISTINCT ?class ?superClass WHERE {\n"
       + "    {\n"
@@ -82,7 +83,7 @@ public class LCSWithInMemoryTreeService implements LeastCommonSubSumersService {
           + "LIMIT %d";
 
   private final SPARQLService sparqlService;
-  private final ClassInformationService classInformationService;
+  private final AllClassesService allClassesService;
   private final SameAsResourceService sameAsResourceService;
   private final DB mapDB;
 
@@ -91,11 +92,11 @@ public class LCSWithInMemoryTreeService implements LeastCommonSubSumersService {
   @Autowired
   public LCSWithInMemoryTreeService(
       SPARQLService sparqlService,
-      ClassInformationService classInformationService,
+      AllClassesService allClassesService,
       SameAsResourceService sameAsResourceService,
       DB mapDB) {
     this.sparqlService = sparqlService;
-    this.classInformationService = classInformationService;
+    this.allClassesService = allClassesService;
     this.sameAsResourceService = sameAsResourceService;
     this.mapDB = mapDB;
     this.subsumerMap = mapDB
@@ -125,7 +126,7 @@ public class LCSWithInMemoryTreeService implements LeastCommonSubSumersService {
   private Map<Resource, TreeNode> computeLCATreeNodes() {
     Map<Resource, TreeNode> treeNodes = new HashMap<>();
     /* fetch classes */
-    for (Resource clazz : classInformationService.getAllClasses()) {
+    for (Resource clazz : allClassesService.getAllClasses()) {
       computeLCATreeNodeFor(treeNodes, clazz);
     }
     /* fetch relationships */
@@ -145,7 +146,7 @@ public class LCSWithInMemoryTreeService implements LeastCommonSubSumersService {
             classTreeNode.addParent(superClassTreeNode);
           }
         }
-        logger.info("Loaded {} class <-> superclass relationships.",
+        logger.info("Loaded {} (class <-> superclass) relationships.",
             offset + relationshipResults.size());
         offset += LOAD_LIMIT;
       } else {
@@ -229,7 +230,7 @@ public class LCSWithInMemoryTreeService implements LeastCommonSubSumersService {
   }
 
   @Override
-  public Set<Resource> getLeastCommonSubSumersFor(ResourcePair resourcePair) {
+  public Set<Resource> getLeastCommonSubsumersFor(ResourcePair resourcePair) {
     Set<String> resourceSet = subsumerMap.get(simKey(resourcePair));
     if (resourceSet != null) {
       return resourceSet.stream().map(Resource::new).collect(Collectors.toSet());

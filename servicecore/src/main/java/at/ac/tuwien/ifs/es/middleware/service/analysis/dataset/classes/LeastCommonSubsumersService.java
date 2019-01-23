@@ -1,10 +1,9 @@
-package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset;
+package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisService;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -16,7 +15,7 @@ import java.util.Set;
  * @version 1.0
  * @since 1.0
  */
-public interface LeastCommonSubSumersService extends AnalysisService {
+public interface LeastCommonSubsumersService extends AnalysisService {
 
   /**
    * Gets the least common subsumers (also least common ancestors) for the given {@code
@@ -27,6 +26,6 @@ public interface LeastCommonSubSumersService extends AnalysisService {
    * @param resourcePair for which the least common subsumers shall be returned.
    * @return the least common subsumers get the given {@code resourcePar} in form get a {@link List}.
    */
-  Set<Resource> getLeastCommonSubSumersFor(ResourcePair resourcePair);
+  Set<Resource> getLeastCommonSubsumersFor(ResourcePair resourcePair);
 
 }

@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset;
+package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
@@ -13,7 +13,7 @@ import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.mapdb.DB;
-import org.mapdb.IndexTreeList;
+import org.mapdb.HTreeMap.KeySet;
 import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,24 +21,33 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+/**
+ * This class provide a concrete implmentation {@link AllResourcesService} that uses {@link
+ * SPARQLService} for fetching all the resources and {@link at.ac.tuwien.ifs.es.middleware.service.analysis.MapDB}
+ * to store all the resources for fast access.
+ *
+ * @author Kevin Haller
+ * @version 1.0
+ * @since 1.0
+ */
 @Primary
 @Service
-@RegisterForAnalyticalProcessing(name = AllResourcesServiceImpl.UID, requiresSPARQL = true)
-public class AllResourcesServiceImpl implements AllResourcesService {
+@RegisterForAnalyticalProcessing(name = AllResourcesWithSPARQLService.UID, requiresSPARQL = true)
+public class AllResourcesWithSPARQLService implements AllResourcesService {
 
-  private static final Logger logger = LoggerFactory.getLogger(AllResourcesServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(AllResourcesWithSPARQLService.class);
 
   public static final String UID = "esm.service.analytics.dataset.all.resources";
 
-  private static final int LOAD_LIMIT = 100000;
+  private static final long LOAD_LIMIT = 100000L;
 
   private static final String ALL_RESOURCE_IRIS_QUERY = "SELECT DISTINCT ?resource WHERE {\n"
-      + "    {?resource ?p1 _:o1}\n"
+      + "    {?resource ?p1 []}\n"
       + "     UNION\n"
       + "    {\n"
-      + "        _:o2 ?p2 ?resource .\n"
-      + "        FILTER (isIRI(?resource)) .\n"
+      + "        [] ?p2 ?resource .\n"
       + "    } \n"
+      + "    FILTER (isIRI(?resource)) .\n"
       + "}\n"
       + "OFFSET ${offset}\n"
       + "LIMIT ${limit}";
@@ -46,16 +55,16 @@ public class AllResourcesServiceImpl implements AllResourcesService {
   private final SPARQLService sparqlService;
   private final DB mapDB;
 
-  private final IndexTreeList<String> resourceList;
+  private final KeySet<String> resourceList;
 
   @Autowired
-  public AllResourcesServiceImpl(
+  public AllResourcesWithSPARQLService(
       SPARQLService sparqlService,
       DB mapDB) {
     this.sparqlService = sparqlService;
     this.mapDB = mapDB;
     this.resourceList = mapDB
-        .indexTreeList(AllResourcesServiceImpl.UID, Serializer.STRING).createOrOpen();
+        .hashSet(AllResourcesWithSPARQLService.UID, Serializer.STRING).createOrOpen();
   }
 
   @Override
@@ -65,7 +74,7 @@ public class AllResourcesServiceImpl implements AllResourcesService {
 
   @Override
   public void compute() {
-    int offset = 0;
+    long offset = 0;
     List<Map<String, RDFTerm>> results;
     String resourceQuery = new StrSubstitutor(Collections.singletonMap("limit", LOAD_LIMIT))
         .replace(ALL_RESOURCE_IRIS_QUERY);
@@ -78,7 +87,7 @@ public class AllResourcesServiceImpl implements AllResourcesService {
             .map(row -> BlankOrIRIJsonUtil.stringValue((BlankNodeOrIRI) row.get("resource")))
             .forEach(resourceList::add);
         offset += results.size();
-        logger.trace("Loaded {} resources. {} resources already loaded..", results.size(), offset);
+        logger.trace("Loaded {} resources. {} resources already loaded.", results.size(), offset);
       } else {
         break;
       }

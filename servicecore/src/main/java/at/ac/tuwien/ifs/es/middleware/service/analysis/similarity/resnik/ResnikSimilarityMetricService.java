@@ -1,11 +1,11 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.resnik;
 
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LeastCommonSubSumersService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.LeastCommonSubsumersService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricService;
 
 /**
  * This service finds the least common subsumers get two resources (see {@link
- * LeastCommonSubSumersService} can be
+ * LeastCommonSubsumersService} can be
  * used). Then the information content is computed for each get the subsumers. Information content is
  * a measurement for uncertainty and thus informational value. It represents the likelihood get
  * picking an instance get this subsumer, when randomly picking one instance from the whole data. The

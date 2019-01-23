@@ -13,13 +13,13 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLucene
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyWithGremlinService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassInformationServiceImpl;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LCSWithInMemoryTreeService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LeastCommonSubSumersService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.SameAsResourceService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.SameAsResourceWithSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.ClassEntropyService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.ClassEntropyWithGremlinService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.AllClassesWithSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.LCSWithInMemoryTreeService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.LeastCommonSubsumersService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.resnik.ResnikSimilarityMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.resnik.ResnikSimilarityMetricServiceImpl;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.SimpleGremlinService;
@@ -47,7 +47,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {SimpleSPARQLService.class, SimpleGremlinService.class,
     RDF4JLuceneFullTextSearchDAO.class, RDF4JMemoryStoreWithLuceneSparqlDAO.class,
     ClonedInMemoryGremlinDAO.class, ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class,
-    ThreadPoolConfig.class, ClassInformationServiceImpl.class, SpringCacheConfig.class,
+    ThreadPoolConfig.class, AllClassesWithSPARQLService.class, SpringCacheConfig.class,
     SameAsResourceWithSPARQLService.class, AnalysisPipelineProcessorDummy.class,
     MusicPintaInstrumentsResource.class, ResnikSimilarityMetricServiceImpl.class,
     LCSWithInMemoryTreeService.class, ClassEntropyWithGremlinService.class,
@@ -71,7 +71,7 @@ public class ResnikSimilarityMetricServiceTests {
   @Autowired
   private ClassEntropyService classEntropyService;
   @Autowired
-  private LeastCommonSubSumersService leastCommonSubSumersService;
+  private LeastCommonSubsumersService leastCommonSubSumersService;
   @Autowired
   private ResnikSimilarityMetricService resnikSimilarityMetricService;
 

@@ -7,8 +7,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertNotNull;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.ThreadPoolConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
@@ -16,27 +14,22 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchD
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassInformationService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassInformationServiceImpl;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.SameAsResourceService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.SameAsResourceWithSPARQLService;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.AllClassesService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.AllClassesWithSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
-import javax.annotation.PostConstruct;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * This class should test the {@link ClassInformationService}.
+ * This class should test the {@link AllClassesService}.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -48,7 +41,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class, ThreadPoolConfig.class,
     SameAsResourceWithSPARQLService.class, SpringCacheConfig.class,
     AnalysisPipelineProcessor.class, AnalysisPipelineProcessorDummy.class,
-    ClassInformationServiceImpl.class, MusicPintaInstrumentsResource.class})
+    AllClassesWithSPARQLService.class, MusicPintaInstrumentsResource.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -56,13 +49,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     "esm.db.gremlin.choice=ClonedInMemoryGremlin"
 })
 @Ignore
-public class ClassInformationServiceTests {
+public class AllClassesServiceTests {
 
   @Rule
   @Autowired
   public MusicPintaInstrumentsResource musicPintaResource;
   @Autowired
-  private ClassInformationService classInformationService;
+  private AllClassesService allClassesService;
 
   @Before
   public void setUp() throws Exception {

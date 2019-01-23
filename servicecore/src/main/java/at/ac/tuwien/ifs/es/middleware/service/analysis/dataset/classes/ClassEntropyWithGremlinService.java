@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset;
+package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service;
 @Primary
 @Service
 @RegisterForAnalyticalProcessing(name = ClassEntropyWithGremlinService.UID,
-    requiresGremlin = true, prerequisites = {ClassInformationService.class})
+    requiresGremlin = true, prerequisites = {AllClassesService.class})
 public class ClassEntropyWithGremlinService implements ClassEntropyService {
 
   private static final Logger logger = LoggerFactory.getLogger(ClassEntropyService.class);
@@ -38,7 +38,7 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
   public static final String UID = "esm.service.analytics.dataset.classentropy";
 
   private final GremlinService gremlinService;
-  private final ClassInformationService classInformationService;
+  private final AllClassesService allClassesService;
   private final PGS schema;
   private final DB mapDB;
 
@@ -46,10 +46,10 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
 
   @Autowired
   public ClassEntropyWithGremlinService(GremlinService gremlinService,
-      ClassInformationService classInformationService,
+      AllClassesService allClassesService,
       DB mapDB) {
     this.gremlinService = gremlinService;
-    this.classInformationService = classInformationService;
+    this.allClassesService = allClassesService;
     this.mapDB = mapDB;
     this.classEntropyMap = mapDB.hashMap(UID, Serializer.STRING, Serializer.DOUBLE)
         .createOrOpen();
@@ -67,7 +67,7 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
     logger.info("Starting to computes information content metric for classes.");
     gremlinService.lock();
     try {
-      Set<Resource> allClasses = classInformationService.getAllClasses();
+      Set<Resource> allClasses = allClassesService.getAllClasses();
       if (!allClasses.isEmpty()) {
         GraphTraversalSource g = gremlinService.traversal();
         Long total = g.V().dedup().count().next();

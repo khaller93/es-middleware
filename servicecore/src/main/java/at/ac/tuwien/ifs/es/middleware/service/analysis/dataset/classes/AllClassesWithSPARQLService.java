@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset;
+package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
@@ -9,14 +9,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.mapdb.DB;
-import org.mapdb.IndexTreeList;
+import org.mapdb.HTreeMap.KeySet;
 import org.mapdb.Serializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
- * This is an implementation get {@link ClassInformationService} using the {@link SPARQLService}.
+ * This is an implementation get {@link AllClassesService} using the {@link SPARQLService}.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -24,8 +24,8 @@ import org.springframework.stereotype.Service;
  */
 @Primary
 @Service
-@RegisterForAnalyticalProcessing(name = ClassInformationServiceImpl.UID, requiresSPARQL = true)
-public class ClassInformationServiceImpl implements ClassInformationService {
+@RegisterForAnalyticalProcessing(name = AllClassesWithSPARQLService.UID, requiresSPARQL = true)
+public class AllClassesWithSPARQLService implements AllClassesService {
 
   public static final String UID = "esm.service.analytics.dataset.all.classes";
 
@@ -43,14 +43,14 @@ public class ClassInformationServiceImpl implements ClassInformationService {
   private final SPARQLService sparqlService;
   private final DB mapDb;
 
-  private final IndexTreeList<String> classList;
+  private final KeySet<String> classList;
 
   @Autowired
-  public ClassInformationServiceImpl(SPARQLService sparqlService, DB mapDb) {
+  public AllClassesWithSPARQLService(SPARQLService sparqlService, DB mapDb) {
     this.sparqlService = sparqlService;
     this.mapDb = mapDb;
     this.classList = mapDb
-        .indexTreeList(ClassInformationServiceImpl.UID, Serializer.STRING).createOrOpen();
+        .hashSet(AllClassesWithSPARQLService.UID, Serializer.STRING).createOrOpen();
   }
 
   @Override

@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset;
+package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
@@ -20,7 +20,6 @@ import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -39,7 +38,7 @@ public class SameAsResourceWithSPARQLService implements SameAsResourceService {
   private static final Logger logger = LoggerFactory
       .getLogger(SameAsResourceWithSPARQLService.class);
 
-  private static final Long LOAD_LIMIT = 10000L;
+  private static final Long LOAD_LIMIT = 100000L;
 
   private static final String DUPLICATES_QUERY =
       "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n"
@@ -84,7 +83,8 @@ public class SameAsResourceWithSPARQLService implements SameAsResourceService {
               .add(new Resource((BlankNodeOrIRI) row.get("same")));
         }
         offset += results.size();
-        logger.info("Loaded {} sameAs relationships.", offset + results.size());
+        logger.trace("Loaded {} sameAs relationships. {} sameAs relationships in total.",
+            offset + results.size());
       } else {
         break;
       }
