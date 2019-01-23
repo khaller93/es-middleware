@@ -3,8 +3,7 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import com.google.common.collect.Sets;
 import java.util.HashMap;
@@ -14,7 +13,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.mapdb.BTreeMap;
@@ -24,6 +22,7 @@ import org.mapdb.serializer.SerializerArrayTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +36,8 @@ import org.springframework.stereotype.Service;
  */
 @Primary
 @Service
-@AnalyticalProcessing(name = LCSWithInMemoryTreeService.LCS_UID)
+@RegisterForAnalyticalProcessing(name = LCSWithInMemoryTreeService.LCS_UID, requiresSPARQL = true, requiredAnalysisServices = {
+    ClassInformationService.class, SameAsResourceService.class})
 public class LCSWithInMemoryTreeService implements LeastCommonSubSumersService {
 
   private static final Logger logger = LoggerFactory.getLogger(LeastCommonSubSumersService.class);
@@ -86,7 +86,6 @@ public class LCSWithInMemoryTreeService implements LeastCommonSubSumersService {
   private final ClassInformationService classInformationService;
   private final SameAsResourceService sameAsResourceService;
   private final DB mapDB;
-  private final AnalysisPipelineProcessor processor;
 
   private final BTreeMap<Object[], Set<String>> subsumerMap;
 
@@ -95,8 +94,7 @@ public class LCSWithInMemoryTreeService implements LeastCommonSubSumersService {
       SPARQLService sparqlService,
       ClassInformationService classInformationService,
       SameAsResourceService sameAsResourceService,
-      DB mapDB,
-      AnalysisPipelineProcessor processor) {
+      DB mapDB) {
     this.sparqlService = sparqlService;
     this.classInformationService = classInformationService;
     this.sameAsResourceService = sameAsResourceService;
@@ -104,13 +102,6 @@ public class LCSWithInMemoryTreeService implements LeastCommonSubSumersService {
     this.subsumerMap = mapDB
         .treeMap(LCS_UID, new SerializerArrayTuple(Serializer.STRING, Serializer.STRING),
             Serializer.JAVA).createOrOpen();
-    this.processor = processor;
-  }
-
-  @PostConstruct
-  private void setUp() {
-    processor.registerAnalysisService(this, true, false, false,
-        Sets.newHashSet(ClassInformationService.class, SameAsResourceService.class));
   }
 
   private static Object[] simKey(ResourcePair resourcePair) {

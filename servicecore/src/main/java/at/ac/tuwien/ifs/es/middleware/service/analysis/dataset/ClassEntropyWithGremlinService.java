@@ -2,27 +2,23 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
-import com.google.common.collect.Sets;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Element;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.mapdb.DB;
 import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -35,39 +31,31 @@ import org.springframework.stereotype.Service;
  */
 @Primary
 @Service
-@AnalyticalProcessing(name = ClassEntropyWithGremlinService.CLASS_ENTROPY_UID)
+@RegisterForAnalyticalProcessing(name = ClassEntropyWithGremlinService.UID,
+    requiresGremlin = true, requiredAnalysisServices = {ClassInformationService.class})
 public class ClassEntropyWithGremlinService implements ClassEntropyService {
 
   private static final Logger logger = LoggerFactory.getLogger(ClassEntropyService.class);
 
-  public static final String CLASS_ENTROPY_UID = "esm.service.analytics.dataset.classentropy";
+  public static final String UID = "esm.service.analytics.dataset.classentropy";
 
   private final GremlinService gremlinService;
   private final ClassInformationService classInformationService;
   private final PGS schema;
   private final DB mapDB;
-  private final AnalysisPipelineProcessor processor;
 
   private final HTreeMap<String, Double> classEntropyMap;
 
   @Autowired
   public ClassEntropyWithGremlinService(GremlinService gremlinService,
       ClassInformationService classInformationService,
-      DB mapDB,
-      AnalysisPipelineProcessor processor) {
+      DB mapDB) {
     this.gremlinService = gremlinService;
     this.classInformationService = classInformationService;
     this.mapDB = mapDB;
-    this.classEntropyMap = mapDB.hashMap(CLASS_ENTROPY_UID, Serializer.STRING, Serializer.DOUBLE)
+    this.classEntropyMap = mapDB.hashMap(UID, Serializer.STRING, Serializer.DOUBLE)
         .createOrOpen();
-    this.processor = processor;
     this.schema = gremlinService.getPropertyGraphSchema();
-  }
-
-  @PostConstruct
-  private void setUp() {
-    processor.registerAnalysisService(this, false, false, true,
-        Sets.newHashSet(ClassInformationService.class));
   }
 
   @Override

@@ -3,7 +3,7 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.degree;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import java.time.Instant;
 import javax.annotation.PostConstruct;
@@ -15,6 +15,7 @@ import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +30,7 @@ import org.springframework.stereotype.Service;
  */
 @Primary
 @Service
-@AnalyticalProcessing(name = "esm.service.analytics.centrality.degree")
+@RegisterForAnalyticalProcessing(name = "esm.service.analytics.centrality.degree", requiresGremlin = true)
 public class DegreeCentralityMetricWithGremlinService implements DegreeCentralityMetricService {
 
   private static final Logger logger = LoggerFactory
@@ -40,24 +41,20 @@ public class DegreeCentralityMetricWithGremlinService implements DegreeCentralit
   private GremlinService gremlinService;
   private DB mapDB;
   private PGS schema;
-  private AnalysisPipelineProcessor processor;
 
   private HTreeMap<String, Long> degreeMap;
 
+  @Value("${esm.service.analytics.centrality.degree:#{false}}")
+  private boolean disabled;
+
   @Autowired
   public DegreeCentralityMetricWithGremlinService(GremlinService gremlinService,
-      DB mapDB, AnalysisPipelineProcessor processor) {
+      DB mapDB) {
     this.gremlinService = gremlinService;
     this.mapDB = mapDB;
     this.degreeMap = mapDB.hashMap(DEGREE_PROP_NAME, Serializer.STRING, Serializer.LONG)
         .createOrOpen();
     this.schema = gremlinService.getPropertyGraphSchema();
-    this.processor = processor;
-  }
-
-  @PostConstruct
-  private void setUp() {
-    processor.registerAnalysisService(this, false, false, true, null);
   }
 
   @Override

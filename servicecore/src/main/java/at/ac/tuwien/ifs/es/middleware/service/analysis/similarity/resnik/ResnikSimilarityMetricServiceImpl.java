@@ -4,29 +4,20 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.ClassEntropyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LeastCommonSubSumersService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.RP;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
-import com.google.common.collect.Sets;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BinaryOperator;
-import javax.annotation.PostConstruct;
-import org.apache.commons.lang.text.StrSubstitutor;
-import org.apache.commons.rdf.api.BlankNodeOrIRI;
-import org.apache.commons.rdf.api.RDFTerm;
-import org.mapdb.BTreeMap;
 import org.mapdb.DB;
+import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
-import org.mapdb.serializer.SerializerArrayTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +34,9 @@ import org.springframework.stereotype.Service;
  */
 @Primary
 @Service
-@AnalyticalProcessing(name = ResnikSimilarityMetricServiceImpl.RESNIK_SIMILARITY_UID)
+@RegisterForAnalyticalProcessing(name = ResnikSimilarityMetricServiceImpl.RESNIK_SIMILARITY_UID,
+    requiredAnalysisServices = {ClassEntropyService.class, LeastCommonSubSumersService.class,
+        AllResourcesService.class})
 public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetricService {
 
   private static final Logger logger = LoggerFactory
@@ -51,61 +44,32 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
 
   public static final String RESNIK_SIMILARITY_UID = "esm.service.analysis.sim.resnik";
 
-  private static final int LOAD_LIMIT = 25000;
-
-  private static final String ALL_RESOURCE_IRIS_QUERY = "SELECT DISTINCT ?resource WHERE {\n"
-      + "    {?resource ?p1 _:o1}\n"
-      + "     UNION\n"
-      + "    {\n"
-      + "        _:o2 ?p2 ?resource .\n"
-      + "        FILTER (isIRI(?resource)) .\n"
-      + "    } \n"
-      + "}\n"
-      + "OFFSET ${offset}\n"
-      + "LIMIT ${limit}";
-
-
-  private final SPARQLService sparqlService;
   private final ClassEntropyService classEntropyService;
   private final LeastCommonSubSumersService leastCommonSubSumersService;
+  private final AllResourcesService allResourcesService;
   private final DB mapDB;
-  private final AnalysisPipelineProcessor processor;
 
-  private final BTreeMap<Object[], Double> resnikValueMap;
+  private final HTreeMap<RP, Double> resnikValueMap;
 
   @Autowired
   public ResnikSimilarityMetricServiceImpl(
       SPARQLService sparqlService,
       ClassEntropyService classEntropyService,
       LeastCommonSubSumersService leastCommonSubSumersService,
-      DB mapDB, AnalysisPipelineProcessor processor) {
-    this.sparqlService = sparqlService;
+      AllResourcesService allResourcesService,
+      DB mapDB) {
     this.classEntropyService = classEntropyService;
     this.leastCommonSubSumersService = leastCommonSubSumersService;
+    this.allResourcesService = allResourcesService;
     this.mapDB = mapDB;
-    this.resnikValueMap = mapDB.treeMap(RESNIK_SIMILARITY_UID)
-        .keySerializer(new SerializerArrayTuple(Serializer.STRING, Serializer.STRING))
-        .valueSerializer(Serializer.DOUBLE).createOrOpen();
-    this.processor = processor;
-  }
-
-  @PostConstruct
-  private void setUp() {
-    processor.registerAnalysisService(this, true, false, false,
-        Sets.newHashSet(ClassEntropyService.class, LeastCommonSubSumersService.class));
-  }
-
-  private static Object[] simKey(ResourcePair resourcePair) {
-    return new Object[]{
-        resourcePair.getFirst().getId(),
-        resourcePair.getSecond().getId()
-    };
+    this.resnikValueMap = mapDB.hashMap(RESNIK_SIMILARITY_UID)
+        .keySerializer(Serializer.JAVA).valueSerializer(Serializer.DOUBLE).createOrOpen();
   }
 
   @Override
   public Double getValueFor(ResourcePair resourcePair) {
     checkArgument(resourcePair != null, "The given resource pair must not be null.");
-    Double value = resnikValueMap.get(simKey(resourcePair));
+    Double value = resnikValueMap.get(RP.of(resourcePair));
     if (value != null) {
       return value;
     } else {
@@ -123,30 +87,13 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
   public void compute() {
     Instant issueTimestamp = Instant.now();
     logger.info("Started to compute the Resnik similarity metric.");
-    Set<Resource> resourceSet = new HashSet<>();
-    int offset = 0;
-    List<Map<String, RDFTerm>> results;
-    String resourceQuery = new StrSubstitutor(Collections.singletonMap("limit", LOAD_LIMIT))
-        .replace(ALL_RESOURCE_IRIS_QUERY);
-    do {
-      results = sparqlService.<SelectQueryResult>query(
-          new StrSubstitutor(Collections.singletonMap("offset", offset)).replace(resourceQuery),
-          true).value();
-      if (results != null) {
-        results.stream().map(row -> new Resource((BlankNodeOrIRI) row.get("resource")))
-            .forEach(resourceSet::add);
-        offset += results.size();
-      } else {
-        break;
-      }
-    } while (results.size() == LOAD_LIMIT);
     /* compute Resnik metric for resource pairs */
     final long bulkSize = 100000;
-    Map<Object[], Double> metricResultsBulk = new HashMap<>();
-    for (Resource resourceA : resourceSet) {
-      for (Resource resourceB : resourceSet) {
+    Map<RP, Double> metricResultsBulk = new HashMap<>();
+    for (Resource resourceA : allResourcesService.getResourceList()) {
+      for (Resource resourceB : allResourcesService.getResourceList()) {
         ResourcePair pair = ResourcePair.of(resourceA, resourceB);
-        metricResultsBulk.put(simKey(pair), computeIC(pair));
+        metricResultsBulk.put(RP.of(pair), computeIC(pair));
         if (metricResultsBulk.size() == bulkSize) {
           logger.debug("Bulk loaded {} Resnik metric results.", bulkSize);
           resnikValueMap.putAll(metricResultsBulk);

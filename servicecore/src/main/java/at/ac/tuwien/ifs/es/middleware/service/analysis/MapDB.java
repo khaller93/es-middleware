@@ -25,15 +25,15 @@ public class MapDB {
   private final DB db;
 
   @Autowired
-  public MapDB(@Value("${esm.db.analysis.cache:data/}") String storageLocation) {
-    File storageDir = new File(storageLocation);
-    if (!storageDir.exists()) {
-      storageDir.mkdirs();
-    } else if (!storageDir.isDirectory()) {
+  public MapDB(@Value("${esm.db.data.dir}") String dataDir) {
+    File dataDirFile = new File(dataDir, "mapdb");
+    if (!dataDirFile.exists()) {
+      dataDirFile.mkdirs();
+    } else if (!dataDirFile.isDirectory()) {
       throw new IllegalArgumentException(
-          "The path for storing the analysis results must not refer to non-directory.");
+          "The path for storing the analysis results must not refer to a non-directory.");
     }
-    db = DBMaker.fileDB(new File(storageDir, "map.db")).transactionEnable().make();
+    db = DBMaker.fileDB(new File(dataDirFile, "map.db")).transactionEnable().make();
   }
 
   /**

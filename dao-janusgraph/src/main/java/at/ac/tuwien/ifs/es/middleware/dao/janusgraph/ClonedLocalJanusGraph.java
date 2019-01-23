@@ -55,16 +55,23 @@ public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
   @Autowired
   public ClonedLocalJanusGraph(ApplicationContext context, TaskExecutor taskExecutor,
       @Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO,
-      @Value("${janusgraph.dir}") String janusGraphDir) {
+      @Value("${esm.db.data.dir}") String dataDir) {
     super(context, sparqlDAO, schema, taskExecutor);
-    this.setGraph(initGraphInstance(janusGraphDir));
+    this.setGraph(initGraphInstance(dataDir));
   }
 
-  private Graph initGraphInstance(String janusGraphDir) {
+  private Graph initGraphInstance(String dataDir) {
     logger.info("Started to initialize the Janusgraph.");
+    File dataDirFile = new File(dataDir, "janusgraph");
+    if (!dataDirFile.exists()) {
+      dataDirFile.mkdirs();
+    } else if (!dataDirFile.isDirectory()) {
+      throw new IllegalArgumentException(
+          "The path for storing the analysis results must not refer to a non-directory.");
+    }
     graph = JanusGraphFactory.build().set("storage.backend", "berkeleyje")
         .set("storage.transactions", true)
-        .set("storage.directory", new File(janusGraphDir).getAbsolutePath()).open();
+        .set("storage.directory", dataDirFile.getAbsolutePath()).open();
     /* build and maintain IRI index */
     JanusGraphManagement mgmt = graph.openManagement();
     PropertyKey iriProperty = mgmt.getPropertyKey("iri");
@@ -76,37 +83,13 @@ public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
     if (mgmt.getGraphIndex("byIRI") == null) {
       mgmt.buildIndex("byIRI", Vertex.class).addKey(iriProperty)
           .unique().buildCompositeIndex();
-    } else {
-      /*try {
-        mgmt.updateIndex(mgmt.getGraphIndex("byIRI"), SchemaAction.REINDEX).get();
-      } catch (InterruptedException | ExecutionException e) {
-        logger.error("Updating the IRI index failed. {}", e.getMessage());
-      }*/
     }
-    /* build and maintain version index */
-    PropertyKey versionProperty = mgmt.getPropertyKey("version");
-    if (versionProperty == null) {
-      versionProperty = mgmt.makePropertyKey("version").dataType(Date.class)
-          .cardinality(Cardinality.SINGLE).make();
-    }
-    /* if (mgmt.getGraphIndex("byVersion") == null) {
-      mgmt.buildIndex("byVersion", Vertex.class).addKey(versionProperty).buildCompositeIndex();
-    } else {
-      try {
-        mgmt.updateIndex(mgmt.getGraphIndex("byVersion"), SchemaAction.REINDEX).get();
-      } catch (InterruptedException | ExecutionException e) {
-        logger.error(". {}", e.getMessage());
-      }
-    }*/
     mgmt.commit();
     /* wait for index to be ready */
     try {
       GraphIndexStatusWatcher byIRIWatcher = ManagementSystem.awaitGraphIndexStatus(graph, "byIRI")
           .status(SchemaStatus.ENABLED);
-      /*GraphIndexStatusWatcher byVersionWatcher = ManagementSystem
-          .awaitGraphIndexStatus(graph, "byVersion").status(SchemaStatus.ENABLED);*/
       byIRIWatcher.call();
-      //byVersionWatcher.call();
     } catch (InterruptedException e) {
       logger.error("Waiting for the availability of the IRI/version index failed. {}",
           e.getMessage());
@@ -129,19 +112,11 @@ public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
     } catch (ExecutionException | InterruptedException e) {
       logger.error("Building the IRI index failed. {}", e);
     }
-/*    try {
-      mgmt.updateIndex(mgmt.getGraphIndex("byVersion"), SchemaAction.REINDEX).get();
-    } catch (ExecutionException | InterruptedException e) {
-      logger.error("Building the version index failed. {}", e);
-    }*/
     mgmt.commit();
     try {
       GraphIndexStatusWatcher byIRIWatcher = ManagementSystem.awaitGraphIndexStatus(graph, "byIRI")
           .status(SchemaStatus.ENABLED);
-      GraphIndexStatusWatcher byVersionWatcher = ManagementSystem.awaitGraphIndexStatus(graph, "byVersion")
-          .status(SchemaStatus.ENABLED);
       byIRIWatcher.call();
-//      byVersionWatcher.call();
       logger.info("Reindexing of the IRI/version was successful.");
     } catch (InterruptedException e) {
       logger.error("Waiting for the availability of the version index failed. {}", e.getMessage());

@@ -1,29 +1,18 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisEventStatus;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
-import com.google.common.collect.Sets;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
-import org.apache.commons.rdf.api.RDFTerm;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.mapdb.DB;
+import org.mapdb.IndexTreeList;
+import org.mapdb.Serializer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -35,9 +24,10 @@ import org.springframework.stereotype.Service;
  */
 @Primary
 @Service
+@RegisterForAnalyticalProcessing(name = ClassInformationServiceImpl.UID, requiresSPARQL = true)
 public class ClassInformationServiceImpl implements ClassInformationService {
 
-  private static final Logger logger = LoggerFactory.getLogger(ClassInformationService.class);
+  public static final String UID = "esm.service.analytics.dataset.all.classes";
 
   private static final String ALL_CLASSES_QUERY = "SELECT DISTINCT ?class WHERE {\n"
       + "    {_:a a ?class}\n"
@@ -50,32 +40,30 @@ public class ClassInformationServiceImpl implements ClassInformationService {
       + "    FILTER(isIRI(?class)) .\n"
       + "}";
 
-  private SPARQLService sparqlService;
-  private AnalysisPipelineProcessor processor;
+  private final SPARQLService sparqlService;
+  private final DB mapDb;
+
+  private final IndexTreeList<String> classList;
 
   @Autowired
-  public ClassInformationServiceImpl(SPARQLService sparqlService,
-      AnalysisPipelineProcessor processor) {
+  public ClassInformationServiceImpl(SPARQLService sparqlService, DB mapDb) {
     this.sparqlService = sparqlService;
-    this.processor = processor;
+    this.mapDb = mapDb;
+    this.classList = mapDb
+        .indexTreeList(ClassInformationServiceImpl.UID, Serializer.STRING).createOrOpen();
   }
 
-  @PostConstruct
-  private void setUp() {
-    processor.registerAnalysisService(this, true, false, false, null);
-  }
-
-  @Cacheable("sparql")
   @Override
   public Set<Resource> getAllClasses() {
-    return ((SelectQueryResult) sparqlService.query(ALL_CLASSES_QUERY, true)).value()
-        .stream().map(row -> new Resource((BlankNodeOrIRI) row.get("class")))
-        .collect(Collectors.toSet());
+    return classList.stream().map(Resource::new).collect(Collectors.toSet());
   }
 
   @Override
   public void compute() {
-
+    classList.addAll(((SelectQueryResult) sparqlService.query(ALL_CLASSES_QUERY, true)).value()
+        .stream().map(row -> BlankOrIRIJsonUtil.stringValue((BlankNodeOrIRI) row.get("class")))
+        .collect(Collectors.toSet()));
+    mapDb.commit();
   }
 
 }

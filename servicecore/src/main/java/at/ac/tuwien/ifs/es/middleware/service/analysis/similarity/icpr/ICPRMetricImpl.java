@@ -1,10 +1,10 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.icpr;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisEventStatus;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.pagerank.PageRankCentralityMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.LeastCommonSubSumersService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.resnik.ResnikSimilarityMetricService;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +18,8 @@ import org.springframework.stereotype.Service;
  */
 @Primary
 @Service
-@AnalyticalProcessing(name = "esm.service.analytics.similarity.ldsd")
+@RegisterForAnalyticalProcessing(name = "esm.service.analytics.similarity.icpr", requiredAnalysisServices = {
+    ResnikSimilarityMetricService.class, PageRankCentralityMetricService.class})
 public class ICPRMetricImpl implements ICPRMetricService {
 
   @Override

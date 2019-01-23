@@ -2,11 +2,9 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.pagerank;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import java.time.Instant;
-import javax.annotation.PostConstruct;
 import org.apache.tinkerpop.gremlin.process.computer.ranking.pagerank.PageRankVertexProgram;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Element;
@@ -16,6 +14,7 @@ import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +29,7 @@ import org.springframework.stereotype.Service;
  */
 @Primary
 @Service
-@AnalyticalProcessing(name = "esm.service.analytics.centrality.pagerank")
+@RegisterForAnalyticalProcessing(name = "esm.service.analytics.centrality.pagerank", requiresGremlin = true)
 public class PageRankCentralityMetricWithGremlinService implements PageRankCentralityMetricService {
 
   private static final Logger logger = LoggerFactory
@@ -41,24 +40,20 @@ public class PageRankCentralityMetricWithGremlinService implements PageRankCentr
   private GremlinService gremlinService;
   private DB mapDB;
   private PGS schema;
-  private AnalysisPipelineProcessor processor;
 
   private HTreeMap<String, Double> pageRankMap;
 
+  @Value("${esm.service.analytics.centrality.pagerank:#{false}}")
+  private boolean disabled;
+
   @Autowired
   public PageRankCentralityMetricWithGremlinService(GremlinService gremlinService,
-      DB mapDB, AnalysisPipelineProcessor processor) {
+      DB mapDB) {
     this.gremlinService = gremlinService;
     this.mapDB = mapDB;
     this.pageRankMap = mapDB.hashMap(PAGE_RANK_PROP_NAME, Serializer.STRING, Serializer.DOUBLE)
         .createOrOpen();
     this.schema = gremlinService.getPropertyGraphSchema();
-    this.processor = processor;
-  }
-
-  @PostConstruct
-  private void setUp() {
-    processor.registerAnalysisService(this, false, false, true, null);
   }
 
   @Override

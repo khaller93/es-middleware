@@ -10,7 +10,7 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis;
 public interface AnalysisService {
 
   /**
-   * Computes the analysis.
+   * Computes this analysis service.
    */
   void compute();
 

@@ -3,7 +3,8 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.RP;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import com.google.common.collect.Sets;
 import java.time.Instant;
@@ -16,10 +17,9 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
-import org.mapdb.BTreeMap;
 import org.mapdb.DB;
+import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
-import org.mapdb.serializer.SerializerArrayTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,12 +36,12 @@ import org.springframework.stereotype.Service;
  */
 @Lazy
 @Service
-@AnalyticalProcessing(name = LCSWithSPARQLService.LCS_UID)
+@RegisterForAnalyticalProcessing(name = LCSWithSPARQLService.UID)
 public class LCSWithSPARQLService implements LeastCommonSubSumersService {
 
   private static final Logger logger = LoggerFactory.getLogger(LeastCommonSubSumersService.class);
 
-  public static final String LCS_UID = "esm.service.analytics.dataset.leastcommonsubsumers";
+  public static final String UID = "esm.service.analytics.dataset.leastcommonsubsumers";
 
   private static final String LEAST_COMMON_SUBSUMER_QUERY =
       "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
@@ -61,19 +61,13 @@ public class LCSWithSPARQLService implements LeastCommonSubSumersService {
   private final SPARQLService sparqlService;
   private final DB mapDb;
 
-  private final BTreeMap<Object[], Set<String>> subsumerMap;
+  private final HTreeMap<RP, Set<String>> subsumerMap;
 
   @Autowired
   public LCSWithSPARQLService(SPARQLService sparqlService, DB mapDb) {
     this.sparqlService = sparqlService;
     this.mapDb = mapDb;
-    this.subsumerMap = mapDb
-        .treeMap(LCS_UID, new SerializerArrayTuple(Serializer.STRING, Serializer.STRING),
-            Serializer.JAVA).createOrOpen();
-  }
-
-  private static Object[] simKey(ResourcePair resourcePair) {
-    return new Object[]{resourcePair.getFirst().getId(), resourcePair.getSecond().getId()};
+    this.subsumerMap = mapDb.hashMap(UID, Serializer.JAVA, Serializer.JAVA).createOrOpen();
   }
 
   @Override
@@ -92,16 +86,16 @@ public class LCSWithSPARQLService implements LeastCommonSubSumersService {
       subsumerIntermediateMap.compute(ResourcePair.of(left, right), comp).add(clazz);
     }
     subsumerMap.putAll(subsumerIntermediateMap.entrySet().stream().collect(Collectors
-        .toMap(e -> simKey(e.getKey()),
+        .toMap(e -> RP.of(e.getKey()),
             e -> e.getValue().stream().map(Resource::getId).collect(Collectors.toSet()))));
     mapDb.commit();
-    logger.info("Least common subsummers for all resource pairs issued on {} computed on {}.",
+    logger.info("Least common subsumers for all resource pairs issued on {} computed on {}.",
         issueTimestamp, Instant.now());
   }
 
   @Override
   public synchronized Set<Resource> getLeastCommonSubSumersFor(ResourcePair resourcePair) {
-    Set<String> resourceSet = subsumerMap.get(simKey(resourcePair));
+    Set<String> resourceSet = subsumerMap.get(RP.of(resourcePair));
     if (resourceSet != null) {
       return resourceSet.stream().map(Resource::new).collect(Collectors.toSet());
     } else {

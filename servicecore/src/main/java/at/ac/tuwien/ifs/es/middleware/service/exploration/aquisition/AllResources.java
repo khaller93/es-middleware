@@ -42,9 +42,9 @@ public class AllResources implements AcquisitionSource<AllResourcesPayload> {
   private static final int LOAD_LIMIT = 100000;
 
   private static final String ALL_QUERY = "SELECT DISTINCT ?s WHERE { \n"
-      + "    { ?s ?p _:x . FILTER(isIRI(?s)) .}\n"
+      + "    { ?s ?p [] . FILTER(isIRI(?s)) .}\n"
       + "     UNION\n"
-      + "    { _:y ?p ?s . FILTER(isIRI(?s)) .}\n"
+      + "    { [] ?p ?s . FILTER(isIRI(?s)) .}\n"
       + "    ${body}\n"
       + "}\n"
       + "LIMIT ${limit}\n"
