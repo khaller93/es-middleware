@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service;
 @Primary
 @Service
 @RegisterForAnalyticalProcessing(name = ResnikSimilarityMetricServiceImpl.RESNIK_SIMILARITY_UID,
-    requiredAnalysisServices = {ClassEntropyService.class, LeastCommonSubSumersService.class,
+    prerequisites = {ClassEntropyService.class, LeastCommonSubSumersService.class,
         AllResourcesService.class})
 public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetricService {
 

@@ -11,11 +11,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ApplicationContext;
@@ -85,7 +83,7 @@ public class AnalysisServiceRegistry {
     checkArgument(analysisService != null, "Analysis service must not be null for registration.");
     checkArgument(annotation != null,
         "RegisterForAnalyticalProcessing annotation must be specified for registration.");
-    Set<Class<?>> combinedRequirements = Sets.newHashSet(annotation.requiredAnalysisServices());
+    Set<Class<?>> combinedRequirements = Sets.newHashSet(annotation.prerequisites());
     if (annotation.requiresSPARQL()) {
       combinedRequirements.add(SPARQLService.class);
     }

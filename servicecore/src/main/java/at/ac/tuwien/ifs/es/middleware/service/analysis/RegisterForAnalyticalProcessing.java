@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * {@link at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService} and/or
  * {@link at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.fts.FullTextSearchService} for
  * computing its function. Moreover, this service might have the successful completion of other
- * analysis services as prerequisite. All this information must be specified in the annotation.
+ * analysis services as prerequisites. All this information must be specified in the annotation.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -58,13 +58,13 @@ public @interface RegisterForAnalyticalProcessing {
   boolean requiresGremlin() default false;
 
   /**
-   * An array of {@link AnalysisService} that are needed as prerequisite for computing this
+   * An array of {@link AnalysisService} that are needed as prerequisites for computing this
    * service.
    *
-   * @return an array of {@link AnalysisService} that are needed as prerequisite for computing this
+   * @return an array of {@link AnalysisService} that are needed as prerequisites for computing this
    * service.
    */
-  Class<? extends AnalysisService>[] requiredAnalysisServices() default {};
+  Class<? extends AnalysisService>[] prerequisites() default {};
 
   /**
    * If {@code true}, this analysis service is not put into the analysis pipeline, but registered.

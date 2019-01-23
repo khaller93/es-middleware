@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
  */
 @Primary
 @Service
-@RegisterForAnalyticalProcessing(name = "esm.service.analytics.similarity.icpr", requiredAnalysisServices = {
+@RegisterForAnalyticalProcessing(name = "esm.service.analytics.similarity.icpr", prerequisites = {
     ResnikSimilarityMetricService.class, PageRankCentralityMetricService.class})
 public class ICPRMetricImpl implements ICPRMetricService {
 
