@@ -109,7 +109,7 @@ class AnalysisPipeline {
           logger.debug("'{}' offers {}.", name, implementedServices);
           registerAvailabilityOf(implementedServices.toArray(new Class[0]));
         } catch (Exception e) {
-          logger.info("'{}' has failed in the pipeline with id '{}'. {}", name, eventId,
+          logger.error("'{}' has failed in the pipeline with id '{}'. {}", name, eventId,
               e.getMessage());
         }
       } else {

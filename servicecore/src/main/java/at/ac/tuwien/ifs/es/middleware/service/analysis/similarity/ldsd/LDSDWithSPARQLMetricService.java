@@ -8,13 +8,11 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.RP;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.Literal;
 import org.apache.commons.rdf.api.RDFTerm;
@@ -25,7 +23,6 @@ import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -104,10 +101,7 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
   private final AllResourcesService allResourcesService;
   private final DB mapDB;
 
-  private final HTreeMap<RP, Double> ldsdValueMap;
-
-  @Value("${esm.service.analytics.similarity.ldsd:#{false}}")
-  private boolean disabled;
+  private final HTreeMap<int[], Double> ldsdValueMap;
 
   @Autowired
   public LDSDWithSPARQLMetricService(
@@ -118,56 +112,68 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
     this.allResourcesService = allResourcesService;
     this.mapDB = mapDB;
     this.ldsdValueMap = mapDB.hashMap(UNWEIGHTED_LDSD_SIMILARITY_UID)
-        .keySerializer(Serializer.JAVA)
+        .keySerializer(Serializer.INT_ARRAY)
         .valueSerializer(Serializer.DOUBLE).createOrOpen();
   }
 
   @Override
   public Double getValueFor(ResourcePair resourcePair) {
     checkArgument(resourcePair != null, "The given resource pair must not be null.");
-    Double value = ldsdValueMap.get(RP.of(resourcePair));
-    System.out.println("!>" + ldsdValueMap.entrySet());
-    System.out.println("!>" + value);
-    System.out.println("!>" + (RP.of(resourcePair).equals(RP.of(resourcePair))));
-    if (value != null) {
-      return value;
-    } else {
-      Map<String, String> valuesMap = new HashMap<>();
-      valuesMap.put("a", BlankOrIRIJsonUtil.stringForSPARQLResourceOf(resourcePair.getFirst()));
-      valuesMap.put("b", BlankOrIRIJsonUtil.stringForSPARQLResourceOf(resourcePair.getSecond()));
-      List<Map<String, RDFTerm>> result = sparqlService.<SelectQueryResult>query(
-          new StringSubstitutor(valuesMap).replace(SINGLE_LDSD_QUERY), true).value();
-      if (!result.isEmpty()) {
-        return Double.parseDouble(((Literal) result.get(0).get("ldsd")).getLexicalForm());
-      } else {
-        return 0.0;
+    Optional<Integer> optionalResourceAKey = allResourcesService
+        .getResourceKey(resourcePair.getFirst());
+    if (optionalResourceAKey.isPresent()) {
+      Optional<Integer> optionalResourceBKey = allResourcesService
+          .getResourceKey(resourcePair.getSecond());
+      if (optionalResourceBKey.isPresent()) {
+        Double value = ldsdValueMap
+            .get(new int[]{optionalResourceAKey.get(), optionalResourceBKey.get()});
+        if (value != null) {
+          return value;
+        }
       }
+    }
+    Map<String, String> valuesMap = new HashMap<>();
+    valuesMap.put("a", BlankOrIRIJsonUtil.stringForSPARQLResourceOf(resourcePair.getFirst()));
+    valuesMap.put("b", BlankOrIRIJsonUtil.stringForSPARQLResourceOf(resourcePair.getSecond()));
+    List<Map<String, RDFTerm>> result = sparqlService.<SelectQueryResult>query(
+        new StringSubstitutor(valuesMap).replace(SINGLE_LDSD_QUERY), true).value();
+    if (!result.isEmpty()) {
+      return Double.parseDouble(((Literal) result.get(0).get("ldsd")).getLexicalForm());
+    } else {
+      return 0.0;
     }
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public void compute() {
-    Instant issueTimestamp = Instant.now();
     logger.info("Starting to computes Linked Data Semantic Distance metric.");
     List<Map<String, RDFTerm>> results = sparqlService.<SelectQueryResult>query(ALL_LDSD_QUERY,
         true).value();
-    ldsdValueMap.putAll(results.stream().collect(Collectors
-        .toMap(row -> RP.of(BlankOrIRIJsonUtil.stringValue((BlankNodeOrIRI) row.get("a")),
-            BlankOrIRIJsonUtil.stringValue((BlankNodeOrIRI) row.get("b"))),
-            row -> Double.parseDouble(((Literal) row.get("ldsd")).getLexicalForm()))));
+    for (Map<String, RDFTerm> row : results) {
+      Optional<Integer> optResAKey = allResourcesService
+          .getResourceKey(new Resource((BlankNodeOrIRI) row.get("a")));
+      Optional<Integer> optResBKey = allResourcesService
+          .getResourceKey(new Resource((BlankNodeOrIRI) row.get("b")));
+      if (optResAKey.isPresent() && optResBKey.isPresent()) {
+        ldsdValueMap.put(new int[]{optResAKey.get(), optResBKey.get()},
+            Double.parseDouble(((Literal) row.get("ldsd")).getLexicalForm()));
+      }
+    }
     mapDB.commit();
-    for (Resource resourceA : allResourcesService.getResourceList()) {
-      for (Resource resourceB : allResourcesService.getResourceList()) {
-        RP key = RP.of(resourceA.getId(), resourceB.getId());
-        if (!ldsdValueMap.containsKey(key)) {
-          ldsdValueMap.put(key, 1.0);
+    for (Resource resourceA : allResourcesService.getResourceMap()) {
+      Optional<Integer> optResAKey = allResourcesService.getResourceKey(resourceA);
+      for (Resource resourceB : allResourcesService.getResourceMap()) {
+        Optional<Integer> optResBKey = allResourcesService.getResourceKey(resourceB);
+        if (optResAKey.isPresent() && optResBKey.isPresent()) {
+          int[] key = new int[]{optResAKey.get(), optResBKey.get()};
+          if (!ldsdValueMap.containsKey(key)) {
+            ldsdValueMap.put(key, 1.0);
+          }
         }
       }
     }
     mapDB.commit();
-    logger.info("Linked Data Semantic Distance issued on {} computed on {}.", issueTimestamp,
-        Instant.now());
+    logger.info("Linked Data Semantic Distance has been successfully computed.");
   }
 
 }

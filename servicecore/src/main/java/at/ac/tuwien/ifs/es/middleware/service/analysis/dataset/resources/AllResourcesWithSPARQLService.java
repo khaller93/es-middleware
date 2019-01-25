@@ -8,12 +8,13 @@ import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLServic
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.mapdb.DB;
-import org.mapdb.HTreeMap.KeySet;
+import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +56,7 @@ public class AllResourcesWithSPARQLService implements AllResourcesService {
   private final SPARQLService sparqlService;
   private final DB mapDB;
 
-  private final KeySet<String> resourceList;
+  private final HTreeMap<String, Integer> resourceMap;
 
   @Autowired
   public AllResourcesWithSPARQLService(
@@ -63,13 +64,20 @@ public class AllResourcesWithSPARQLService implements AllResourcesService {
       DB mapDB) {
     this.sparqlService = sparqlService;
     this.mapDB = mapDB;
-    this.resourceList = mapDB
-        .hashSet(AllResourcesWithSPARQLService.UID, Serializer.STRING).createOrOpen();
+    this.resourceMap = mapDB
+        .hashMap(AllResourcesWithSPARQLService.UID, Serializer.STRING, Serializer.INTEGER)
+        .createOrOpen();
   }
 
   @Override
-  public List<Resource> getResourceList() {
-    return resourceList.stream().map(Resource::new).collect(Collectors.toList());
+  public List<Resource> getResourceMap() {
+    return resourceMap.keySet().stream().map(Resource::new).collect(Collectors.toList());
+  }
+
+  @Override
+  public Optional<Integer> getResourceKey(Resource resource) {
+    Integer val = resourceMap.get(resource.getId());
+    return val != null ? Optional.of(val) : Optional.empty();
   }
 
   @Override
@@ -83,9 +91,12 @@ public class AllResourcesWithSPARQLService implements AllResourcesService {
           new StrSubstitutor(Collections.singletonMap("offset", offset)).replace(resourceQuery),
           true).value();
       if (results != null) {
-        results.stream()
-            .map(row -> BlankOrIRIJsonUtil.stringValue((BlankNodeOrIRI) row.get("resource")))
-            .forEach(resourceList::add);
+        for (Map<String, RDFTerm> row : results) {
+          String resource = BlankOrIRIJsonUtil.stringValue((BlankNodeOrIRI) row.get("resource"));
+          if (!resourceMap.containsKey(resource)) {
+            resourceMap.put(resource, resourceMap.size() + 1);
+          }
+        }
         offset += results.size();
         logger.trace("Loaded {} resources. {} resources already loaded.", results.size(), offset);
       } else {

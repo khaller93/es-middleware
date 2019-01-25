@@ -1,12 +1,13 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.peerpressure;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import java.time.Instant;
-import javax.annotation.PostConstruct;
+import java.util.Optional;
 import org.apache.tinkerpop.gremlin.process.computer.clustering.peerpressure.PeerPressureVertexProgram;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Element;
@@ -31,7 +32,8 @@ import org.springframework.stereotype.Service;
  */
 @Primary
 @Service
-@RegisterForAnalyticalProcessing(name = "esm.service.analytics.similarity.peerpressure", requiresGremlin = true)
+@RegisterForAnalyticalProcessing(name = "esm.service.analytics.similarity.peerpressure",
+    requiresGremlin = true, prerequisites = {AllResourcesService.class})
 public class PeerPressureClusteringMetricWithGremlinService implements
     PeerPressureClusteringMetricService {
 
@@ -41,29 +43,38 @@ public class PeerPressureClusteringMetricWithGremlinService implements
   private static final String PEER_PRESSURE_UID = "esm.service.analytics.similarity.peerpressure";
 
   private final GremlinService gremlinService;
+  private final AllResourcesService allResourcesService;
   private final PGS schema;
   private final DB mapDB;
 
-  private final HTreeMap<String, Long> peerClusterMap;
-
-  @Value("${esm.service.analytics.similarity.peerpressure.disabled:#{false}}")
-  private boolean disabled;
+  private final HTreeMap<Integer, Long> peerClusterMap;
 
   @Autowired
   public PeerPressureClusteringMetricWithGremlinService(
       GremlinService gremlinService,
+      AllResourcesService allResourcesService,
       DB mapDB) {
     this.gremlinService = gremlinService;
+    this.allResourcesService = allResourcesService;
     this.schema = gremlinService.getPropertyGraphSchema();
     this.mapDB = mapDB;
-    this.peerClusterMap = mapDB.hashMap(PEER_PRESSURE_UID, Serializer.STRING, Serializer.LONG)
+    this.peerClusterMap = mapDB.hashMap(PEER_PRESSURE_UID, Serializer.INTEGER, Serializer.LONG)
         .createOrOpen();
   }
 
   @Override
   public Boolean isSharingSameCluster(ResourcePair pair) {
-    Long clusterA = peerClusterMap.get(pair.getFirst().getId());
-    Long clusterB = peerClusterMap.get(pair.getSecond().getId());
+    Long clusterA = null, clusterB = null;
+    /*resource a */
+    Optional<Integer> optResourcePairAKey = allResourcesService.getResourceKey(pair.getFirst());
+    if (optResourcePairAKey.isPresent()) {
+      clusterA = peerClusterMap.get(optResourcePairAKey.get());
+    }
+    /* resource b */
+    Optional<Integer> optResourcePairBKey = allResourcesService.getResourceKey(pair.getSecond());
+    if (optResourcePairBKey.isPresent()) {
+      clusterB = peerClusterMap.get(optResourcePairBKey.get());
+    }
     if (clusterA == null || clusterB == null) {
       return null;
     }
@@ -81,7 +92,11 @@ public class PeerPressureClusteringMetricWithGremlinService implements
           .group()
           .by(__.map(traverser -> schema.iri().<String>apply((Element) traverser.get())))
           .by(__.values(PeerPressureVertexProgram.CLUSTER)).next().forEach((iri, value) -> {
-        peerClusterMap.put((String) iri, (Long) value);
+        Optional<Integer> optResourceKey = allResourcesService
+            .getResourceKey(new Resource((String) iri));
+        if (optResourceKey.isPresent()) {
+          peerClusterMap.put(optResourceKey.get(), (Long) value);
+        }
       });
       mapDB.commit();
       gremlinService.commit();

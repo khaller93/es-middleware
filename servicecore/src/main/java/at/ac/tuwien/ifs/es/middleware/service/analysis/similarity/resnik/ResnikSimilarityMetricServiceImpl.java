@@ -12,6 +12,7 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.RP;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BinaryOperator;
 import org.mapdb.DB;
@@ -48,7 +49,7 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
   private final AllResourcesService allResourcesService;
   private final DB mapDB;
 
-  private final HTreeMap<RP, Double> resnikValueMap;
+  private final HTreeMap<int[], Double> resnikValueMap;
 
   @Autowired
   public ResnikSimilarityMetricServiceImpl(
@@ -60,19 +61,27 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
     this.leastCommonSubSumersService = leastCommonSubSumersService;
     this.allResourcesService = allResourcesService;
     this.mapDB = mapDB;
-    this.resnikValueMap = mapDB.hashMap(UID)
-        .keySerializer(Serializer.JAVA).valueSerializer(Serializer.DOUBLE).createOrOpen();
+    this.resnikValueMap = mapDB.hashMap(UID, Serializer.INT_ARRAY, Serializer.DOUBLE)
+        .createOrOpen();
   }
 
   @Override
   public Double getValueFor(ResourcePair resourcePair) {
     checkArgument(resourcePair != null, "The given resource pair must not be null.");
-    Double value = resnikValueMap.get(RP.of(resourcePair));
-    if (value != null) {
-      return value;
-    } else {
-      return computeIC(resourcePair);
+    Optional<Integer> optionalResourceAKey = allResourcesService
+        .getResourceKey(resourcePair.getFirst());
+    if (optionalResourceAKey.isPresent()) {
+      Optional<Integer> optionalResourceBKey = allResourcesService
+          .getResourceKey(resourcePair.getSecond());
+      if (optionalResourceBKey.isPresent()) {
+        Double value = resnikValueMap
+            .get(new int[]{optionalResourceAKey.get(), optionalResourceBKey.get()});
+        if (value != null) {
+          return value;
+        }
+      }
     }
+    return computeIC(resourcePair);
   }
 
   private Double computeIC(ResourcePair pair) {
@@ -87,16 +96,28 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
     logger.info("Started to compute the Resnik similarity metric.");
     /* compute Resnik metric for resource pairs */
     long bulkSize = 500000L;
-    Map<RP, Double> metricResultsBulk = new HashMap<>();
-    for (Resource resourceA : allResourcesService.getResourceList()) {
-      for (Resource resourceB : allResourcesService.getResourceList()) {
-        ResourcePair pair = ResourcePair.of(resourceA, resourceB);
-        metricResultsBulk.put(RP.of(pair), computeIC(pair));
-        if (metricResultsBulk.size() == bulkSize) {
-          logger.debug("Bulk loaded {} Resnik metric results.", bulkSize);
-          resnikValueMap.putAll(metricResultsBulk);
-          metricResultsBulk = new HashMap<>();
+    Map<int[], Double> metricResultsBulk = new HashMap<>();
+    for (Resource resourceA : allResourcesService.getResourceMap()) {
+      Optional<Integer> optionalResourceAKey = allResourcesService.getResourceKey(resourceA);
+      if (optionalResourceAKey.isPresent()) {
+        int resourceAKey = optionalResourceAKey.get();
+        for (Resource resourceB : allResourcesService.getResourceMap()) {
+          Optional<Integer> optionalResourceBKey = allResourcesService.getResourceKey(resourceB);
+          if (optionalResourceBKey.isPresent()) {
+            int resourceBKey = optionalResourceBKey.get();
+            ResourcePair pair = ResourcePair.of(resourceA, resourceB);
+            metricResultsBulk.put(new int[]{resourceAKey, resourceBKey}, computeIC(pair));
+            if (metricResultsBulk.size() == bulkSize) {
+              logger.debug("Bulk loaded {} Resnik metric results.", bulkSize);
+              resnikValueMap.putAll(metricResultsBulk);
+              metricResultsBulk = new HashMap<>();
+            }
+          } else {
+            logger.warn("No mapped key can be found for {}.", resourceA);
+          }
         }
+      } else {
+        logger.warn("No mapped key can be found for {}.", resourceA);
       }
     }
     if (!metricResultsBulk.isEmpty()) {
@@ -104,8 +125,7 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
       resnikValueMap.putAll(metricResultsBulk);
     }
     mapDB.commit();
-    logger.info("Resnik similarity measurement issued on {} computed on {}.", issueTimestamp,
-        Instant.now());
+    logger.info("Resnik similarity measurement has successfully been computed.");
   }
 
 }

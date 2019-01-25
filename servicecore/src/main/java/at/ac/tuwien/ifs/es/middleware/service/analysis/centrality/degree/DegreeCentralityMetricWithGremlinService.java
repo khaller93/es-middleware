@@ -2,11 +2,11 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.degree;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import java.time.Instant;
-import javax.annotation.PostConstruct;
+import java.util.Optional;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Element;
 import org.mapdb.DB;
@@ -30,7 +30,8 @@ import org.springframework.stereotype.Service;
  */
 @Primary
 @Service
-@RegisterForAnalyticalProcessing(name = "esm.service.analytics.centrality.degree", requiresGremlin = true)
+@RegisterForAnalyticalProcessing(name = "esm.service.analytics.centrality.degree",
+    requiresGremlin = true, prerequisites = {AllResourcesService.class})
 public class DegreeCentralityMetricWithGremlinService implements DegreeCentralityMetricService {
 
   private static final Logger logger = LoggerFactory
@@ -38,33 +39,37 @@ public class DegreeCentralityMetricWithGremlinService implements DegreeCentralit
 
   public static final String DEGREE_PROP_NAME = "esm.service.analytics.centrality.degree";
 
-  private GremlinService gremlinService;
+  private final GremlinService gremlinService;
+  private final AllResourcesService allResourcesService;
   private DB mapDB;
   private PGS schema;
 
-  private HTreeMap<String, Long> degreeMap;
-
-  @Value("${esm.service.analytics.centrality.degree:#{false}}")
-  private boolean disabled;
+  private HTreeMap<Integer, Long> degreeMap;
 
   @Autowired
   public DegreeCentralityMetricWithGremlinService(GremlinService gremlinService,
+      AllResourcesService allResourcesService,
       DB mapDB) {
     this.gremlinService = gremlinService;
-    this.mapDB = mapDB;
-    this.degreeMap = mapDB.hashMap(DEGREE_PROP_NAME, Serializer.STRING, Serializer.LONG)
-        .createOrOpen();
     this.schema = gremlinService.getPropertyGraphSchema();
+    this.allResourcesService = allResourcesService;
+    this.mapDB = mapDB;
+    this.degreeMap = mapDB.hashMap(DEGREE_PROP_NAME, Serializer.INTEGER, Serializer.LONG)
+        .createOrOpen();
   }
 
   @Override
   public Long getValueFor(Resource resource) {
-    return degreeMap.get(resource.getId());
+    Optional<Integer> resourceKey = allResourcesService.getResourceKey(resource);
+    if (resourceKey.isPresent()) {
+      return degreeMap.get(resourceKey.get());
+    } else {
+      return null;
+    }
   }
 
   @Override
   public void compute() {
-    Instant issueTimestamp = Instant.now();
     logger.info("Starting to compute degree metric.");
     gremlinService.lock();
     try {
@@ -72,7 +77,13 @@ public class DegreeCentralityMetricWithGremlinService implements DegreeCentralit
           .traversal().V().group()
           .by(__.map(traverser -> schema.iri().<String>apply((Element) traverser.get())))
           .by(__.inE().count()).next().forEach((iri, value) -> {
-        degreeMap.put((String) iri, (Long) value);
+        Optional<Integer> resourceKeyOptional = allResourcesService
+            .getResourceKey(new Resource((String) iri));
+        if (resourceKeyOptional.isPresent()) {
+          degreeMap.put(resourceKeyOptional.get(), (Long) value);
+        } else {
+          logger.warn("No mapped key can be found for {}.", iri);
+        }
       });
       mapDB.commit();
       gremlinService.commit();
@@ -82,7 +93,7 @@ public class DegreeCentralityMetricWithGremlinService implements DegreeCentralit
     } finally {
       gremlinService.unlock();
     }
-    logger.info("Degree metric issued on {} computed on {}.", issueTimestamp, Instant.now());
+    logger.info("Degree metric has been successfully computed.");
   }
 
 }
