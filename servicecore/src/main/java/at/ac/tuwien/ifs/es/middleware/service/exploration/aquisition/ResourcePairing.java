@@ -44,7 +44,7 @@ public class ResourcePairing implements AcquisitionOperator<PairingPayload> {
 
   @Override
   public ExplorationContext apply(ExplorationContext context, PairingPayload payload) {
-    logger.debug("A pairing get resources {} is requested with {}.", payload, context);
+    logger.debug("A pairing of resources {} has been requested with {}.", payload, context);
     if (context instanceof IterableResourcesContext) {
       IterableResourcesContext source = (IterableResourcesContext) context;
       ExplorationContext oTarget = dynamicExplorationFlowFactory.constructFlow(payload.getSteps())
@@ -67,12 +67,12 @@ public class ResourcePairing implements AcquisitionOperator<PairingPayload> {
         return new ResourcePairList(resourcePairs);
       } else {
         throw new ExplorationFlowSpecificationException(String.format(
-            "The result get the specified steps must allow to iterate over resources, but for %s this is not the case.",
+            "The result of the specified steps must allow to iterate over resources, but for %s this is not the case.",
             oTarget.getClass().getSimpleName()));
       }
     } else {
       throw new ExplorationFlowSpecificationException(String.format(
-          "The result get the previous step must allow to iterate over resources, but for %s this is not the case.",
+          "The result of the previous step must allow to iterate over resources, but for %s this is not the case.",
           context.getClass().getSimpleName()));
     }
   }
