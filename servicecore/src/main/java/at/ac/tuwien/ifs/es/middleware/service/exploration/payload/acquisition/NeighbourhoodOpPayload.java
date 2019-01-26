@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.service.exploration.payload.exploitation;
+package at.ac.tuwien.ifs.es.middleware.service.exploration.payload.acquisition;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import com.fasterxml.jackson.annotation.JsonCreator;
