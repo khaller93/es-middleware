@@ -1,13 +1,17 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.context;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 
@@ -36,6 +40,8 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
 
   protected AbstractExplorationContext(Map<String, ObjectNode> values,
       Map<String, JsonNode> metadata) {
+    checkArgument(values != null, "The passed values map can be empty, but must not be null.");
+    checkArgument(metadata != null, "The passed metadata map can be empty, but must not be null.");
     this.values = values;
     this.metadata = metadata;
   }
@@ -78,7 +84,15 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
   }
 
   @Override
+  public void clearValues() {
+    values.clear();
+  }
+
+  @Override
   public void putValuesData(String id, JsonPointer path, JsonNode data) {
+    checkArgument(id != null && !id.isEmpty(), "The id must not be null or empty.");
+    checkArgument(path != null, "The path must not be null.");
+    checkArgument(data != null, "The data node to push must not be null.");
     if (path.matches()) {
       if (data.isObject()) {
         values.put(id, (ObjectNode) data);
@@ -113,6 +127,7 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
 
   @Override
   public void removeValuesData(String id) {
+    checkArgument(id != null && !id.isEmpty(), "The given id must not be null or empty.");
     values.remove(id);
   }
 
@@ -123,6 +138,9 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
 
   @Override
   public Optional<JsonNode> getValues(String id, JsonPointer path) {
+    checkArgument(id != null && !id.isEmpty(),
+        "The id for getting value entries must not be null or empty.");
+    checkArgument(path != null, "The given path must not be null.");
     ObjectNode valuesNode = values.get(id);
     if (valuesNode != null) {
       JsonNode value = valuesNode.at(path);
@@ -133,12 +151,73 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
   }
 
   @Override
+  public void mergeValues(Map<String, ObjectNode> valuesMap) {
+    checkArgument(valuesMap != null, "The value map to merge with must not be null.");
+    /* make a deep copy */
+    Map<String, ObjectNode> copiedValues = new HashMap<>();
+    for (String id : values.keySet()) {
+      copiedValues.put(id, values.get(id).deepCopy());
+    }
+    /* compute the merge */
+    for (Entry<String, ObjectNode> valueEntry : valuesMap.entrySet()) {
+      if (copiedValues.containsKey(valueEntry.getKey())) {
+        copiedValues.put(valueEntry.getKey(),
+            (ObjectNode) mergeNodes(copiedValues.get(valueEntry.getKey()), valueEntry.getValue()));
+      } else {
+        copiedValues.put(valueEntry.getKey(), valueEntry.getValue());
+      }
+    }
+    /* set the merged values map */
+    this.values = copiedValues;
+  }
+
+  /**
+   * Merges the given source {@link JsonNode} and {@code toMerge} {@link JsonNode}. Later has
+   * precedence. Value, array and null nodes are considered as atomic and are not merged, only
+   * object nodes.
+   *
+   * @param source {@link JsonNode} that is the source node for merging.
+   * @param toMerge {@link JsonNode} that is the node to merge into the source.
+   */
+  private JsonNode mergeNodes(JsonNode source, JsonNode toMerge) {
+    if (toMerge.isObject()) {
+      if (source.isObject()) {
+        ObjectNode sourceObj = ((ObjectNode) source);
+        ObjectNode toMergeObj = ((ObjectNode) toMerge);
+        Iterator<Entry<String, JsonNode>> fieldIterator = toMergeObj.fields();
+        while (fieldIterator.hasNext()) {
+          Entry<String, JsonNode> fieldEntry = fieldIterator.next();
+          if (sourceObj.has(fieldEntry.getKey())) {
+            sourceObj.replace(fieldEntry.getKey(),
+                mergeNodes(sourceObj.get(fieldEntry.getKey()), fieldEntry.getValue()));
+          } else {
+            sourceObj.set(fieldEntry.getKey(), fieldEntry.getValue());
+          }
+        }
+        return sourceObj;
+      } else {
+        return toMerge;
+      }
+    } else {
+      return toMerge;
+    }
+  }
+
+  @Override
+  public void clearMetadata() {
+    metadata.clear();
+  }
+
+  @Override
   public void setMetadataFor(String name, JsonNode data) {
+    checkArgument(name != null && !name.isEmpty(), "The given name must not be null or empty.");
+    checkArgument(data != null, "The data added to metadata must not be null.");
     metadata.put(name, data);
   }
 
   @Override
   public Optional<JsonNode> getMetadataFor(String name) {
+    checkArgument(name != null && !name.isEmpty(), "The given name must not be null or empty.");
     JsonNode jsonNode = metadata.get(name);
     if (jsonNode != null) {
       return Optional.of(jsonNode);
@@ -153,6 +232,7 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
 
   @Override
   public void removeMetadataFor(String name) {
+    checkArgument(name != null && !name.isEmpty(), "The given name must not be null or empty.");
     metadata.remove(name);
   }
 }

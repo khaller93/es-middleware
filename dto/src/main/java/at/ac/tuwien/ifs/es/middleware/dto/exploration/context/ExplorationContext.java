@@ -58,6 +58,11 @@ public interface ExplorationContext<T extends IdentifiableResult> extends Iterab
   void removeMetadataFor(String name);
 
   /**
+   * Clears all entries to the metadata.
+   */
+  void clearMetadata();
+
+  /**
    * Gets the metadata stored under the given {@code name}.
    *
    * @param name under which the demanded metadata is stored.
@@ -102,27 +107,33 @@ public interface ExplorationContext<T extends IdentifiableResult> extends Iterab
 
   /**
    * Gets the {@link JsonNode} on the given position in the value node stored under the given {@code
-   * id}. If there is no data for {@code id} or the path goes nowhere, {@link Optional#EMPTY} will
+   * id}. If there is no data for {@code id} or the path goes nowhere, {@link Optional#empty()} will
    * be returned.
    *
    * @param id the id for which the {@link JsonNode} on the given position shall be returned.
    * @param path refers to the data in the {@link JsonNode}.
    * @return {@link JsonNode} on the given position in the value node stored under the given {@code
-   * id}, or {@link Optional#EMPTY}, if there is no such data.
+   * id}, or {@link Optional#empty()}, if there is no such data.
    */
   Optional<JsonNode> getValues(String id, JsonPointer path);
 
   /**
    * Gets the root {@link JsonNode} storing values for the given {@code id}. If there is no data for
-   * {@code id}, {@link Optional#EMPTY} will be returned.
+   * {@code id}, {@link Optional#empty()} will be returned.
    *
    * @param id the id for which the root {@link JsonNode} shall be returned.
    * @return {@link JsonNode} on the given position in the value node stored under the given {@code
-   * id}, or {@link Optional#EMPTY}, if there is no such data.
+   * id}, or {@link Optional#empty()}, if there is no such data.
    */
   default Optional<JsonNode> getValues(String id) {
     return getValues(id, ROOT_PTR);
   }
+
+
+  /**
+   * Clears all value entries.
+   */
+  void clearValues();
 
   /**
    * Gets a deep copy of the values stored by this context.
@@ -131,6 +142,13 @@ public interface ExplorationContext<T extends IdentifiableResult> extends Iterab
    */
   @JsonIgnore
   Map<String, ObjectNode> getAllValues();
+
+  /**
+   * Merges the given value map with the value map of this context.
+   *
+   * @param valuesMap that should be merged with the current values map.
+   */
+  void mergeValues(Map<String, ObjectNode> valuesMap);
 
   /**
    * Removes the data for the given {@code id}.

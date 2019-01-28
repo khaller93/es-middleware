@@ -58,7 +58,6 @@ public abstract class AbstractExplorationContextTest<T extends IdentifiableResul
     similarityObj = JsonNodeFactory.instance.objectNode();
     similarityObj.set("icpr", JsonNodeFactory.instance.numberNode(0.4));
     similarityObj.set("ldsd", JsonNodeFactory.instance.numberNode(0.9));
-
   }
 
   @Test
