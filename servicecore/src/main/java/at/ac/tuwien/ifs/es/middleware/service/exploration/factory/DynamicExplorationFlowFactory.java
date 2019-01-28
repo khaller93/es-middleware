@@ -1,5 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.factory;
 
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.request.DynamicExplorationFlowRequest;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.request.ExplorationFlowStepRequest;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
@@ -18,7 +19,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 /**
- * This factory makes use get the central {@link DynamicExplorationFlowFactory} to read requests from
+ * This factory makes use of the central {@link DynamicExplorationFlowFactory} to read requests from
  * clients and constructs the corresponding {@link ExplorationFlow}.
  *
  * @author Kevin Haller
@@ -34,19 +35,20 @@ public class DynamicExplorationFlowFactory {
   private ExplorationFlowRegistry registry;
   private ObjectMapper payloadMapper;
 
-  public DynamicExplorationFlowFactory(@Autowired ApplicationContext context,
-      @Autowired ExplorationFlowRegistry registry, @Autowired ObjectMapper payloadMapper) {
+  @Autowired
+  public DynamicExplorationFlowFactory(ApplicationContext context,
+      ExplorationFlowRegistry registry, ObjectMapper payloadMapper) {
     this.context = context;
     this.registry = registry;
     this.payloadMapper = payloadMapper;
   }
 
   /**
-   * Takes the specification get an {@link ExplorationFlow} written by a client and constructs the
+   * Takes the specification of an {@link ExplorationFlow} written by a client and constructs the
    * corresponding exploration flow.
    *
    * @param request that was specified by the client.
-   * @return {@link ExplorationFlow} that covers the specification get the client.
+   * @return {@link ExplorationFlow} that covers the specification of the client.
    */
   public ExplorationFlow constructFlow(DynamicExplorationFlowRequest request) {
     logger.debug("Start to dynamically construct the flow '{}'.", request);
@@ -54,15 +56,28 @@ public class DynamicExplorationFlowFactory {
   }
 
   /**
-   * Takes the specification get an {@link ExplorationFlow} written by a client and constructs the
-   * corresponding exploration flow.
+   * Takes the specification of a complete {@link ExplorationFlow} written by a client and
+   * constructs the corresponding exploration flow.
    *
+   * @param steps that were specified by the client.
+   * @return {@link ExplorationFlow} that covers the specification of the client.
+   */
+  public ExplorationFlow constructFlow(List<ExplorationFlowStepRequest> steps) {
+    return constructFlow(null, steps);
+  }
+
+  /**
+   * Takes a partial specification of an {@link ExplorationFlow} written by a client and constructs
+   * the corresponding exploration flow.
+   *
+   * @param initialContext initial {@link ExplorationContext} that can be null.
    * @param steps that were specified by the client.
    * @return {@link ExplorationFlow} that covers the specification get the client.
    */
-  public ExplorationFlow constructFlow(List<ExplorationFlowStepRequest> steps) {
+  public ExplorationFlow constructFlow(ExplorationContext initialContext,
+      List<ExplorationFlowStepRequest> steps) {
     logger.debug("Start to dynamically construct the flow with steps '{}'.", steps);
-    ExplorationFlow flow = new ExplorationFlow();
+    ExplorationFlow flow = new ExplorationFlow(initialContext);
     for (ExplorationFlowStepRequest step : steps) {
       Optional<Class<? extends ExplorationFlowStep>> optionalClass = registry.get(step.getName());
       if (optionalClass.isPresent()) {
@@ -83,4 +98,5 @@ public class DynamicExplorationFlowFactory {
     }
     return flow;
   }
+
 }

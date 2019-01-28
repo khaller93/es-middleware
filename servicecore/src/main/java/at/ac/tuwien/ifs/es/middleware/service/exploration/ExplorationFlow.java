@@ -18,7 +18,24 @@ import org.javatuples.Pair;
  */
 public class ExplorationFlow {
 
-  private List<Pair<ExplorationFlowStep, Serializable>> steps = new LinkedList<>();
+  private ExplorationContext initialContext;
+  private List<Pair<ExplorationFlowStep, Serializable>> steps;
+
+  public ExplorationFlow() {
+    this(null);
+  }
+
+  public ExplorationFlow(
+      ExplorationContext initialContext) {
+    this(initialContext, new LinkedList<>());
+  }
+
+  private ExplorationFlow(
+      ExplorationContext initialContext,
+      List<Pair<ExplorationFlowStep, Serializable>> steps) {
+    this.initialContext = initialContext;
+    this.steps = steps;
+  }
 
   /**
    * Appends the given {@code step} to the exploration flow and pack it together with the given
@@ -28,9 +45,9 @@ public class ExplorationFlow {
    * @param payload specifying parameters for the given {@link ExplorationFlowStep} in this flow.
    */
   public void appendFlowStep(ExplorationFlowStep step, Serializable payload) {
-    if (steps.isEmpty() && !(step instanceof AcquisitionSource)) {
+    if (steps.isEmpty() && initialContext == null && !(step instanceof AcquisitionSource)) {
       throw new ExplorationFlowSpecificationException(
-          "The first step get the flow must be an acquistion source.");
+          "The first step of the flow must be an acquisition source.");
     }
     this.steps.add(new Pair<>(step, payload));
   }
@@ -52,7 +69,7 @@ public class ExplorationFlow {
    */
   @SuppressWarnings("unchecked")
   public ExplorationContext execute() {
-    ExplorationContext context = null;
+    ExplorationContext context = initialContext;
     for (Pair<ExplorationFlowStep, Serializable> step : steps) {
       try {
         context = step.getValue0().apply(context, step.getValue1());
