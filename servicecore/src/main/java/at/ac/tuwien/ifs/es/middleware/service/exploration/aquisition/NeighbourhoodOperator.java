@@ -10,6 +10,7 @@ import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecifica
 import at.ac.tuwien.ifs.es.middleware.service.exploration.payload.acquisition.NeighbourhoodOpPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,8 +44,21 @@ public class NeighbourhoodOperator implements AcquisitionOperator<NeighbourhoodO
       + "VALUES ?s {\n"
       + "  ${resourceList}\n"
       + "}\n"
+      + "${propertyInclusion}\n"
       + "?s ?p ?o .\n"
+      + "${propertyExclusion}\n"
       + "FILTER(isIRI(?o)) .\n"
+      + "}";
+
+  private static final String PROP_VALUES = "VALUES ?p {\n"
+      + "${propertyList}\n"
+      + "}";
+
+  private static final String MINUS_PROP_VALUES = "MINUS  {\n"
+      + "VALUES ?pm {\n"
+      + "${propertyList}\n"
+      + "}\n"
+      + "?s ?pm ?o\n"
       + "}";
 
   private final SPARQLService sparqlService;
@@ -69,6 +83,26 @@ public class NeighbourhoodOperator implements AcquisitionOperator<NeighbourhoodO
       Map<String, String> valueMap = new HashMap<>();
       valueMap.put("resourceList", source.asResourceSet().stream().map(
           BlankOrIRIJsonUtil::stringForSPARQLResourceOf).collect(Collectors.joining("\n")));
+      // deal with included properties
+      List<Resource> includedProperties = payload.getIncludedProperties();
+      if (includedProperties != null && !includedProperties.isEmpty()) {
+        valueMap.put("propertyInclusion", new StringSubstitutor(
+            Collections.singletonMap("propertyList", includedProperties.stream().map(
+                BlankOrIRIJsonUtil::stringForSPARQLResourceOf).collect(Collectors.joining("\n"))))
+            .replace(PROP_VALUES));
+      } else {
+        valueMap.put("propertyInclusion", "");
+      }
+      // deal with excluded properties
+      List<Resource> excludedProperties = payload.getExcludedProperties();
+      if (excludedProperties != null && !excludedProperties.isEmpty()) {
+        valueMap.put("propertyExclusion", new StringSubstitutor(
+            Collections.singletonMap("propertyList", excludedProperties.stream().map(
+                BlankOrIRIJsonUtil::stringForSPARQLResourceOf).collect(Collectors.joining("\n"))))
+            .replace(MINUS_PROP_VALUES));
+      } else {
+        valueMap.put("propertyExclusion", "");
+      }
       /* query and unpack results */
       List<Map<String, RDFTerm>> valueSet = sparqlService.<SelectQueryResult>query(
           new StringSubstitutor(valueMap).replace(QUERY), true)
@@ -92,8 +126,7 @@ public class NeighbourhoodOperator implements AcquisitionOperator<NeighbourhoodO
             });
       }
       Neighbourhood neighbourhood = Neighbourhood.of(nMap);
-      /*  */
-
+      neighbourhood.mergeValues(context.getAllValues());
       return neighbourhood;
     } else {
       throw new ExplorationFlowSpecificationException(String.format(
