@@ -5,7 +5,6 @@ import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import com.google.common.collect.Sets;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -20,6 +19,7 @@ import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -57,7 +57,8 @@ public class SameAsResourceWithSPARQLService implements SameAsResourceService {
   private final HTreeMap<String, Set<String>> sameAsMap;
 
   @Autowired
-  public SameAsResourceWithSPARQLService(SPARQLService sparqlService, DB mapDB) {
+  public SameAsResourceWithSPARQLService(SPARQLService sparqlService,
+      @Qualifier("persistent-mapdb") DB mapDB) {
     this.sparqlService = sparqlService;
     this.mapDB = mapDB;
     this.sameAsMap = mapDB
@@ -67,7 +68,6 @@ public class SameAsResourceWithSPARQLService implements SameAsResourceService {
 
   @Override
   public void compute() {
-    Instant startedTime = Instant.now();
     logger.debug("Start to compute the 'owl:sameAs' mapping.");
     Map<Resource, Set<Resource>> sameAsIntermediateMap = new HashMap<>();
     int offset = 0;
@@ -93,7 +93,6 @@ public class SameAsResourceWithSPARQLService implements SameAsResourceService {
         .collect(Collectors.toMap(e -> e.getKey().getId(),
             e -> e.getValue().stream().map(Resource::getId).collect(Collectors.toSet()))));
     mapDB.commit();
-    logger.debug("'owl:sameAs' mapping issued at {} computed on {}.", startedTime, Instant.now());
   }
 
   @Override

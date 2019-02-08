@@ -8,8 +8,6 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProc
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.ClassEntropyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.LeastCommonSubsumersService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.RP;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -21,6 +19,7 @@ import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -56,7 +55,7 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
       ClassEntropyService classEntropyService,
       LeastCommonSubsumersService leastCommonSubSumersService,
       AllResourcesService allResourcesService,
-      DB mapDB) {
+      @Qualifier("persistent-mapdb") DB mapDB) {
     this.classEntropyService = classEntropyService;
     this.leastCommonSubSumersService = leastCommonSubSumersService;
     this.allResourcesService = allResourcesService;
@@ -92,16 +91,15 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
 
   @Override
   public void compute() {
-    Instant issueTimestamp = Instant.now();
     logger.info("Started to compute the Resnik similarity metric.");
     /* compute Resnik metric for resource pairs */
     long bulkSize = 500000L;
     Map<int[], Double> metricResultsBulk = new HashMap<>();
-    for (Resource resourceA : allResourcesService.getResourceMap()) {
+    for (Resource resourceA : allResourcesService.getResourceList()) {
       Optional<Integer> optionalResourceAKey = allResourcesService.getResourceKey(resourceA);
       if (optionalResourceAKey.isPresent()) {
         int resourceAKey = optionalResourceAKey.get();
-        for (Resource resourceB : allResourcesService.getResourceMap()) {
+        for (Resource resourceB : allResourcesService.getResourceList()) {
           Optional<Integer> optionalResourceBKey = allResourcesService.getResourceKey(resourceB);
           if (optionalResourceBKey.isPresent()) {
             int resourceBKey = optionalResourceBKey.get();

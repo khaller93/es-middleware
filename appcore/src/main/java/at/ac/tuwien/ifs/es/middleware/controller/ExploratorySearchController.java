@@ -1,6 +1,5 @@
 package at.ac.tuwien.ifs.es.middleware.controller;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourcePairList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.meta.TimeMetadata;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.request.DynamicExplorationFlowRequest;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
@@ -15,7 +14,6 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;

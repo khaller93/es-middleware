@@ -19,6 +19,7 @@ import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -61,7 +62,7 @@ public class AllResourcesWithSPARQLService implements AllResourcesService {
   @Autowired
   public AllResourcesWithSPARQLService(
       SPARQLService sparqlService,
-      DB mapDB) {
+      @Qualifier("persistent-mapdb") DB mapDB) {
     this.sparqlService = sparqlService;
     this.mapDB = mapDB;
     this.resourceMap = mapDB
@@ -70,7 +71,7 @@ public class AllResourcesWithSPARQLService implements AllResourcesService {
   }
 
   @Override
-  public List<Resource> getResourceMap() {
+  public List<Resource> getResourceList() {
     return resourceMap.keySet().stream().map(Resource::new).collect(Collectors.toList());
   }
 

@@ -20,7 +20,7 @@ public interface AllResourcesService extends AnalysisService {
    *
    * @return a list of all {@link Resource}s in the knowledge graph.
    */
-  List<Resource> getResourceMap();
+  List<Resource> getResourceList();
 
   /**
    * Gets the {@link Integer} key of the given resource, if it has been mapped correctly before. The

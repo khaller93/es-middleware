@@ -15,6 +15,7 @@ import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -49,7 +50,7 @@ public class DegreeCentralityMetricWithGremlinService implements DegreeCentralit
   @Autowired
   public DegreeCentralityMetricWithGremlinService(GremlinService gremlinService,
       AllResourcesService allResourcesService,
-      DB mapDB) {
+      @Qualifier("persistent-mapdb") DB mapDB) {
     this.gremlinService = gremlinService;
     this.schema = gremlinService.getPropertyGraphSchema();
     this.allResourcesService = allResourcesService;

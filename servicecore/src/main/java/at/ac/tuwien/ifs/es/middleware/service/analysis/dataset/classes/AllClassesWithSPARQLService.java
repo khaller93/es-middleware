@@ -12,6 +12,7 @@ import org.mapdb.DB;
 import org.mapdb.HTreeMap.KeySet;
 import org.mapdb.Serializer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +47,8 @@ public class AllClassesWithSPARQLService implements AllClassesService {
   private final KeySet<String> classList;
 
   @Autowired
-  public AllClassesWithSPARQLService(SPARQLService sparqlService, DB mapDb) {
+  public AllClassesWithSPARQLService(SPARQLService sparqlService,
+      @Qualifier("persistent-mapdb") DB mapDb) {
     this.sparqlService = sparqlService;
     this.mapDb = mapDb;
     this.classList = mapDb

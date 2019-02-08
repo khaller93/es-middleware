@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 public class MapDB {
 
   private final DB db;
+  private final DB tempDB;
 
   @Autowired
   public MapDB(@Value("${esm.db.data.dir}") String dataDir) {
@@ -33,7 +34,9 @@ public class MapDB {
       throw new IllegalArgumentException(
           "The path for storing the analysis results must not refer to a non-directory.");
     }
-    db = DBMaker.fileDB(new File(dataDirFile, "map.db")).transactionEnable().make();
+    db = DBMaker.fileDB(new File(dataDirFile, "map.db")).closeOnJvmShutdown().transactionEnable()
+        .make();
+    tempDB = DBMaker.tempFileDB().closeOnJvmShutdown().make();
   }
 
   /**
@@ -41,9 +44,14 @@ public class MapDB {
    *
    * @return {@link DB} that can be used to create a persistent key-value store.
    */
-  @Bean(name = "mapdb-instance")
+  @Bean(name = "persistent-mapdb")
   public DB db() {
     return db;
+  }
+
+  @Bean(name = "temp-mapdb")
+  public DB tempDB() {
+    return tempDB;
   }
 
   @PreDestroy

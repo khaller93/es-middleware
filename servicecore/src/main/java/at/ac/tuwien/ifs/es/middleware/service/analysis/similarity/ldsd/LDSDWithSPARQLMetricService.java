@@ -23,6 +23,7 @@ import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -107,7 +108,7 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
   public LDSDWithSPARQLMetricService(
       SPARQLService sparqlService,
       AllResourcesService allResourcesService,
-      DB mapDB) {
+      @Qualifier("persistent-mapdb") DB mapDB) {
     this.sparqlService = sparqlService;
     this.allResourcesService = allResourcesService;
     this.mapDB = mapDB;
@@ -160,9 +161,9 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
       }
     }
     mapDB.commit();
-    for (Resource resourceA : allResourcesService.getResourceMap()) {
+    for (Resource resourceA : allResourcesService.getResourceList()) {
       Optional<Integer> optResAKey = allResourcesService.getResourceKey(resourceA);
-      for (Resource resourceB : allResourcesService.getResourceMap()) {
+      for (Resource resourceB : allResourcesService.getResourceList()) {
         Optional<Integer> optResBKey = allResourcesService.getResourceKey(resourceB);
         if (optResAKey.isPresent() && optResBKey.isPresent()) {
           int[] key = new int[]{optResAKey.get(), optResBKey.get()};
