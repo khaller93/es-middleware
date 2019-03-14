@@ -17,13 +17,17 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLucene
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.peerpressure.PeerPressureClusteringMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.peerpressure.PeerPressureClusteringMetricWithGremlinService;
+import at.ac.tuwien.ifs.es.middleware.service.integration.MapDBDummy;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.SimpleGremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
+import at.ac.tuwien.ifs.es.middleware.testutil.WineOntologyDatasetResource;
 import javax.annotation.PostConstruct;
 import org.junit.Before;
 import org.junit.Rule;
@@ -47,8 +51,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {SimpleSPARQLService.class, SimpleGremlinService.class,
     RDF4JLuceneFullTextSearchDAO.class, RDF4JMemoryStoreWithLuceneSparqlDAO.class,
     ClonedInMemoryGremlinDAO.class, ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class,
-    ThreadPoolConfig.class, SpringCacheConfig.class, AnalysisPipelineProcessorDummy.class,
-    MusicPintaInstrumentsResource.class, PeerPressureClusteringMetricWithGremlinService.class})
+    ThreadPoolConfig.class, SpringCacheConfig.class, MapDBDummy.class,
+    WineOntologyDatasetResource.class, PeerPressureClusteringMetricWithGremlinService.class,
+    AllResourcesWithSPARQLService.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -59,20 +64,22 @@ public class PeerPressureClusteringMetricServiceTests {
 
   @Rule
   @Autowired
-  public MusicPintaInstrumentsResource musicPintaResource;
+  public WineOntologyDatasetResource wineOntologyDatasetResource;
+  @Autowired
+  private AllResourcesService allResourcesService;
   @Autowired
   private PeerPressureClusteringMetricService peerPressureClusteringMetricService;
 
   @Before
   public void setUp() throws Exception {
-    musicPintaResource.waitForAllDAOsBeingReady();
+    allResourcesService.compute();
+    peerPressureClusteringMetricService.compute();
   }
 
   @Test
   public void computeThePeerPressureAndGetItForSameResourcesPair_mustReturnTrue() {
-    peerPressureClusteringMetricService.compute();
-    ResourcePair resourcePair = ResourcePair.of(new Resource("http://dbpedia.org/resource/Guitar"),
-        new Resource("http://dbpedia.org/resource/Guitar"));
+    ResourcePair resourcePair = ResourcePair.of(new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"),
+        new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"));
     Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair);
     assertNotNull(result);
     assertTrue(result);
@@ -80,9 +87,8 @@ public class PeerPressureClusteringMetricServiceTests {
 
   @Test
   public void computeThePeerPressureAndGetItForTwoResourcesInDifferentCLuster_mustReturnFalse() {
-    peerPressureClusteringMetricService.compute();
-    ResourcePair resourcePair = ResourcePair.of(new Resource("http://dbpedia.org/resource/Guitar"),
-        new Resource("http://purl.org/ontology/mo/Performance"));
+    ResourcePair resourcePair = ResourcePair.of(new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"),
+        new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#ChateauMargauxWinery"));
     Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair);
     assertNotNull(result);
     assertFalse(result);
@@ -90,17 +96,15 @@ public class PeerPressureClusteringMetricServiceTests {
 
   @Test
   public void computeThePeerPressureAndGetItForUnknownPair_mustReturnNull() {
-    peerPressureClusteringMetricService.compute();
     ResourcePair resourcePair = ResourcePair.of(new Resource("test:a"),
-        new Resource("http://dbtune.org/musicbrainz/resource/instrument/233"));
+        new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"));
     Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair);
     assertNull(result);
   }
 
   @Test
   public void computeThePeerPressureAndGetItForUnknownPair2_mustReturnNull() {
-    peerPressureClusteringMetricService.compute();
-    ResourcePair resourcePair = ResourcePair.of(new Resource("http://dbpedia.org/resource/Guitar"),
+    ResourcePair resourcePair = ResourcePair.of(new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"),
         new Resource("test:a"));
     Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair);
     assertNull(result);
@@ -108,10 +112,14 @@ public class PeerPressureClusteringMetricServiceTests {
 
   @Test
   public void computeThePeerPressureAndGetItForUnknownPair3_mustReturnNull() {
-    peerPressureClusteringMetricService.compute();
     ResourcePair resourcePair = ResourcePair.of(new Resource("test:b"),
         new Resource("test:a"));
     Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair);
     assertNull(result);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void computeThePeerPressureForNull_mustThrowIllegalArgument() {
+    peerPressureClusteringMetricService.isSharingSameCluster(null);
   }
 }

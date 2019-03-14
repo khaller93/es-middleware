@@ -8,6 +8,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchD
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.testutil.AbstractMusicPintaGremlinTests;
+import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import java.io.File;
 import java.io.IOException;
 import org.apache.commons.io.FileUtils;
@@ -32,7 +33,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {
     RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedLocalJanusGraph.class, KGDAOConfig.class,
-    RDF4JDAOConfig.class, RDF4JLuceneFullTextSearchDAO.class, ThreadPoolConfig.class
+    RDF4JDAOConfig.class, RDF4JLuceneFullTextSearchDAO.class, ThreadPoolConfig.class,
+    MusicPintaInstrumentsResource.class
 })
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
@@ -45,24 +47,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @Ignore
 public class ClonedLocalJanusGraphTest extends AbstractMusicPintaGremlinTests {
 
-  @Autowired
-  @Qualifier("getSparqlDAO")
-  private KGSparqlDAO sparqlDAO;
-  @Autowired
-  @Qualifier("getGremlinDAO")
-  private KGGremlinDAO gremlinDAO;
-
   private static final File janusGraphDir = new File("janusgraph/");
-
-  @Override
-  protected KGSparqlDAO getSparqlDAO() {
-    return sparqlDAO;
-  }
-
-  @Override
-  protected KGGremlinDAO getGremlinDAO() {
-    return gremlinDAO;
-  }
 
   @BeforeClass
   public static void setUpClass() throws IOException {

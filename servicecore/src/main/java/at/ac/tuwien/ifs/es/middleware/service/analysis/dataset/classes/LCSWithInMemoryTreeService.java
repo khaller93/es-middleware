@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
- * This is an implementation get {@link LeastCommonSubsumersService} that uses the {@link
+ * This is an implementation get {@link LowestCommonAncestorService} that uses the {@link
  * SPARQLService}.
  *
  * @author Kevin Haller
@@ -39,9 +39,9 @@ import org.springframework.stereotype.Service;
 @Service
 @RegisterForAnalyticalProcessing(name = LCSWithInMemoryTreeService.LCS_UID, requiresSPARQL = true, prerequisites = {
     AllClassesService.class, SameAsResourceService.class})
-public class LCSWithInMemoryTreeService implements LeastCommonSubsumersService {
+public class LCSWithInMemoryTreeService implements LowestCommonAncestorService {
 
-  private static final Logger logger = LoggerFactory.getLogger(LeastCommonSubsumersService.class);
+  private static final Logger logger = LoggerFactory.getLogger(LowestCommonAncestorService.class);
 
   public static final String LCS_UID = "esm.service.analytics.dataset.lcs.tree";
 
@@ -231,7 +231,7 @@ public class LCSWithInMemoryTreeService implements LeastCommonSubsumersService {
   }
 
   @Override
-  public Set<Resource> getLeastCommonSubsumersFor(ResourcePair resourcePair) {
+  public Set<Resource> getLowestCommonAncestor(ResourcePair resourcePair) {
     Set<String> resourceSet = subsumerMap.get(simKey(resourcePair));
     if (resourceSet != null) {
       return resourceSet.stream().map(Resource::new).collect(Collectors.toSet());

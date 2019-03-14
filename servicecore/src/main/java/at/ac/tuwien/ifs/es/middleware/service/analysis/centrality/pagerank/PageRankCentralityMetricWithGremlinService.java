@@ -1,5 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.pagerank;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
@@ -61,6 +63,7 @@ public class PageRankCentralityMetricWithGremlinService implements PageRankCentr
 
   @Override
   public Double getValueFor(Resource resource) {
+    checkArgument(resource != null, "The given resource must not for null.");
     Optional<Integer> optionalResourceKey = allResourcesService.getResourceKey(resource);
     if (optionalResourceKey.isPresent()) {
       return pageRankMap.get(optionalResourceKey.get());

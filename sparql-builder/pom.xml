@@ -11,6 +11,9 @@
 
   <artifactId>middleware.sparql-builder</artifactId>
 
+  <name>SPARQL Builder</name>
+  <description>A builder that should simplify the dynamic construction of SPARQL queries</description>
+
   <dependencies>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>

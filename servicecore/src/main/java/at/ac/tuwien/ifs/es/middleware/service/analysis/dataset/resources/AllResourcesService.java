@@ -23,13 +23,23 @@ public interface AllResourcesService extends AnalysisService {
   List<Resource> getResourceList();
 
   /**
-   * Gets the {@link Integer} key of the given resource, if it has been mapped correctly before. The
-   * long key is not going to change over time (is durable).
+   * Gets the {@link Integer} key of the given resource, if it has been mapped correctly cleanSetup.
+   * The long key is not going to change over time (is durable).
    *
    * @param resource for which the {@link Integer} key shall be returned.
    * @return {@link Integer} key of the given resource, if mapped, otherwise {@link
    * Optional#empty()}.
    */
   Optional<Integer> getResourceKey(Resource resource);
+
+  /**
+   * Gets the resource id for the given {@code key}.
+   *
+   * @param key {@link Integer} for which the corresponding resource id shall be returned. It must
+   * not be null.
+   * @return resource id for the given {@code key}, or otherwise {@link * Optional#empty()}, if not
+   * mapped.
+   */
+  Optional<String> getResourceIdFor(Integer key);
 
 }

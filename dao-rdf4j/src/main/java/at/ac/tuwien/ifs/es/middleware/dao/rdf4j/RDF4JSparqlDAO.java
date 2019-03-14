@@ -2,6 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.dao.rdf4j;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOStatusChangeListener;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.SparqlDAOStateChangeEvent;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
@@ -18,6 +19,8 @@ import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOUpdatingStatus;
 import java.time.Instant;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.locks.Lock;
@@ -67,8 +70,10 @@ public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
   private ApplicationContext applicationContext;
 
   private KGDAOStatus status;
+  private List<KGDAOStatusChangeListener> statusChangeListenerList = new LinkedList<>();
 
   public RDF4JSparqlDAO(ApplicationContext applicationContext) {
+    checkArgument(applicationContext != null, "The passed application context must not be null.");
     this.applicationContext = applicationContext;
     this.notificationScheduler = new NotificationScheduler(updateInterval, updateIntervalTimout);
     this.status = new KGDAOInitStatus();
@@ -101,6 +106,12 @@ public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
   }
 
   @Override
+  public void addStatusChangeListener(KGDAOStatusChangeListener changeListener) {
+    checkArgument(changeListener != null, "The given change listener must not be null.");
+    statusChangeListenerList.add(changeListener);
+  }
+
+  @Override
   public KGDAOStatus getStatus() {
     return status;
   }
@@ -113,6 +124,7 @@ public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
       this.status = status;
       applicationContext.publishEvent(new SparqlDAOStateChangeEvent(this, status, prevStatus,
           Instant.now()));
+      statusChangeListenerList.forEach(changeListener -> changeListener.onStatusChange(status));
     }
   }
 

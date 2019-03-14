@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.swing.tree.TreeNode;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.mapdb.DB;
@@ -49,13 +50,13 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
 
   private static final String ALL_SUBCLASSES_QUERY = "SELECT DISTINCT ?class ?superClass WHERE {\n"
       + "    {\n"
-      + "      _:a a ?class\n"
+      + "      [] a ?class\n"
       + "    } UNION {\n"
       + "      ?class a rdfs:Class\n"
       + "    } UNION {\n"
-      + "      ?class rdfs:subClassOf _:b\n"
+      + "      ?class rdfs:subClassOf []\n"
       + "    } UNION {\n"
-      + "      _:c rdfs:subClassOf ?class\n"
+      + "      [] rdfs:subClassOf ?class\n"
       + "    }\n"
       + "    ?class rdfs:subClassOf+ ?superClass .\n"
       + "    FILTER (?class != ?superClass) .\n"
@@ -68,6 +69,23 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
       + "}\n"
       + "OFFSET %d\n"
       + "LIMIT %d";
+
+  String test = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
+      +"PREFIX vin: <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#>\n"
+      +"select * where {\n"
+      +"    VALUES ?class {\n"
+      +"    \tvin:RedWine\n"
+      +"    }\n"
+      +"    OPTIONAL {\n"
+      +"    \t?class rdfs:subClassOf+ ?superClass .\n"
+      +"        FILTER NOT EXISTS {\n"
+      +"            ?class rdfs:subClassOf+ ?anotherSuperClass .\n"
+      +"            ?anotherSuperClass rdfs:subClassOf+ ?superClass .\n"
+      +"            FILTER (isIRI(?anotherClass)) .\n"
+      +"        }\n"
+      +"      \tFILTER(isIRI(?superClass) && ?class != ?superClass) .\n"
+      +"    }\n"
+      +"}\n";
 
   private final SPARQLService sparqlService;
   private final SameAsResourceService sameAsResourceService;
@@ -115,12 +133,12 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
   }
 
   @Override
-  @Cacheable({"sparql"})
   public Set<Resource> getParentClasses(Resource classResource) {
     checkArgument(classResource != null, "The given list of class resource must not be null.");
-    return getTreeNodeFor(classResource).map(classTreeNode -> getParentTreeNodes(classTreeNode).stream()
-        .flatMap(tn -> tn.getResources().stream())
-        .map(Resource::new).collect(Collectors.toSet())).orElseGet(HashSet::new);
+    return getTreeNodeFor(classResource)
+        .map(classTreeNode -> getParentTreeNodes(classTreeNode).stream()
+            .flatMap(tn -> tn.getResources().stream())
+            .map(Resource::new).collect(Collectors.toSet())).orElseGet(HashSet::new);
   }
 
   private Set<ClassTreeNode> getParentTreeNodes(ClassTreeNode classTreeNode) {
@@ -134,11 +152,13 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
   }
 
   @Override
-  @Cacheable({"sparql"})
-  public Set<Resource> getLeastCommonAncestor(Resource classA, Resource classB) {
+  public Set<Resource> getLowestCommonAncestor(Resource classA, Resource classB) {
     checkArgument(classA != null && classB != null,
-        "The given (A & B) class resource must not be null.");
-    Set<Resource> aParentClasses = Sets.newHashSet(classA);
+        "The given (classA, classB) pair must not be null.");
+    Set<Resource> aParentClasses = getParentClasses(classA);
+    if (aParentClasses.isEmpty()) {
+      return Sets.newHashSet();
+    }
     Set<Resource> bParentClasses = Sets.newHashSet(classB);
     do {
       Set<Resource> intersectionClasses = Sets.intersection(aParentClasses, bParentClasses)
@@ -146,9 +166,8 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
       if (!intersectionClasses.isEmpty()) {
         return intersectionClasses;
       }
-      aParentClasses = getNextLevelParent(new HashSet<>(aParentClasses));
       bParentClasses = getNextLevelParent(new HashSet<>(bParentClasses));
-    } while (!aParentClasses.isEmpty() && !bParentClasses.isEmpty());
+    } while (!bParentClasses.isEmpty());
     return Sets.newHashSet();
   }
 
@@ -163,7 +182,6 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
     }
     return nextLevelResourceSet;
   }
-
 
   @Override
   public void compute() {
@@ -185,12 +203,34 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
         superClassTreenode.addChildren(classTreenode.getId());
         treeNodeMap.put(classTreenode.getId(), classTreenode);
         treeNodeMap.put(superClassTreenode.getId(), superClassTreenode);
-        /* prepare for new run */
       }
       logger.debug("Loaded {} class <-> superclass links.", offset);
       offset += resultList.size();
     } while (resultList.size() == LOAD_SIZE);
+    /* repair hierarchy */
+    postProcessHierarchy();
     this.mapDB.commit();
+  }
+
+  private void postProcessHierarchy() {
+    for (ClassTreeNode ctn : treeNodeMap.values()) {
+      for (Integer childId : ctn.getChildren()) {
+        ClassTreeNode childTreeNode = treeNodeMap.get(childId);
+        if (childTreeNode != null) {
+          childTreeNode.removeParent(ctn.getParents());
+          treeNodeMap.put(childTreeNode.getId(), childTreeNode);
+        }
+      }
+    }
+    for (ClassTreeNode ctn : treeNodeMap.values()) {
+      for (Integer parentId : ctn.getParents()) {
+        ClassTreeNode parentNode = treeNodeMap.get(parentId);
+        if (parentNode != null) {
+          parentNode.removeChildren(ctn.getChildren());
+          treeNodeMap.put(parentNode.getId(), parentNode);
+        }
+      }
+    }
   }
 
   private ClassTreeNode generateTreeNodeFor(Resource classResource) {

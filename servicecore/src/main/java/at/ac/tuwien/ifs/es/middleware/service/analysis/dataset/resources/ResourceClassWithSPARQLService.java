@@ -7,8 +7,8 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
-import com.google.common.collect.Sets;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -91,10 +91,14 @@ public class ResourceClassWithSPARQLService implements ResourceClassService {
     int total = resourceList.size();
     int page = (int) Math.ceil(((double) total) / LOAD_SIZE);
     for (int n = 0; n < page; n++) {
-      Map<Resource, Set<Resource>> classResourceMap = new HashMap<>();
-      /* fetch class relationships */
       int start = n * LOAD_SIZE;
       int end = total > (start + LOAD_SIZE) ? (start + LOAD_SIZE) : total;
+      /* prepare map */
+      Map<Resource, Set<Resource>> classResourceMap = new HashMap<>();
+      for (Resource resource : resourceList.subList(start, end)) {
+        classResourceMap.put(resource, new HashSet<>());
+      }
+      /* fetch class relationships */
       List<Map<String, RDFTerm>> results = sparqlService.<SelectQueryResult>query(
           String.format(ALL_INSTANCE_CLASSES_QUERY, resourceList.subList(start, end).stream().map(
               BlankOrIRIJsonUtil::stringForSPARQLResourceOf).collect(Collectors.joining("\n"))),
@@ -102,10 +106,7 @@ public class ResourceClassWithSPARQLService implements ResourceClassService {
           .value();
       for (Map<String, RDFTerm> row : results) {
         Resource resource = new Resource((BlankNodeOrIRI) row.get("resource"));
-        Resource classResource = new Resource((BlankNodeOrIRI) row.get("class"));
-        Set<Resource> classSet = classResourceMap.compute(resource,
-            (resource1, resourceSet) -> resourceSet != null ? resourceSet : Sets.newHashSet());
-        classSet.add(classResource);
+        classResourceMap.get(resource).add(new Resource((BlankNodeOrIRI) row.get("class")));
       }
       logger.trace(
           "Loaded class relationships for {} resources. {} resources has already been loaded.",

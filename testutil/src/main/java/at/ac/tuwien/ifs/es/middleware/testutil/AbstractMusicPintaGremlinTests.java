@@ -17,62 +17,46 @@ import org.apache.commons.rdf.api.Literal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 
 /**
- * This class implements generic tests for the SPARQL interface of {@link KGGremlinDAO}s. The method
- * {@link AbstractMusicPintaGremlinTests#getSparqlDAO()} must return the tested {@link KGSparqlDAO},
- * {@link AbstractMusicPintaGremlinTests#getGremlinDAO()} must return the tested {@link
- * KGGremlinDAO}.
+ * This class implements generic tests for the SPARQL interface of {@link KGGremlinDAO}s.
  *
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
  */
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractMusicPintaGremlinTests {
 
+  @Autowired
   private MusicPintaInstrumentsResource musicPintaInstrumentsResource;
+  @Autowired
   private KGSparqlDAO sparqlDAO;
+  @Autowired
   private KGGremlinDAO gremlinDAO;
 
   private PGS schema;
 
-  /**
-   * gets the {@link KGSparqlDAO} that shall be tested.
-   */
-  protected abstract KGSparqlDAO getSparqlDAO();
-
-  /**
-   * gets the {@link KGGremlinDAO} that shall be tested.
-   */
-  protected abstract KGGremlinDAO getGremlinDAO();
-
   @Before
   public void setUp() throws Throwable {
-    this.sparqlDAO = getSparqlDAO();
-    this.gremlinDAO = getGremlinDAO();
-    this.musicPintaInstrumentsResource = new MusicPintaInstrumentsResource(sparqlDAO,
-        getGremlinDAO());
-    this.musicPintaInstrumentsResource.before();
-    this.musicPintaInstrumentsResource.waitForAllDAOsBeingReady();
     this.schema = gremlinDAO.getPropertyGraphSchema();
+    musicPintaInstrumentsResource.cleanSetup();
+    musicPintaInstrumentsResource.waitForAllDAOsBeingReady();
   }
 
-  @After
-  public void tearDown() throws Throwable {
-    this.musicPintaInstrumentsResource.after();
-  }
-
-  @Test(timeout = 6120000)
+  @Test
   public void test_getResource_mustBeInGremlinGraph() throws Exception {
     assertThat(gremlinDAO.traversal()
         .V().has(schema.iri().identifierAsString(),
             "http://dbtune.org/musicbrainz/resource/instrument/132").toList(), hasSize(1));
   }
 
-  @Test(timeout = 6120000)
+  @Test
   public void test_getCategoriesOfInstrument117_mustReturnAllCategories() throws Exception {
     List<Vertex> categoriesGremlin = gremlinDAO.traversal()
         .V().has(schema.iri().identifierAsString(),
@@ -85,7 +69,7 @@ public abstract class AbstractMusicPintaGremlinTests {
             "http://dbpedia.org/resource/Category:Guitar_family_instruments"));
   }
 
-  @Test(timeout = 6120000)
+  @Test
   public void test_countAllInstruments_mustReturnCorrectResults() throws Exception {
     long instrumentsCount = Long.parseLong(((Literal) ((sparqlDAO
         .<SelectQueryResult>query("select (COUNT(DISTINCT ?s) AS ?cnt) { \n"
@@ -97,7 +81,7 @@ public abstract class AbstractMusicPintaGremlinTests {
             .inE().outV().dedup().count().next(), is(equalTo(instrumentsCount)));
   }
 
-  @Test(timeout = 6120000)
+  @Test
   public void test_getCountIndividuals_mustReturnCorrectNumber() throws Exception {
     long totalResourceNumber = Long.parseLong(((Literal) (sparqlDAO
         .<SelectQueryResult>query("SELECT (count(DISTINCT ?s) AS ?cnt) WHERE {\n"
@@ -112,7 +96,7 @@ public abstract class AbstractMusicPintaGremlinTests {
         gremlinDAO.traversal().V().dedup().count().next(), is(equalTo(totalResourceNumber)));
   }
 
-  @Test(timeout = 6120000)
+  @Test
   @SuppressWarnings("unchecked")
   public void test_getAllClasses_mustHaveInstrumentAndPerformanceClass() {
     GraphTraversalSource g = gremlinDAO.traversal();
@@ -128,7 +112,7 @@ public abstract class AbstractMusicPintaGremlinTests {
         "http://purl.org/ontology/mo/Performance"));
   }
 
-  @Test(timeout = 6120000)
+  @Test
   @SuppressWarnings("unchecked")
   public void test_getAllSubClassesOfGuitar() {
     GraphTraversalSource g = gremlinDAO.traversal();

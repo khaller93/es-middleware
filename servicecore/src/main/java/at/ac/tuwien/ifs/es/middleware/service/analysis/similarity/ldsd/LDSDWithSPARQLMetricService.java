@@ -45,8 +45,13 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
 
   public static final String UNWEIGHTED_LDSD_SIMILARITY_UID = "esm.service.analytics.similarity.ldsd";
 
+  private static final int LOAD_SIZE = 10000;
+
   private static final String ALL_LDSD_QUERY =
       "SELECT ?a ?b ((1.0 /(1.0 + COALESCE(?cd,0.0) + COALESCE(?cio,0.0) + COALESCE(?cii,0.0))) as ?ldsd) WHERE {\n"
+          + "  VALUES (?a ?b) {\n"
+          + "    %s \n"
+          + "  }\n"
           + "  OPTIONAL {\n"
           + "    SELECT ?a ?b (COUNT(DISTINCT ?p) as ?cd) WHERE {\n"
           + "      {\n"
@@ -70,31 +75,6 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
           + "      _:z ?p ?b .\n"
           + "      FILTER(isIRI(?a) && isIRI(?b)).\n"
           + "    } GROUP BY ?a ?b      \n"
-          + "  }\n"
-          + "}";
-
-  private static final String SINGLE_LDSD_QUERY =
-      "SELECT ((1.0 /(1.0 + COALESCE(?cd,0.0) + COALESCE(?cio,0.0) + COALESCE(?cii,0.0))) as ?ldsd) WHERE {\n"
-          + "  OPTIONAL {\n"
-          + "    SELECT (COUNT(DISTINCT ?p) as ?cd) WHERE {\n"
-          + "      {\n"
-          + "        ${a} ?p ${b}\n"
-          + "      } UNION {\n"
-          + "        ${b} ?p ${a}\n"
-          + "      }\n"
-          + "    }\n"
-          + "  }\n"
-          + "  OPTIONAL {\n"
-          + "    SELECT (COUNT(DISTINCT ?p) as ?cio) WHERE {\n"
-          + "      ${a} ?p _:x .\n"
-          + "      ${b} ?p _:x .\n"
-          + "    }\n"
-          + "  }\n"
-          + "  OPTIONAL {\n"
-          + "    SELECT (COUNT(DISTINCT ?p) as ?cii) WHERE {\n"
-          + "      _:z ?p ${a} .\n"
-          + "      _:z ?p ${b} .\n"
-          + "    }\n"
           + "  }\n"
           + "}";
 
@@ -126,30 +106,14 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
       Optional<Integer> optionalResourceBKey = allResourcesService
           .getResourceKey(resourcePair.getSecond());
       if (optionalResourceBKey.isPresent()) {
-        Double value = ldsdValueMap
+        return ldsdValueMap
             .get(new int[]{optionalResourceAKey.get(), optionalResourceBKey.get()});
-        if (value != null) {
-          return value;
-        }
       }
     }
-    Map<String, String> valuesMap = new HashMap<>();
-    valuesMap.put("a", BlankOrIRIJsonUtil.stringForSPARQLResourceOf(resourcePair.getFirst()));
-    valuesMap.put("b", BlankOrIRIJsonUtil.stringForSPARQLResourceOf(resourcePair.getSecond()));
-    List<Map<String, RDFTerm>> result = sparqlService.<SelectQueryResult>query(
-        new StringSubstitutor(valuesMap).replace(SINGLE_LDSD_QUERY), true).value();
-    if (!result.isEmpty()) {
-      return Double.parseDouble(((Literal) result.get(0).get("ldsd")).getLexicalForm());
-    } else {
-      return 0.0;
-    }
+    return null;
   }
 
-  @Override
-  public void compute() {
-    logger.info("Starting to computes Linked Data Semantic Distance metric.");
-    List<Map<String, RDFTerm>> results = sparqlService.<SelectQueryResult>query(ALL_LDSD_QUERY,
-        true).value();
+  private void processSPARQLResult(List<Map<String, RDFTerm>> results) {
     for (Map<String, RDFTerm> row : results) {
       Optional<Integer> optResAKey = allResourcesService
           .getResourceKey(new Resource((BlankNodeOrIRI) row.get("a")));
@@ -160,21 +124,45 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
             Double.parseDouble(((Literal) row.get("ldsd")).getLexicalForm()));
       }
     }
-    mapDB.commit();
+  }
+
+  @Override
+  public void compute() {
+    int n = 0;
+    int total = 0;
+    StringBuilder valueList = new StringBuilder();
     for (Resource resourceA : allResourcesService.getResourceList()) {
-      Optional<Integer> optResAKey = allResourcesService.getResourceKey(resourceA);
       for (Resource resourceB : allResourcesService.getResourceList()) {
-        Optional<Integer> optResBKey = allResourcesService.getResourceKey(resourceB);
-        if (optResAKey.isPresent() && optResBKey.isPresent()) {
-          int[] key = new int[]{optResAKey.get(), optResBKey.get()};
-          if (!ldsdValueMap.containsKey(key)) {
-            ldsdValueMap.put(key, 1.0);
+        // store 0.0 for pairs with same resource.
+        if (resourceA.equals(resourceB)) {
+          Optional<Integer> optResAKey = allResourcesService
+              .getResourceKey(resourceA);
+          Optional<Integer> optResBKey = allResourcesService
+              .getResourceKey(resourceB);
+          if (optResAKey.isPresent() && optResBKey.isPresent()) {
+            ldsdValueMap.put(new int[]{optResAKey.get(), optResBKey.get()}, 0.0);
+          }
+        } else { // store the result of pairs.
+          valueList.append(String
+              .format("(%s %s)\n", BlankOrIRIJsonUtil.stringForSPARQLResourceOf(resourceA),
+                  BlankOrIRIJsonUtil.stringForSPARQLResourceOf(resourceB)));
+          n++;
+          if (n == LOAD_SIZE) {
+            processSPARQLResult(sparqlService.<SelectQueryResult>query(
+                String.format(ALL_LDSD_QUERY, valueList.toString()), true).value());
+            total += n;
+            n = 0;
+            valueList = new StringBuilder();
+            logger.trace("Loaded {} LDSD pairs. In total {} have been loaded.", n, total);
           }
         }
       }
     }
+    if (n > 0) {
+      processSPARQLResult(sparqlService.<SelectQueryResult>query(
+          String.format(ALL_LDSD_QUERY, valueList.toString()), true).value());
+    }
     mapDB.commit();
-    logger.info("Linked Data Semantic Distance has been successfully computed.");
   }
 
 }

@@ -25,7 +25,6 @@ public final class AllResourcesPayload implements Serializable {
 
   private List<Resource> include;
   private List<Resource> exclude;
-  private List<Resource> namespaces;
   private List<Facet> facets;
 
   @JsonCreator
@@ -35,7 +34,6 @@ public final class AllResourcesPayload implements Serializable {
       @JsonProperty("facets") List<Facet> facets) {
     this.include = include != null ? include : Collections.emptyList();
     this.exclude = exclude != null ? exclude : Collections.emptyList();
-    this.namespaces = namespaces != null ? namespaces : Collections.emptyList();
     this.facets = facets != null ? facets : Collections.emptyList();
   }
 
@@ -51,10 +49,6 @@ public final class AllResourcesPayload implements Serializable {
     return exclude;
   }
 
-  public List<Resource> getNamespaces() {
-    return namespaces;
-  }
-
   public List<Facet> getFacets() {
     return facets;
   }
@@ -64,7 +58,6 @@ public final class AllResourcesPayload implements Serializable {
     return "AllResourcesPayload{" +
         "include=" + include +
         ", exclude=" + exclude +
-        ", namespaces=" + namespaces +
         ", facets=" + facets +
         '}';
   }

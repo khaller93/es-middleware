@@ -7,7 +7,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePai
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.ClassEntropyService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.LeastCommonSubsumersService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.LowestCommonAncestorService;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
 @Primary
 @Service
 @RegisterForAnalyticalProcessing(name = ResnikSimilarityMetricServiceImpl.UID,
-    prerequisites = {ClassEntropyService.class, LeastCommonSubsumersService.class,
+    prerequisites = {ClassEntropyService.class, LowestCommonAncestorService.class,
         AllResourcesService.class})
 public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetricService {
 
@@ -44,7 +44,7 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
   public static final String UID = "esm.service.analysis.sim.resnik";
 
   private final ClassEntropyService classEntropyService;
-  private final LeastCommonSubsumersService leastCommonSubSumersService;
+  private final LowestCommonAncestorService leastCommonSubSumersService;
   private final AllResourcesService allResourcesService;
   private final DB mapDB;
 
@@ -53,7 +53,7 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
   @Autowired
   public ResnikSimilarityMetricServiceImpl(
       ClassEntropyService classEntropyService,
-      LeastCommonSubsumersService leastCommonSubSumersService,
+      LowestCommonAncestorService leastCommonSubSumersService,
       AllResourcesService allResourcesService,
       @Qualifier("persistent-mapdb") DB mapDB) {
     this.classEntropyService = classEntropyService;
@@ -84,7 +84,7 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
   }
 
   private Double computeIC(ResourcePair pair) {
-    Set<Resource> classes = leastCommonSubSumersService.getLeastCommonSubsumersFor(pair);
+    Set<Resource> classes = leastCommonSubSumersService.getLowestCommonAncestor(pair);
     return classes.stream().map(classEntropyService::getEntropyForClass)
         .reduce(0.0, BinaryOperator.maxBy(Double::compareTo));
   }

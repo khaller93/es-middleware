@@ -12,13 +12,18 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceWithSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.integration.MapDBDummy;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.SimpleGremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
+import at.ac.tuwien.ifs.es.middleware.testutil.WineOntologyDatasetResource;
 import java.util.Set;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,8 +43,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {SimpleSPARQLService.class, SimpleGremlinService.class,
     RDF4JLuceneFullTextSearchDAO.class, RDF4JMemoryStoreWithLuceneSparqlDAO.class,
     ClonedInMemoryGremlinDAO.class, ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class,
-    ThreadPoolConfig.class, SpringCacheConfig.class, AnalysisPipelineProcessorDummy.class,
-    MusicPintaInstrumentsResource.class, SameAsResourceWithSPARQLService.class
+    ThreadPoolConfig.class, MapDBDummy.class, MusicPintaInstrumentsResource.class,
+    SameAsResourceWithSPARQLService.class, AllResourcesWithSPARQLService.class
 })
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
@@ -53,11 +58,18 @@ public class SameAsResourceServiceTests {
   @Autowired
   public MusicPintaInstrumentsResource musicPintaResource;
   @Autowired
+  private AllResourcesService allResourcesService;
+  @Autowired
   private SameAsResourceService sameAsResourceService;
+
+  @Before
+  public void setUp() throws Exception {
+    allResourcesService.compute();
+    sameAsResourceService.compute();
+  }
 
   @Test
   public void computeTheSameAsResources_mustReturnMapForAllKnownResources() {
-    sameAsResourceService.compute();
     Set<Resource> sameAsResources = sameAsResourceService
         .getSameAsResourcesFor(new Resource("http://dbpedia.org/resource/Guitar"));
     assertNotNull(sameAsResources);
@@ -73,4 +85,10 @@ public class SameAsResourceServiceTests {
     assertNotNull(sameAsResourcesSet);
     assertThat(sameAsResourcesSet, hasSize(0));
   }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void computeTheSameAsForNull_mustThrowIllegalArgumentException(){
+    sameAsResourceService.getSameAsResourcesFor(null);
+  }
+
 }

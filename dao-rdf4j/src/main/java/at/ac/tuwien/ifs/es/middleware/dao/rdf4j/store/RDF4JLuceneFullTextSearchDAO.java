@@ -2,15 +2,14 @@ package at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOStatusChangeListener;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.FTSDAOStateChangeEvent;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.SparqlDAOStateChangeEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.LuceneIndexedRDF4JSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSetupException;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.Facet;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
@@ -19,9 +18,9 @@ import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.FacetedSearchQueryBuilder;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
@@ -62,9 +61,11 @@ public class RDF4JLuceneFullTextSearchDAO implements KGFullTextSearchDAO {
           + "${offset}\n"
           + "${limit}\n";
 
-  private KGDAOStatus status;
   private KGSparqlDAO sparqlDAO;
   private ApplicationContext context;
+
+  private KGDAOStatus status;
+  private List<KGDAOStatusChangeListener> statusChangeListenerList = new LinkedList<>();
 
   @Autowired
   public RDF4JLuceneFullTextSearchDAO(@Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO,
@@ -88,6 +89,12 @@ public class RDF4JLuceneFullTextSearchDAO implements KGFullTextSearchDAO {
     }
   }
 
+  @Override
+  public void addStatusChangeListener(KGDAOStatusChangeListener changeListener) {
+    checkArgument(changeListener != null, "The given change listener must not be null.");
+    statusChangeListenerList.add(changeListener);
+  }
+
   protected synchronized void setStatus(KGDAOStatus status) {
     checkArgument(status != null, "The specified status must not be null.");
     if (!this.status.getCode().equals(status.getCode())) {
@@ -95,6 +102,7 @@ public class RDF4JLuceneFullTextSearchDAO implements KGFullTextSearchDAO {
       this.status = status;
       context.publishEvent(new FTSDAOStateChangeEvent(this, status, prevStatus,
           Instant.now()));
+      statusChangeListenerList.forEach(changeListener -> changeListener.onStatusChange(status));
     }
   }
 
@@ -107,8 +115,9 @@ public class RDF4JLuceneFullTextSearchDAO implements KGFullTextSearchDAO {
   @Override
   public List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
       Integer offset, Integer limit, List<Facet> facets) throws KnowledgeGraphDAOException {
-       logger.debug("FTS call for {} was triggered with parameters: offset={}, limit={}, and classes={}",
-        keyword, offset, limit, classes);
+    logger
+        .debug("FTS call for {} was triggered with parameters: offset={}, limit={}, and classes={}",
+            keyword, offset, limit, classes);
     Map<String, String> valueMap = new HashMap<>();
     valueMap.put("keyword", keyword);
     /* windowing */

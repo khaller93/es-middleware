@@ -1,9 +1,12 @@
 package at.ac.tuwien.ifs.es.middleware.service.integration.analysis;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
@@ -19,9 +22,14 @@ import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisPipelineProcessor;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.pagerank.PageRankCentralityMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.pagerank.PageRankCentralityMetricWithGremlinService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesWithSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.integration.MapDBDummy;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.SimpleGremlinService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
+import at.ac.tuwien.ifs.es.middleware.testutil.WineOntologyDatasetResource;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -50,8 +58,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {SimpleGremlinService.class, RDF4JLuceneFullTextSearchDAO.class,
     RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedInMemoryGremlinDAO.class,
     ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class, ThreadPoolConfig.class,
-    AnalysisPipelineProcessorDummy.class, MusicPintaInstrumentsResource.class,
-    PageRankCentralityMetricWithGremlinService.class})
+    AllResourcesWithSPARQLService.class, MapDBDummy.class, WineOntologyDatasetResource.class,
+    SimpleSPARQLService.class, PageRankCentralityMetricWithGremlinService.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -62,41 +70,36 @@ public class PageRankCentralityMetricServiceTests {
 
   @Rule
   @Autowired
-  public MusicPintaInstrumentsResource musicPintaResource;
+  public WineOntologyDatasetResource wineOntologyDatasetResource;
   @Autowired
-  private KGSparqlDAO sparqlDAO;
+  private AllResourcesService allResourcesService;
   @Autowired
   private PageRankCentralityMetricService pageRankCentralityMetricService;
 
   @Before
-  public void setUp() throws InterruptedException {
-    musicPintaResource.waitForAllDAOsBeingReady();
+  public void setUp() throws Exception {
+    allResourcesService.compute();
+    pageRankCentralityMetricService.compute();
   }
 
   @Test
-  public void computePageRankForAllResources_mustReturnCorrespondingPageRank() {
-    pageRankCentralityMetricService.compute();
-    List<Resource> resources = ((SelectQueryResult) sparqlDAO
-        .query(
-            "SELECT distinct ?resource WHERE { {?resource ?p1 ?o} UNION {?s ?p2 ?resource} . FILTER(isIRI(?resource))}",
-            false)).value().stream().map(r -> new Resource((BlankNodeOrIRI) r.get("resource")))
-        .collect(Collectors.toList());
-    List<Pair<Resource, Double>> resourceList = resources.stream().map(
-        resource -> new ImmutablePair<>(resource,
-            pageRankCentralityMetricService.getValueFor(resource)))
-        .sorted((e1, e2) -> -Double.compare(e1.getRight(), e2.getRight()))
-        .collect(Collectors.toList());
-    assertThat("Instrument class must be in the top 10.", resourceList.stream().limit(10)
-            .map(r -> r.getKey().getId()).collect(Collectors.toList()),
-        hasItem("http://purl.org/ontology/mo/Instrument"));
-    assertThat(resourceList.stream().map(Pair::getRight).collect(Collectors.toList()),
-        not(hasItem(equalTo(null))));
+  public void computePageRankForSpecificResources_mustReturnCorrespondingPageRank() {
+    Double specialWinePR = pageRankCentralityMetricService.getValueFor(new Resource(
+        "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#WhitehallLanePrimavera"));
+    assertNotNull(specialWinePR);
+    Double winePR = pageRankCentralityMetricService.getValueFor(new Resource(
+        "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Wine"));
+    assertNotNull(winePR);
+    assertThat(winePR, greaterThan(specialWinePR));
   }
 
   @Test
   public void computePageRankForAllResources_mustReturnNullForUnknownResource() {
-    pageRankCentralityMetricService.compute();
     assertNull(pageRankCentralityMetricService.getValueFor(new Resource("test:a")));
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void computePageRankForNullResource_mustThrowIllegalArgumentException() {
+    pageRankCentralityMetricService.getValueFor(null);
+  }
 }

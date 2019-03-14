@@ -1,5 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
@@ -9,8 +11,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.mapdb.DB;
@@ -32,7 +37,8 @@ import org.springframework.stereotype.Service;
  */
 @Primary
 @Service
-@RegisterForAnalyticalProcessing(name = "esm.service.analytics.dataset.sameas", requiresSPARQL = true)
+@RegisterForAnalyticalProcessing(name = "esm.service.analytics.dataset.sameas", requiresSPARQL = true,
+    prerequisites = {AllResourcesService.class})
 public class SameAsResourceWithSPARQLService implements SameAsResourceService {
 
   private static final Logger logger = LoggerFactory
@@ -52,17 +58,20 @@ public class SameAsResourceWithSPARQLService implements SameAsResourceService {
 
 
   private final SPARQLService sparqlService;
+  private final AllResourcesService allResourcesService;
+
   private final DB mapDB;
 
-  private final HTreeMap<String, Set<String>> sameAsMap;
+  private final HTreeMap<Integer, int[]> sameAsMap;
 
   @Autowired
   public SameAsResourceWithSPARQLService(SPARQLService sparqlService,
-      @Qualifier("persistent-mapdb") DB mapDB) {
+      AllResourcesService allResourcesService, @Qualifier("persistent-mapdb") DB mapDB) {
     this.sparqlService = sparqlService;
+    this.allResourcesService = allResourcesService;
     this.mapDB = mapDB;
     this.sameAsMap = mapDB
-        .hashMap("esm.service.analytics.dataset.sameas", Serializer.STRING, Serializer.JAVA)
+        .hashMap("esm.service.analytics.dataset.sameas", Serializer.INTEGER, Serializer.INT_ARRAY)
         .createOrOpen();
   }
 
@@ -89,20 +98,37 @@ public class SameAsResourceWithSPARQLService implements SameAsResourceService {
         break;
       }
     } while (results.size() == LOAD_LIMIT);
-    sameAsMap.putAll(sameAsIntermediateMap.entrySet().stream()
-        .collect(Collectors.toMap(e -> e.getKey().getId(),
-            e -> e.getValue().stream().map(Resource::getId).collect(Collectors.toSet()))));
+    sameAsIntermediateMap.forEach((key, value) -> {
+      Optional<Integer> resourceKey = allResourcesService.getResourceKey(key);
+      if (resourceKey.isPresent()) {
+        int[] sameAsResources = ArrayUtils
+            .toPrimitive(value.stream().map(allResourcesService::getResourceKey).filter(
+                Optional::isPresent).map(Optional::get).toArray(Integer[]::new));
+        if (sameAsResources.length > 0) {
+          sameAsMap.put(resourceKey.get(), sameAsResources);
+        }
+      }
+    });
     mapDB.commit();
   }
 
   @Override
   public Set<Resource> getSameAsResourcesFor(Resource resource) {
-    Set<String> sameAsSet = sameAsMap.get(resource.getId());
-    if (sameAsSet != null) {
-      return sameAsSet.stream().map(Resource::new).collect(Collectors.toSet());
-    } else {
-      return Sets.newHashSet();
+    checkArgument(resource != null,
+        "The given resource for computing the same as resources must not be null.");
+    Optional<Integer> resourceKey = allResourcesService.getResourceKey(resource);
+    if (resourceKey.isPresent()) {
+      int[] resourceKeys = sameAsMap.get(resourceKey.get());
+      if (resourceKeys != null && resourceKeys.length > 0) {
+        Set<Resource> resourceSet = new HashSet<>();
+        for (int n = 0; n < resourceKeys.length; n++) {
+          Optional<String> optResourceId = allResourcesService.getResourceIdFor(resourceKeys[n]);
+          optResourceId.ifPresent(s -> resourceSet.add(new Resource(s)));
+        }
+        return resourceSet;
+      }
     }
+    return Sets.newHashSet();
   }
 
 }

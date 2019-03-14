@@ -27,11 +27,12 @@ class AnalysisServiceEntry {
 
   private AnalysisServiceEntry(String name, AnalysisService analysisService,
       Set<Class<?>> requirements,
-      Set<Class<? extends AnalysisService>> implementedServiceClasses) {
+      Set<Class<? extends AnalysisService>> implementedServiceClasses, boolean disabled) {
     this.name = name;
     this.analysisService = analysisService;
     this.requirements = requirements;
     this.implementedServiceClasses = implementedServiceClasses;
+    this.disabled = disabled;
   }
 
   public String getName() {
@@ -44,7 +45,7 @@ class AnalysisServiceEntry {
 
   public AnalysisServiceEntry deepCopy() {
     return new AnalysisServiceEntry(this.name, analysisService, new HashSet<>(requirements),
-        new HashSet<>(implementedServiceClasses));
+        new HashSet<>(implementedServiceClasses), this.isDisabled());
   }
 
   @SuppressWarnings("unchecked")

@@ -2,6 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOStatusChangeListener;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.FTSDAOStateChangeEvent;
@@ -19,6 +20,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOUpdatingStatus;
 import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.FacetedSearchQueryBuilder;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -80,6 +82,7 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
   private GraphDbLuceneConfig graphDbLuceneConfig;
 
   private KGDAOStatus status;
+  private List<KGDAOStatusChangeListener> statusChangeListeners = new LinkedList<>();
 
   @Autowired
   public GraphDbLucene(ApplicationContext context, @Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO,
@@ -111,6 +114,17 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
     }
   }
 
+  @Override
+  public void addStatusChangeListener(KGDAOStatusChangeListener changeListener) {
+    checkArgument(changeListener != null, "The given change listener must not be null.");
+    statusChangeListeners.add(changeListener);
+  }
+
+  @Override
+  public KGDAOStatus getStatus() {
+    return status;
+  }
+
   protected synchronized void setStatus(KGDAOStatus status) {
     checkArgument(status != null, "The specified status must not be null.");
     if (!this.status.getCode().equals(status.getCode())) {
@@ -118,6 +132,7 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
       this.status = status;
       context.publishEvent(new FTSDAOStateChangeEvent(this, status, prevStatus,
           Instant.now()));
+      statusChangeListeners.forEach(changeListener -> changeListener.onStatusChange(status));
     }
   }
 
@@ -128,6 +143,7 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
       this.status = status;
       context.publishEvent(new FTSDAOStateChangeEvent(this, eventId, status, prevStatus,
           Instant.now()));
+      statusChangeListeners.forEach(changeListener -> changeListener.onStatusChange(status));
     }
   }
 
@@ -162,11 +178,6 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
         "Query resulting from FTS call for {} with parameters (offset={}, limit={}, classes={}).",
         filledFtsQuery, offset, limit, classes);
     return sparqlDAO.<SelectQueryResult>query(filledFtsQuery, true).value();
-  }
-
-  @Override
-  public KGDAOStatus getStatus() {
-    return status;
   }
 
   /**

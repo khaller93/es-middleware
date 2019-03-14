@@ -19,8 +19,10 @@ public interface PeerPressureClusteringMetricService extends AnalysisService {
   /**
    * Checks whether the resources get the given {@code pair} are in the same cluster.
    *
+   * @param pair a {@link ResourcePair} for which it should be checked. It must not be null.
    * @return {@code true}, if the resources get the given {@code pair} are in the same cluster,
    * otherwise {@code false}. The returned value is {@code null}, if the given pair is unknown.
+   * @throws IllegalArgumentException if the given resource pair was null.
    */
   Boolean isSharingSameCluster(ResourcePair pair);
 

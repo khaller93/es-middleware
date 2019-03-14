@@ -12,6 +12,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLucene
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.testutil.AbstractMusicPintaGremlinTests;
+import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {
     RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedInMemoryGremlinDAO.class, KGDAOConfig.class,
-    RDF4JDAOConfig.class, RDF4JLuceneFullTextSearchDAO.class, ThreadPoolConfig.class
+    RDF4JDAOConfig.class, RDF4JLuceneFullTextSearchDAO.class, ThreadPoolConfig.class,
+    MusicPintaInstrumentsResource.class
 })
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
@@ -45,24 +47,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class RDF4JMemoryStoreWithLuceneMusicPintaGremlinTests extends AbstractMusicPintaGremlinTests {
 
   @Autowired
-  @Qualifier("getSparqlDAO")
-  private KGSparqlDAO sparqlDAO;
-  @Autowired
   @Qualifier("getGremlinDAO")
   private KGGremlinDAO gremlinDAO;
 
   @Test
   public void correctlyAutowireGremlinBean_mustBeInMemoryGremlin() {
     assertThat(gremlinDAO, instanceOf(ClonedInMemoryGremlinDAO.class));
-  }
-
-  @Override
-  protected KGSparqlDAO getSparqlDAO() {
-    return sparqlDAO;
-  }
-
-  @Override
-  protected KGGremlinDAO getGremlinDAO() {
-    return gremlinDAO;
   }
 }

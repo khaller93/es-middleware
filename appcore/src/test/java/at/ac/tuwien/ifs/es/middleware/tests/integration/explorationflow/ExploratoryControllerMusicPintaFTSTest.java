@@ -56,19 +56,9 @@ public class ExploratoryControllerMusicPintaFTSTest {
   private TestRestTemplate restTemplate;
   @Autowired
   private ObjectMapper payloadMapper;
-  @Autowired
-  @Qualifier("getSparqlDAO")
-  private KGSparqlDAO sparqlDAO;
-  @Autowired
-  @Qualifier("getGremlinDAO")
-  private KGGremlinDAO gremlinDAO;
   @Rule
+  @Autowired
   public MusicPintaInstrumentsResource musicPintaResource;
-
-  @PostConstruct
-  public void setUpBean() {
-    this.musicPintaResource = new MusicPintaInstrumentsResource(sparqlDAO, gremlinDAO);
-  }
 
   @Test
   public void test_searchForInstrument_mustReturnCorrespondingMatchesForGuitar()

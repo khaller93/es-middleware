@@ -66,7 +66,7 @@ public final class FacetedSearchQueryBuilder {
           classes.stream()
               .map(c -> GraphPatterns.tp(subjectVariable, RdfPredicate.a, QT.transform(c)))
               .toArray(TriplePattern[]::new)));
-      this.graphPattern = graphPattern != null ? GraphPatterns.and(nonExistsFilterPattern) :
+      this.graphPattern = graphPattern != null ? graphPattern.and(nonExistsFilterPattern) :
           nonExistsFilterPattern;
     }
   }

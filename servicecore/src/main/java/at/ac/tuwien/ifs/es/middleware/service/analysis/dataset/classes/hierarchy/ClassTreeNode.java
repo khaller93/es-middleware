@@ -1,6 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -44,6 +45,22 @@ class ClassTreeNode implements Serializable {
 
   public void addChildren(int treeNodeChildrenClass) {
     children.add(treeNodeChildrenClass);
+  }
+
+  public void removeParent(int treeNodeId) {
+    parents.remove(treeNodeId);
+  }
+
+  public void removeParent(Collection<Integer> treeNodeIds) {
+    parents.removeAll(treeNodeIds);
+  }
+
+  public void removeChildren(int treeNodeId) {
+    children.remove(treeNodeId);
+  }
+
+  public void removeChildren(Collection<Integer> treeNodeIds) {
+    children.removeAll(treeNodeIds);
   }
 
   public Set<Integer> getChildren() {

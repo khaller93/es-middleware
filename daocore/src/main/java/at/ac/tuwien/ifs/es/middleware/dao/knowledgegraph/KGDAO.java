@@ -13,6 +13,13 @@ import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 public interface KGDAO {
 
   /**
+   * Registers the given {@link KGDAOStatusChangeListener} for this DAO.
+   *
+   * @param changeListener {@link KGDAOStatusChangeListener} that shall be registered.
+   */
+  void addStatusChangeListener(KGDAOStatusChangeListener changeListener);
+
+  /**
    * Gets the current {@link KGDAOStatus} of this DAO.
    *
    * @return current {@link KGDAOStatus} of this DAO.

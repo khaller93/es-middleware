@@ -70,11 +70,6 @@ public class SimpleSPARQLServiceTest {
   @Autowired
   public SPARQLService sparqlService;
 
-  @Before
-  public void setUp() throws Exception {
-    musicPintaResource.waitForAllDAOsBeingReady();
-  }
-
   @Test
   public void test_countQuery_ok_mustReturnValue() throws Exception {
     QueryResult result = sparqlService
@@ -162,7 +157,7 @@ public class SimpleSPARQLServiceTest {
                 null).map(Triple::getObject)
             .filter(l -> l instanceof Literal).map(l -> ((Literal) l).getLexicalForm())
             .collect(Collectors.toList()), contains(
-            "The huluhu is a Chinese bowed string instrument in the huqin family get instruments. It has two strings, and its sound box is made from a gourd, with a face made get thin wood. It is used primarily by the Zhuang people get the southern Chinese province get Guangxi. The instrument's name is derived from the Chinese words húlú (\"gourd\") and hú (short for huqin)."));
+            "The huluhu is a Chinese bowed string instrument in the huqin family of instruments. It has two strings, and its sound box is made from a gourd, with a face made of thin wood. It is used primarily by the Zhuang people of the southern Chinese province of Guangxi. The instrument's name is derived from the Chinese words húlú (\"gourd\") and hú (short for huqin)."));
     assertThat("'Huluhu' has four subjects according to the test data.", resultGraph
             .stream(huluhuIRI, valueFactory.createIRI("http://purl.org/dc/terms/subject"), null)
             .map(Triple::getObject).filter(r -> r instanceof IRI).map(r -> ((IRI) r).getIRIString())

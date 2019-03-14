@@ -21,7 +21,7 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsR
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation.Distinct;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation.Limit;
-import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.AnalysisPipelineProcessorDummy;
+import at.ac.tuwien.ifs.es.middleware.service.integration.MapDBDummy;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import java.util.List;
@@ -49,7 +49,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedInMemoryGremlinDAO.class,
     ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class, Distinct.class,
     SameAsResourceWithSPARQLService.class, SpringCacheConfig.class,
-    AnalysisPipelineProcessorDummy.class, MusicPintaInstrumentsResource.class})
+    MapDBDummy.class, MusicPintaInstrumentsResource.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",

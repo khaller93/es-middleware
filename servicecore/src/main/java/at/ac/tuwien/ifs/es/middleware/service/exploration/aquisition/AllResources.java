@@ -42,22 +42,14 @@ public class AllResources implements AcquisitionSource<AllResourcesPayload> {
   private static final int LOAD_LIMIT = 100000;
 
   private static final String ALL_QUERY = "SELECT DISTINCT ?s WHERE { \n"
-      + "    { ?s ?p [] . FILTER(isIRI(?s)) .}\n"
+      + "    { ?s ?p [] }\n"
       + "     UNION\n"
-      + "    { [] ?p ?s . FILTER(isIRI(?s)) .}\n"
+      + "    { [] ?p ?s }\n"
       + "    ${body}\n"
+      + "    FILTER(isIRI(?s)) .\n"
       + "}\n"
       + "LIMIT ${limit}\n"
       + "OFFSET ${offset}\n";
-
-  private static final String ALL_GRAPH_QUERY = "SELECT DISTINCT ?s WHERE {\nGRAPH ?g {?s ?p ?o .\n ${body}\n}\n${namespace}\n}";
-
-  private static final String[] NAMESPACES_FILTER_TEMPlATE = {
-      "FILTER {?g = %s}",
-      "FILTER NOT EXISTS {\n"
-          + "FILTER(?g in (%s)) .\n"
-          + "}"
-  };
 
   private final SPARQLService sparqlService;
 
@@ -71,29 +63,9 @@ public class AllResources implements AcquisitionSource<AllResourcesPayload> {
     return AllResourcesPayload.class;
   }
 
-  private String prepareNamespaceFilterBlock(List<Resource> includedClasses) {
-    if (includedClasses == null || includedClasses.isEmpty()) {
-      return "";
-    } else if (includedClasses.size() == 1) {
-      return String.format(NAMESPACES_FILTER_TEMPlATE[0],
-          BlankOrIRIJsonUtil.stringForSPARQLResourceOf(includedClasses.get(0)));
-    } else {
-      return String.format(NAMESPACES_FILTER_TEMPlATE[1],
-          includedClasses.stream().map(BlankOrIRIJsonUtil::stringForSPARQLResourceOf)
-              .collect(Collectors.joining(",")));
-    }
-  }
-
   @Override
   public ExplorationContext apply(AllResourcesPayload payload) {
-    String allQueryTemplate = ALL_QUERY;
     Map<String, String> valuesMap = new HashMap<>();
-    /* prepare the namespace filter */
-    final List<Resource> namespaces = payload.getNamespaces();
-    if (namespaces != null && !namespaces.isEmpty()) {
-      allQueryTemplate = ALL_GRAPH_QUERY;
-      valuesMap.put("namespace", prepareNamespaceFilterBlock(payload.getNamespaces()));
-    }
     /* construct query body */
     FacetedSearchQueryBuilder queryBuilder = FacetedSearchQueryBuilder.forSubject("s");
     /* include classes pattern */
@@ -111,7 +83,7 @@ public class AllResources implements AcquisitionSource<AllResourcesPayload> {
     valuesMap.put("body", queryBuilder.getQueryBody());
     valuesMap.put("limit", String.valueOf(LOAD_LIMIT));
     /* perform query */
-    String allQuery = new StringSubstitutor(valuesMap).replace(allQueryTemplate);
+    String allQuery = new StringSubstitutor(valuesMap).replace(ALL_QUERY);
     List<Resource> resourceList = new LinkedList<>();
     List<Map<String, RDFTerm>> results;
     int offset = 0;

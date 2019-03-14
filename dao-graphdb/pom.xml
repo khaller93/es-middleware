@@ -11,8 +11,11 @@
 
   <artifactId>middleware.dao-graphdb</artifactId>
 
+  <name>GraphDB DAO</name>
+  <description>Implementation of the DAOs using GraphDB.</description>
+
   <properties>
-    <graphDb.version>8.5.0</graphDb.version>
+    <graphDb.version>8.8.1</graphDb.version>
   </properties>
 
   <dependencies>

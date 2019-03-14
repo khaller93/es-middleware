@@ -1,5 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
@@ -57,7 +59,8 @@ public class AllResourcesWithSPARQLService implements AllResourcesService {
   private final SPARQLService sparqlService;
   private final DB mapDB;
 
-  private final HTreeMap<String, Integer> resourceMap;
+  private final HTreeMap<String, Integer> resourceKeyMap;
+  private final HTreeMap<Integer, String> resourceIdMap;
 
   @Autowired
   public AllResourcesWithSPARQLService(
@@ -65,20 +68,36 @@ public class AllResourcesWithSPARQLService implements AllResourcesService {
       @Qualifier("persistent-mapdb") DB mapDB) {
     this.sparqlService = sparqlService;
     this.mapDB = mapDB;
-    this.resourceMap = mapDB
-        .hashMap(AllResourcesWithSPARQLService.UID, Serializer.STRING, Serializer.INTEGER)
+    this.resourceKeyMap = mapDB
+        .hashMap(AllResourcesWithSPARQLService.UID + ".id.key", Serializer.STRING,
+            Serializer.INTEGER)
         .createOrOpen();
+    this.resourceIdMap = mapDB
+        .hashMap(AllResourcesWithSPARQLService.UID + ".key.id", Serializer.INTEGER,
+            Serializer.STRING).createOrOpen();
+
   }
 
   @Override
   public List<Resource> getResourceList() {
-    return resourceMap.keySet().stream().map(Resource::new).collect(Collectors.toList());
+    return resourceKeyMap.keySet().stream().map(Resource::new).collect(Collectors.toList());
   }
 
   @Override
   public Optional<Integer> getResourceKey(Resource resource) {
-    Integer val = resourceMap.get(resource.getId());
+    checkArgument(resource != null, "The given resource must not be null.");
+    Integer val = resourceKeyMap.get(resource.getId());
     return val != null ? Optional.of(val) : Optional.empty();
+  }
+
+  @Override
+  public Optional<String> getResourceIdFor(Integer key) {
+    checkArgument(key != null, "The given resource key must not be null.");
+    String resourceId = resourceIdMap.get(key);
+    if (resourceId != null) {
+      return Optional.of(resourceId);
+    }
+    return Optional.empty();
   }
 
   @Override
@@ -93,9 +112,12 @@ public class AllResourcesWithSPARQLService implements AllResourcesService {
           true).value();
       if (results != null) {
         for (Map<String, RDFTerm> row : results) {
-          String resource = BlankOrIRIJsonUtil.stringValue((BlankNodeOrIRI) row.get("resource"));
-          if (!resourceMap.containsKey(resource)) {
-            resourceMap.put(resource, resourceMap.size() + 1);
+          String resourceId = BlankOrIRIJsonUtil
+              .stringValue((BlankNodeOrIRI) row.get("resource"));
+          if (!resourceKeyMap.containsKey(resourceId)) {
+            int key = resourceKeyMap.size() + 1;
+            resourceKeyMap.put(resourceId, key);
+            resourceIdMap.put(key, resourceId);
           }
         }
         offset += results.size();

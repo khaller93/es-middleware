@@ -32,6 +32,9 @@ import org.apache.commons.rdf.simple.SimpleRDF;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 
 /**
  * This class implements generic tests for the SPARQL interface of {@link KGSparqlDAO}s.
@@ -40,32 +43,20 @@ import org.junit.Test;
  * @version 1.0
  * @since 1.0
  */
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractMusicPintaSPARQLTests {
 
-  private MusicPintaInstrumentsResource musicPintaInstrumentsResource;
+  @Autowired
   private KGSparqlDAO sparqlDAO;
+
+  @Autowired
+  private MusicPintaInstrumentsResource musicPintaInstrumentsResource;
 
   @Before
   public void setUp() throws Throwable {
-    this.sparqlDAO = getSparqlDAO();
-    this.musicPintaInstrumentsResource = new MusicPintaInstrumentsResource(sparqlDAO, getGremlinDAO());
-    this.musicPintaInstrumentsResource.before();
+    this.musicPintaInstrumentsResource.cleanSetup();
+    this.musicPintaInstrumentsResource.waitForSPARQLDAOBeingReady();
   }
-
-  @After
-  public void tearDown() throws Throwable {
-    this.musicPintaInstrumentsResource.after();
-  }
-
-  /**
-   * gets the {@link KGSparqlDAO} that shall be tested.
-   */
-  protected abstract KGSparqlDAO getSparqlDAO();
-
-  /**
-   * gets the {@link KGGremlinDAO} that shall be tested.
-   */
-  protected abstract KGGremlinDAO getGremlinDAO();
 
   @Test
   public void test_countQuery_ok_mustReturnValue() throws Exception {

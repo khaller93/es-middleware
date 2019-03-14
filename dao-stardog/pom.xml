@@ -11,6 +11,9 @@
 
   <artifactId>middleware.dao-stardog</artifactId>
 
+  <name>Stardog DAO</name>
+  <description>Implementation of the DAOs using Stardog.</description>
+
   <dependencies>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>

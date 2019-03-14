@@ -70,10 +70,16 @@ class AnalysisPipeline {
           servicesReadyList.stream().map(AnalysisServiceEntry::getName)
               .collect(Collectors.toList()));
       servicesReadyList.forEach(entry -> {
-        taskExecutor.execute(
-            new Task(entry.getName(), entry.getAnalysisService(),
-                entry.getImplementedAnalysisServiceClasses(),
-                entry.isDisabled()));
+        if (!entry.isDisabled()) {
+          taskExecutor.execute(
+              new Task(entry.getName(), entry.getAnalysisService(),
+                  entry.getImplementedAnalysisServiceClasses(),
+                  entry.isDisabled()));
+        } else {
+          logger.info(String
+              .format("Computing '%s' will be skipped, because it was marked as disabled.",
+                  entry.getName()));
+        }
       });
     } finally {
       pipelineLock.unlock();
@@ -109,6 +115,7 @@ class AnalysisPipeline {
           logger.debug("'{}' offers {}.", name, implementedServices);
           registerAvailabilityOf(implementedServices.toArray(new Class[0]));
         } catch (Exception e) {
+          e.printStackTrace();
           logger.error("'{}' has failed in the pipeline with id '{}'. {}", name, eventId,
               e.getMessage());
         }

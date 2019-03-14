@@ -2,6 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOStatusChangeListener;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.GremlinDAOStateChangeEvent;
@@ -21,6 +22,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -82,9 +84,10 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
   private TaskExecutor taskExecutor;
   /* lock for controlling syncing operations */
   private Lock graphLock = new ReentrantLock();
-
   /* status of the this gremlin DAO */
   private KGDAOStatus status;
+  /* change listener for status */
+  private List<KGDAOStatusChangeListener> statusChangeListeners;
   /* SPARQL from which data shall be cloned */
   private KGSparqlDAO sparqlDAO;
   /* storing graph data */
@@ -101,8 +104,6 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
   @Value("${esm.db.gremlin.syncOnStart:#{false}}")
   private boolean syncOnStart;
 
-  private Consumer<ApplicationEvent> updatedListener;
-
   /**
    * Creates a new {@link AbstractClonedGremlinDAO} with the given {@code knowledgeGraphDAO}.
    *
@@ -115,6 +116,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
     this.sparqlDAO = sparqlDAO;
     this.status = new KGDAOInitStatus();
     this.schema = schema;
+    this.statusChangeListeners = new LinkedList<>();
     this.taskExecutor = taskExecutor;
   }
 
@@ -217,6 +219,12 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
     return graph.features();
   }
 
+  @Override
+  public void addStatusChangeListener(KGDAOStatusChangeListener changeListener) {
+    checkArgument(changeListener != null, "The change listener must not be null.");
+    statusChangeListeners.add(changeListener);
+  }
+
   protected synchronized void setStatus(KGDAOStatus status) {
     checkArgument(status != null, "The specified status must not be null.");
     if (!this.status.getCode().equals(status.getCode())) {
@@ -224,6 +232,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
       this.status = status;
       context.publishEvent(new GremlinDAOStateChangeEvent(this, status, prevStatus,
           Instant.now()));
+      statusChangeListeners.forEach(changeListener -> changeListener.onStatusChange(status));
     }
   }
 
@@ -234,6 +243,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
       this.status = status;
       context.publishEvent(new GremlinDAOStateChangeEvent(this, eventId, status, prevStatus,
           Instant.now()));
+      statusChangeListeners.forEach(changeListener -> changeListener.onStatusChange(status));
     }
   }
 
@@ -362,10 +372,6 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
       AbstractClonedGremlinDAO.this.onBulkLoadCompleted();
       setStatus(new KGDAOReadyStatus(), eventId);
     }
-  }
-
-  public void setUpdatedListener(Consumer<ApplicationEvent> updatedListener) {
-    this.updatedListener = updatedListener;
   }
 
   @Override

@@ -1,5 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.degree;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
@@ -61,12 +63,10 @@ public class DegreeCentralityMetricWithGremlinService implements DegreeCentralit
 
   @Override
   public Long getValueFor(Resource resource) {
-    Optional<Integer> resourceKey = allResourcesService.getResourceKey(resource);
-    if (resourceKey.isPresent()) {
-      return degreeMap.get(resourceKey.get());
-    } else {
-      return null;
-    }
+    checkArgument(resource != null,
+        "The passed resource (for which the degree shall be returned) must not be null.");
+    return allResourcesService.getResourceKey(resource).map(integer -> degreeMap.get(integer))
+        .orElse(null);
   }
 
   @Override

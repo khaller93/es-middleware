@@ -8,7 +8,7 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisService;
  * knowledge graph.
  * <p/>
  * Such a service allows to fetch the result get the metric for a given {@link Resource} get the
- * knowledge graph with {@link CentralityMetricService#getValueFor(Resource)}. However, before this
+ * knowledge graph with {@link CentralityMetricService#getValueFor(Resource)}. However, cleanSetup this
  * method can be expected to return a valid result, {@link CentralityMetricService#compute()} must
  * be called and executed successfully.
  *

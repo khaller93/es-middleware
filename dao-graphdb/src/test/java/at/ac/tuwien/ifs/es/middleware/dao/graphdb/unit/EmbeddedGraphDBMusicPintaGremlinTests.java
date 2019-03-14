@@ -13,6 +13,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.ThreadPoolConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.testutil.AbstractMusicPintaSPARQLTests;
+import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,7 +41,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {EmbeddedGraphDbDAO.class, ClonedInMemoryGremlinDAO.class,
     GraphDbLucene.class, KGDAOConfig.class, GraphDbConfig.class, GraphDbLuceneConfig.class,
-    ThreadPoolConfig.class})
+    ThreadPoolConfig.class, MusicPintaInstrumentsResource.class})
 @TestPropertySource(properties = {
     "esm.db.choice=GraphDB",
     "esm.db.sparql.choice=EmbeddedGraphDB",
@@ -55,9 +56,6 @@ public class EmbeddedGraphDBMusicPintaGremlinTests extends AbstractMusicPintaSPA
   @Autowired
   @Qualifier("getSparqlDAO")
   private KGSparqlDAO sparqlDAO;
-  @Autowired
-  @Qualifier("getGremlinDAO")
-  private KGGremlinDAO gremlinDAO;
 
   private static final File graphDbDir = new File("db");
 
@@ -81,15 +79,5 @@ public class EmbeddedGraphDBMusicPintaGremlinTests extends AbstractMusicPintaSPA
   @Test
   public void correctlyAutowireSPARQLBean_mustBeEmbeddedGraphDB() {
     assertThat(sparqlDAO, instanceOf(EmbeddedGraphDbDAO.class));
-  }
-
-  @Override
-  protected KGSparqlDAO getSparqlDAO() {
-    return sparqlDAO;
-  }
-
-  @Override
-  protected KGGremlinDAO getGremlinDAO() {
-    return gremlinDAO;
   }
 }

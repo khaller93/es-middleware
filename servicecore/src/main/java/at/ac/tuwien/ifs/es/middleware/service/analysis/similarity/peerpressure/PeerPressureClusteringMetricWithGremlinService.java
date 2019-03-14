@@ -1,5 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.peerpressure;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
@@ -48,7 +50,7 @@ public class PeerPressureClusteringMetricWithGremlinService implements
   private final PGS schema;
   private final DB mapDB;
 
-  private final HTreeMap<Integer, Long> peerClusterMap;
+  private final HTreeMap<Integer, String> peerClusterMap;
 
   @Autowired
   public PeerPressureClusteringMetricWithGremlinService(
@@ -59,13 +61,14 @@ public class PeerPressureClusteringMetricWithGremlinService implements
     this.allResourcesService = allResourcesService;
     this.schema = gremlinService.getPropertyGraphSchema();
     this.mapDB = mapDB;
-    this.peerClusterMap = mapDB.hashMap(PEER_PRESSURE_UID, Serializer.INTEGER, Serializer.LONG)
+    this.peerClusterMap = mapDB.hashMap(PEER_PRESSURE_UID, Serializer.INTEGER, Serializer.STRING)
         .createOrOpen();
   }
 
   @Override
   public Boolean isSharingSameCluster(ResourcePair pair) {
-    Long clusterA = null, clusterB = null;
+    checkArgument(pair != null, "The given resource pair must not be null.");
+    String clusterA = null, clusterB = null;
     /*resource a */
     Optional<Integer> optResourcePairAKey = allResourcesService.getResourceKey(pair.getFirst());
     if (optResourcePairAKey.isPresent()) {
@@ -96,7 +99,8 @@ public class PeerPressureClusteringMetricWithGremlinService implements
         Optional<Integer> optResourceKey = allResourcesService
             .getResourceKey(new Resource((String) iri));
         if (optResourceKey.isPresent()) {
-          peerClusterMap.put(optResourceKey.get(), (Long) value);
+          System.out.println(">Class:" + value.getClass());
+          peerClusterMap.put(optResourceKey.get(), (String) value);
         }
       });
       mapDB.commit();

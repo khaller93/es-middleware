@@ -28,15 +28,14 @@ import org.springframework.stereotype.Service;
  * @version 1.0
  * @since 1.0
  */
-@Primary
 @Service
 @RegisterForAnalyticalProcessing(name = ClassEntropyWithGremlinService.UID,
-    requiresGremlin = true, prerequisites = {AllClassesService.class})
+    requiresGremlin = true, prerequisites = {AllClassesService.class}, disabled = true)
 public class ClassEntropyWithGremlinService implements ClassEntropyService {
 
   private static final Logger logger = LoggerFactory.getLogger(ClassEntropyService.class);
 
-  public static final String UID = "esm.service.analytics.dataset.classentropy";
+  public static final String UID = "esm.service.analytics.dataset.classentropy.gremlin";
 
   private final GremlinService gremlinService;
   private final AllClassesService allClassesService;

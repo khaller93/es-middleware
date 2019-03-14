@@ -6,11 +6,15 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProc
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.ClassHierarchyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.ResourceClassService;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.mapdb.DB;
 import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -23,7 +27,9 @@ import org.springframework.stereotype.Service;
 @Service
 @RegisterForAnalyticalProcessing(name = LCSWithClassHierarchyService.LCS_UID, prerequisites = {
     AllResourcesService.class, ResourceClassService.class, ClassHierarchyService.class})
-public class LCSWithClassHierarchyService implements LeastCommonSubsumersService {
+public class LCSWithClassHierarchyService implements LowestCommonAncestorService {
+
+  private static final Logger logger = LoggerFactory.getLogger(LCSWithClassHierarchyService.class);
 
   public static final String LCS_UID = "esm.service.analytics.dataset.lcs.hierarchy";
 
@@ -31,6 +37,8 @@ public class LCSWithClassHierarchyService implements LeastCommonSubsumersService
   private final ResourceClassService resourceClassService;
   private final ClassHierarchyService classHierarchyService;
   private final DB mapDB;
+
+  private final HTreeMap<int[], Set<String>> lcsMap;
 
   @Autowired
   public LCSWithClassHierarchyService(
@@ -41,15 +49,45 @@ public class LCSWithClassHierarchyService implements LeastCommonSubsumersService
     this.resourceClassService = resourceClassService;
     this.classHierarchyService = classHierarchyService;
     this.mapDB = mapDB;
+    this.lcsMap = mapDB.hashMap(LCS_UID, Serializer.INT_ARRAY, Serializer.JAVA).createOrOpen();
   }
 
   @Override
-  public Set<Resource> getLeastCommonSubsumersFor(ResourcePair resourcePair) {
+  public Set<Resource> getLowestCommonAncestor(ResourcePair resourcePair) {
     return null;
   }
 
   @Override
   public void compute() {
-
+    for (Resource resourceA : allResourcesService.getResourceList()) {
+      Optional<Integer> resourceKeyA = allResourcesService.getResourceKey(resourceA);
+      Optional<Set<Resource>> optClassesA = resourceClassService.getClassesOf(resourceA);
+      if (optClassesA.isPresent() && resourceKeyA.isPresent()) {
+        for (Resource resourceB : allResourcesService.getResourceList()) {
+          Optional<Set<Resource>> optClassesB = resourceClassService.getClassesOf(resourceB);
+          Optional<Integer> resourceKeyB = allResourcesService.getResourceKey(resourceB);
+          if (optClassesB.isPresent() && resourceKeyB.isPresent()) {
+            Set<Resource> commonClasses = new HashSet<>();
+            for (Resource classA : classHierarchyService
+                .getMostSpecificClasses(optClassesA.get())) {
+              for (Resource classB : classHierarchyService
+                  .getMostSpecificClasses(optClassesB.get())) {
+                commonClasses.addAll(classHierarchyService.getLowestCommonAncestor(classA, classB));
+              }
+            }
+            commonClasses = classHierarchyService.getMostSpecificClasses(commonClasses);
+            lcsMap.put(new int[]{resourceKeyA.get(), resourceKeyB.get()},
+                commonClasses.stream().map(Resource::getId).collect(
+                    Collectors.toSet()));
+          } else {
+            logger.warn("Classes or key cannot be fetched for resource {}.", resourceB);
+          }
+        }
+      } else {
+        logger.warn("Classes or key cannot be fetched for resource {}.", resourceA);
+      }
+    }
+    mapDB.commit();
   }
+
 }
