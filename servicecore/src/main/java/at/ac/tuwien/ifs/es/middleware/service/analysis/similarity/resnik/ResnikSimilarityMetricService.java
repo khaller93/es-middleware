@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.resnik;
 
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.LowestCommonAncestorService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.lca.LowestCommonAncestorService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricService;
 
 /**

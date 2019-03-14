@@ -7,7 +7,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePai
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.ClassEntropyService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.LowestCommonAncestorService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.lca.LowestCommonAncestorService;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;

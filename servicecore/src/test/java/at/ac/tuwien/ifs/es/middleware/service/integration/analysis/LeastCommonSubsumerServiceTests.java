@@ -3,6 +3,7 @@ package at.ac.tuwien.ifs.es.middleware.service.integration.analysis;
 
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertNotNull;
 
@@ -16,8 +17,8 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.AllClassesWithSPARQLService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.LCSWithInMemoryTreeService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.LowestCommonAncestorService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.lca.LCSWithInMemoryTreeService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.lca.LowestCommonAncestorService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.integration.MapDBDummy;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
@@ -68,28 +69,5 @@ public class LeastCommonSubsumerServiceTests {
     musicPintaResource.waitForAllDAOsBeingReady();
   }
 
-  @Test
-  public void leastcommonSubsummersOfTwoGuitarInstruments_mustReturnGuitarClass() {
-    Resource guitarResource = new Resource("http://dbpedia.org/resource/Guitar");
-    Resource spanishAcousticGuitarResource = new Resource(
-        "http://dbtune.org/musicbrainz/resource/instrument/206");
-    leastCommonSubSumersService.compute();
-    Set<Resource> leastCommonSubSummers = leastCommonSubSumersService
-        .getLowestCommonAncestor(
-            ResourcePair.of(guitarResource, spanishAcousticGuitarResource));
-    assertNotNull(leastCommonSubSummers);
-    assertThat(leastCommonSubSummers,
-        hasItem(new Resource("http://purl.org/ontology/mo/Instrument")));
-  }
 
-  @Test
-  public void leastCommonSubsummerOfTwoUnrelatedResources_mustReturnEmptyList() {
-    Resource guitarResource = new Resource("http://dbpedia.org/resource/Guitar");
-    Resource testAResource = new Resource("test_a");
-    leastCommonSubSumersService.compute();
-    Set<Resource> leastCommonSubSummers = leastCommonSubSumersService
-        .getLowestCommonAncestor(ResourcePair.of(guitarResource, testAResource));
-    assertNotNull(leastCommonSubSummers);
-    assertThat(leastCommonSubSummers, hasSize(0));
-  }
 }
