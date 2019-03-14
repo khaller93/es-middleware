@@ -13,12 +13,17 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.AllClassesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.AllClassesWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.ClassHierarchyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.ClassHierarchyWithSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesWithSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.ResourceClassService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.AllResources;
 import at.ac.tuwien.ifs.es.middleware.service.integration.MapDBDummy;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.SimpleGremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
@@ -49,7 +54,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     SimpleSPARQLService.class, RDF4JMemoryStoreWithLuceneSparqlDAO.class,
     ClonedInMemoryGremlinDAO.class, ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class,
     ThreadPoolConfig.class, AllClassesWithSPARQLService.class, SpringCacheConfig.class,
-    SameAsResourceWithSPARQLService.class, MapDBDummy.class,
+    SameAsResourceWithSPARQLService.class, MapDBDummy.class, AllResourcesWithSPARQLService.class,
     WineOntologyDatasetResource.class, ClassHierarchyWithSPARQLService.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
@@ -63,13 +68,19 @@ public class ClassHierarchyTests {
   @Autowired
   public WineOntologyDatasetResource wineOntologyDatasetResource;
   @Autowired
+  private AllResourcesService allResourcesService;
+  @Autowired
+  private AllClassesService allClassesService;
+  @Autowired
   private SameAsResourceService sameAsResourceService;
   @Autowired
   private ClassHierarchyService classHierarchyService;
 
   @Before
   public void setUp() throws Exception {
+    allResourcesService.compute();
     sameAsResourceService.compute();
+    allClassesService.compute();
     classHierarchyService.compute();
   }
 

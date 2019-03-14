@@ -3,12 +3,15 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarch
 import static com.google.common.base.Preconditions.checkArgument;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.AllClassesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import com.google.common.collect.Sets;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -38,7 +41,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RegisterForAnalyticalProcessing(name = ClassHierarchyWithSPARQLService.UID, requiresSPARQL = true,
-    prerequisites = {SameAsResourceService.class})
+    prerequisites = {AllClassesService.class, SameAsResourceService.class})
 public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
 
   private static final Logger logger = LoggerFactory
@@ -48,46 +51,20 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
 
   private static final Integer LOAD_SIZE = 10000;
 
-  private static final String ALL_SUBCLASSES_QUERY = "SELECT DISTINCT ?class ?superClass WHERE {\n"
-      + "    {\n"
-      + "      [] a ?class\n"
-      + "    } UNION {\n"
-      + "      ?class a rdfs:Class\n"
-      + "    } UNION {\n"
-      + "      ?class rdfs:subClassOf []\n"
-      + "    } UNION {\n"
-      + "      [] rdfs:subClassOf ?class\n"
-      + "    }\n"
-      + "    ?class rdfs:subClassOf+ ?superClass .\n"
-      + "    FILTER (?class != ?superClass) .\n"
-      + "    FILTER NOT EXISTS {\n"
-      + "        ?class rdfs:subClassOf+ ?anotherSuperClass .\n"
-      + "        ?anotherSuperClass rdfs:subClassOf+ ?superClass .\n"
-      + "        FILTER (isIRI(?anotherClass)) .\n"
-      + "    }\n"
-      + "    FILTER(isIRI(?class) && isIRI(?superClass)) .\n"
-      + "}\n"
-      + "OFFSET %d\n"
-      + "LIMIT %d";
-
-  String test = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
-      +"PREFIX vin: <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#>\n"
-      +"select * where {\n"
-      +"    VALUES ?class {\n"
-      +"    \tvin:RedWine\n"
-      +"    }\n"
-      +"    OPTIONAL {\n"
-      +"    \t?class rdfs:subClassOf+ ?superClass .\n"
-      +"        FILTER NOT EXISTS {\n"
-      +"            ?class rdfs:subClassOf+ ?anotherSuperClass .\n"
-      +"            ?anotherSuperClass rdfs:subClassOf+ ?superClass .\n"
-      +"            FILTER (isIRI(?anotherClass)) .\n"
-      +"        }\n"
-      +"      \tFILTER(isIRI(?superClass) && ?class != ?superClass) .\n"
-      +"    }\n"
-      +"}\n";
+  private static final String ALL_SUBCLASSES_QUERY =
+      "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
+          + "select ?class ?superClass where {\n"
+          + "    VALUES ?class {\n"
+          + "        %s\n"
+          + "    }\n"
+          + "    OPTIONAL {\n"
+          + "        ?class rdfs:subClassOf+ ?superClass .\n"
+          + "        FILTER(isIRI(?superClass) && ?class != ?superClass) .\n"
+          + "    }\n"
+          + "}\n";
 
   private final SPARQLService sparqlService;
+  private final AllClassesService allClassesService;
   private final SameAsResourceService sameAsResourceService;
   private final DB mapDB;
 
@@ -99,8 +76,10 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
   @Autowired
   public ClassHierarchyWithSPARQLService(
       SPARQLService sparqlService,
+      AllClassesService allClassesService,
       SameAsResourceService sameAsResourceService, @Qualifier("persistent-mapdb") DB mapDB) {
     this.sparqlService = sparqlService;
+    this.allClassesService = allClassesService;
     this.sameAsResourceService = sameAsResourceService;
     this.mapDB = mapDB;
     this.classNodeMap = mapDB
@@ -186,27 +165,32 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
   @Override
   public void compute() {
     logger.info("Starting to build class hierarchy.");
-    int offset = 0;
-    List<Map<String, RDFTerm>> resultList;
-    do {
-      resultList = sparqlService.<SelectQueryResult>query(
-          String.format(ALL_SUBCLASSES_QUERY, offset, LOAD_SIZE), true).value();
+    List<Resource> classList = new LinkedList<>(allClassesService.getAllClasses());
+    for (int i = 0; i < classList.size(); i += LOAD_SIZE) {
+      List<Map<String, RDFTerm>> resultList = sparqlService.<SelectQueryResult>query(
+          String.format(ALL_SUBCLASSES_QUERY, classList.subList(i,
+              (i + LOAD_SIZE) <= classList.size() ? (i + LOAD_SIZE) : classList.size()).stream()
+              .map(BlankOrIRIJsonUtil::stringForSPARQLResourceOf)
+              .collect(Collectors.joining("\n"))), true)
+          .value();
       for (Map<String, RDFTerm> row : resultList) {
         /* get or create tree node for class */
         Resource classResource = new Resource((BlankNodeOrIRI) row.get("class"));
         ClassTreeNode classTreenode = generateTreeNodeFor(classResource);
         /* get or create tree node for super class */
-        Resource superClassResource = new Resource((BlankNodeOrIRI) row.get("superClass"));
-        ClassTreeNode superClassTreenode = generateTreeNodeFor(superClassResource);
-        /* create links */
-        classTreenode.addParent(superClassTreenode.getId());
-        superClassTreenode.addChildren(classTreenode.getId());
-        treeNodeMap.put(classTreenode.getId(), classTreenode);
-        treeNodeMap.put(superClassTreenode.getId(), superClassTreenode);
+        BlankNodeOrIRI superClassBOrIRI = (BlankNodeOrIRI) row.get("superClass");
+        if (superClassBOrIRI != null) {
+          Resource superClassResource = new Resource((BlankNodeOrIRI) row.get("superClass"));
+          ClassTreeNode superClassTreenode = generateTreeNodeFor(superClassResource);
+          /* create links */
+          classTreenode.addParent(superClassTreenode.getId());
+          superClassTreenode.addChildren(classTreenode.getId());
+          treeNodeMap.put(classTreenode.getId(), classTreenode);
+          treeNodeMap.put(superClassTreenode.getId(), superClassTreenode);
+        }
       }
-      logger.debug("Loaded {} class <-> superclass links.", offset);
-      offset += resultList.size();
-    } while (resultList.size() == LOAD_SIZE);
+      logger.debug("Loaded {} class <-> superclass links.", i + resultList.size());
+    }
     /* repair hierarchy */
     postProcessHierarchy();
     this.mapDB.commit();
