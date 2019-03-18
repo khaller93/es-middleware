@@ -31,11 +31,10 @@ import org.springframework.stereotype.Service;
  * @version 1.0
  * @since 1.0
  */
-@Primary
 @Service
 @RegisterForAnalyticalProcessing(name = ResnikSimilarityMetricServiceImpl.UID,
     prerequisites = {ClassEntropyService.class, LowestCommonAncestorService.class,
-        AllResourcesService.class})
+        AllResourcesService.class}, disabled = true)
 public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetricService {
 
   private static final Logger logger = LoggerFactory

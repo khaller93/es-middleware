@@ -112,15 +112,17 @@ public class ResourceClassWithSPARQLService implements ResourceClassService {
           "Loaded class relationships for {} resources. {} resources has already been loaded.",
           (end - start), end);
       /* store the class relationships */
+      Map<Integer, Set<String>> classDbIntermediateMap = new HashMap<>();
       for (Entry<Resource, Set<Resource>> entry : classResourceMap.entrySet()) {
         Optional<Integer> optResourceKey = allResourcesService.getResourceKey(entry.getKey());
         if (optResourceKey.isPresent()) {
-          classDbMap.put(optResourceKey.get(),
+          classDbIntermediateMap.put(optResourceKey.get(),
               entry.getValue().stream().map(Resource::getId).collect(Collectors.toSet()));
         } else {
           logger.warn("No key could be fetched for resource {}.", entry.getKey());
         }
       }
+      classDbMap.putAll(classDbIntermediateMap);
     }
     mapDB.commit();
   }

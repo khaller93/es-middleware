@@ -19,11 +19,9 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.ClassHierarchyWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesWithSPARQLService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.ResourceClassService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.AllResources;
 import at.ac.tuwien.ifs.es.middleware.service.integration.MapDBDummy;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.SimpleGremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
@@ -144,8 +142,8 @@ public class ClassHierarchyTests {
   }
 
   @Test
-  public void getParentClassesFor_mustReturnAllParentClasses() {
-    Set<Resource> parentClasses = classHierarchyService.getParentClasses(
+  public void getParentClassesForSpecialWine_mustReturnAllParentClasses() {
+    Set<Resource> parentClasses = classHierarchyService.getSuperClasses(
         new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"));
     assertNotNull(parentClasses);
     assertFalse(parentClasses.isEmpty());
@@ -156,9 +154,23 @@ public class ClassHierarchyTests {
             "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#LateHarvest"))));
   }
 
+  @Test
+  public void getChildrenClassesForWine_mustReturnAllChildrenClasses() {
+    Set<Resource> parentClasses = classHierarchyService.getSubClasses(
+        new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Wine"));
+    assertNotNull(parentClasses);
+    assertFalse(parentClasses.isEmpty());
+    assertThat(parentClasses, containsInAnyOrder(TestUtil.mapToResource(
+        Arrays.asList("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#DessertWine",
+            "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#EarlyHarvest",
+            "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#LateHarvest",
+            "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#SweetRiesling",
+            "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"))));
+  }
+
   @Test(expected = IllegalArgumentException.class)
   public void getParentClassForNull_mustThrowIllegalArgumentException() {
-    classHierarchyService.getParentClasses(null);
+    classHierarchyService.getSuperClasses(null);
   }
 
   @Test

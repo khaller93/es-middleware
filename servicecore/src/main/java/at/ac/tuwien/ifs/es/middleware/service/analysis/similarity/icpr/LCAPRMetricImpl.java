@@ -18,21 +18,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
- * This class is an implementation get {@link LCAPRMetricService} that uses the {@link
- * LowestCommonAncestorService} and {@link PageRankCentralityMetricService}.
+ * This class is an implementation of {@link LCAPRMetricService} that pre-computes this metric using
+ * the {@link LowestCommonAncestorService} and {@link PageRankCentralityMetricService}. The
  *
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
  */
-@Primary
 @Service
 @RegisterForAnalyticalProcessing(name = "esm.service.analytics.similarity.icpr", prerequisites = {
-    LowestCommonAncestorService.class, PageRankCentralityMetricService.class})
+    LowestCommonAncestorService.class, PageRankCentralityMetricService.class}, disabled = true)
 public class LCAPRMetricImpl implements LCAPRMetricService {
 
   private static final Logger logger = LoggerFactory.getLogger(LCAPRMetricImpl.class);
@@ -68,10 +66,11 @@ public class LCAPRMetricImpl implements LCAPRMetricService {
       Optional<Integer> resourceBKeyOpt = allResourcesService
           .getResourceKey(resourcePair.getSecond());
       if (resourceBKeyOpt.isPresent()) {
-        return lcaprValueMap.get(new int[]{resourceAKeyOpt.get(), resourceBKeyOpt.get()});
+        Double value = lcaprValueMap.get(new int[]{resourceAKeyOpt.get(), resourceBKeyOpt.get()});
+        return value != null ? value : 0.0;
       }
     }
-    return null;
+    return 0.0;
   }
 
   @Override

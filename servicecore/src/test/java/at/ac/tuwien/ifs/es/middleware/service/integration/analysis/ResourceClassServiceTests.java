@@ -75,7 +75,6 @@ public class ResourceClassServiceTests {
         .getClassesOf(new Resource(
             "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#ChateauDYchemSauterne"));
     assertTrue(classesOptional.isPresent());
-    System.out.println(">" + classesOptional.get());
     assertThat(classesOptional.get(),
         containsInAnyOrder(TestUtil.mapToResource(Arrays.asList(
             "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#LateHarvest",

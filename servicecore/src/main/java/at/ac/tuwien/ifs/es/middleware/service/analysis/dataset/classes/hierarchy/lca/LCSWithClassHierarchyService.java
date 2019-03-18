@@ -1,11 +1,14 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.lca;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.ClassHierarchyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.ResourceClassService;
+import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -17,16 +20,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
+ * This class implements {@link LowestCommonAncestorService}. It pre-computes the metric.
+ *
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
  */
 @Service
 @RegisterForAnalyticalProcessing(name = LCSWithClassHierarchyService.LCS_UID, prerequisites = {
-    AllResourcesService.class, ResourceClassService.class, ClassHierarchyService.class})
+    AllResourcesService.class, ResourceClassService.class,
+    ClassHierarchyService.class}, disabled = true)
 public class LCSWithClassHierarchyService implements LowestCommonAncestorService {
 
   private static final Logger logger = LoggerFactory.getLogger(LCSWithClassHierarchyService.class);
@@ -54,6 +61,16 @@ public class LCSWithClassHierarchyService implements LowestCommonAncestorService
 
   @Override
   public Set<Resource> getLowestCommonAncestor(ResourcePair resourcePair) {
+    checkArgument(resourcePair != null, "The given resource pair must not be null.");
+    Optional<Integer> resourceAKeyOpt = allResourcesService.getResourceKey(resourcePair.getFirst());
+    if (resourceAKeyOpt.isPresent()) {
+      Optional<Integer> resourceBKeyOpt = allResourcesService
+          .getResourceKey(resourcePair.getSecond());
+      if (resourceBKeyOpt.isPresent()) {
+        return lcsMap.get(new int[]{resourceAKeyOpt.get(), resourceBKeyOpt.get()}).stream()
+            .map(Resource::new).collect(Collectors.toSet());
+      }
+    }
     return null;
   }
 

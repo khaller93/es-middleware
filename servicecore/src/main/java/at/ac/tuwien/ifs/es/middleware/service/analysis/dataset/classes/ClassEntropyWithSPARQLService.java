@@ -33,10 +33,9 @@ import org.springframework.stereotype.Service;
  * @version 1.0
  * @since 1.0
  */
-@Primary
 @Service
 @RegisterForAnalyticalProcessing(name = ClassEntropyWithSPARQLService.UID,
-    requiresSPARQL = true, prerequisites = {AllClassesService.class})
+    requiresSPARQL = true, prerequisites = {AllClassesService.class}, disabled = true)
 public class ClassEntropyWithSPARQLService implements ClassEntropyService {
 
   private static final Logger logger = LoggerFactory.getLogger(ClassEntropyService.class);

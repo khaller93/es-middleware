@@ -3,14 +3,20 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.ClassHierarchyService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.tinkerpop.gremlin.process.traversal.P;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Element;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.mapdb.DB;
 import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
@@ -28,9 +34,11 @@ import org.springframework.stereotype.Service;
  * @version 1.0
  * @since 1.0
  */
+@Primary
 @Service
 @RegisterForAnalyticalProcessing(name = ClassEntropyWithGremlinService.UID,
-    requiresGremlin = true, prerequisites = {AllClassesService.class}, disabled = true)
+    requiresGremlin = true, prerequisites = {AllClassesService.class,
+    ClassHierarchyService.class}, disabled = true)
 public class ClassEntropyWithGremlinService implements ClassEntropyService {
 
   private static final Logger logger = LoggerFactory.getLogger(ClassEntropyService.class);
@@ -39,6 +47,7 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
 
   private final GremlinService gremlinService;
   private final AllClassesService allClassesService;
+  private final ClassHierarchyService classHierarchyService;
   private final PGS schema;
   private final DB mapDB;
 
@@ -47,9 +56,11 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
   @Autowired
   public ClassEntropyWithGremlinService(GremlinService gremlinService,
       AllClassesService allClassesService,
+      ClassHierarchyService classHierarchyService,
       @Qualifier("persistent-mapdb") DB mapDB) {
     this.gremlinService = gremlinService;
     this.allClassesService = allClassesService;
+    this.classHierarchyService = classHierarchyService;
     this.mapDB = mapDB;
     this.classEntropyMap = mapDB.hashMap(UID, Serializer.STRING, Serializer.DOUBLE)
         .createOrOpen();
@@ -69,29 +80,28 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
     try {
       Set<Resource> allClasses = allClassesService.getAllClasses();
       if (!allClasses.isEmpty()) {
-        GraphTraversalSource g = gremlinService.traversal();
-        Long total = g.V().dedup().count().next();
-        String[] addClassLabels = allClasses.stream().skip(1).map(Resource::getId)
-            .toArray(String[]::new);
-        Map<Object, Object> classInstancesMap = g
-            .V().has(schema.iri().identifierAsString(), allClasses.iterator().next().getId(),
-                addClassLabels)
-            .until(__.or(__.not(__.in("http://www.w3.org/2000/01/rdf-schema#subClassOf")),
-                __.cyclicPath()))
-            .repeat(__.in("http://www.w3.org/2000/01/rdf-schema#subClassOf")).group()
-            .by(__.map(traverser -> schema.iri().<String>apply((Element) traverser.get())))
-            .by(__.in("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").dedup().count()).next();
-        Map<Resource, Double> icClassMap = classInstancesMap.entrySet().stream().collect(
-            Collectors.toMap(e -> new Resource((String) e.getKey()),
-                e -> {
-                  Double p = (((((Long) e.getValue()).doubleValue()) + 1.0) / total);
-                  return -Math.log(p);
-                }));
-        for (Resource clazz : allClasses) {
-          classEntropyMap
-              .put(clazz.getId(), icClassMap.getOrDefault(clazz, -Math.log(1.0 / total)));
+        Map<String, Double> classEntropyIntermediateMap = new HashMap<>();
+        Optional<Long> totalOpt = gremlinService.traversal().V().dedup().count().tryNext();
+        if (totalOpt.isPresent()) {
+          long total = totalOpt.get();
+          for (Resource classResource : allClassesService.getAllClasses()) {
+            Set<Resource> classList = classHierarchyService.getSubClasses(classResource);
+            classList.add(classResource);
+            GraphTraversal<Vertex, Long> g = gremlinService.traversal().V()
+                .has(schema.iri().identifierAsString(),
+                    P.within(classList.stream().map(Resource::getId).toArray(String[]::new)))
+                .in("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").dedup().count();
+            if (g.hasNext()) {
+              Long classInstancesNumber = g.next();
+              classEntropyIntermediateMap
+                  .put(classResource.getId(), -Math.log(((double) classInstancesNumber) / total));
+            } else {
+              classEntropyIntermediateMap.put(classResource.getId(), -Math.log(1.0 / total));
+            }
+          }
+          classEntropyMap.putAll(classEntropyIntermediateMap);
+          mapDB.commit();
         }
-        mapDB.commit();
       }
       gremlinService.commit();
     } catch (Exception e) {

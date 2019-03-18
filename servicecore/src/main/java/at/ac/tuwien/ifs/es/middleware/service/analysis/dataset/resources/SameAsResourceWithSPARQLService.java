@@ -98,6 +98,7 @@ public class SameAsResourceWithSPARQLService implements SameAsResourceService {
         break;
       }
     } while (results.size() == LOAD_LIMIT);
+    Map<Integer, int[]> sameAsMapIntermediate = new HashMap<>();
     sameAsIntermediateMap.forEach((key, value) -> {
       Optional<Integer> resourceKey = allResourcesService.getResourceKey(key);
       if (resourceKey.isPresent()) {
@@ -105,10 +106,11 @@ public class SameAsResourceWithSPARQLService implements SameAsResourceService {
             .toPrimitive(value.stream().map(allResourcesService::getResourceKey).filter(
                 Optional::isPresent).map(Optional::get).toArray(Integer[]::new));
         if (sameAsResources.length > 0) {
-          sameAsMap.put(resourceKey.get(), sameAsResources);
+          sameAsMapIntermediate.put(resourceKey.get(), sameAsResources);
         }
       }
     });
+    sameAsMap.putAll(sameAsMapIntermediate);
     mapDB.commit();
   }
 

@@ -1,14 +1,20 @@
 package at.ac.tuwien.ifs.es.middleware.service.integration;
 
-import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.ClassEntropyServiceTests;
 import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.AllClassesServiceTests;
+import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.ClassHierarchyTests;
 import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.DegreeCentralityMetricServiceTests;
-import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.LeastCommonSubsumerServiceTests;
 import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.PageRankCentralityMetricServiceTests;
 import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.PeerPressureClusteringMetricServiceTests;
-import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.ResnikSimilarityMetricServiceTests;
+import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.classentropy.ClassEntropyWithGremlinServiceTests;
+import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.classentropy.ClassEntropyWithSPARQLServiceTests;
+import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.lca.LCAOnTheFlyServiceTests;
+import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.lca.LCSWithClassHierarchyServiceTests;
+import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.lcapr.LCAPRMetricImplTests;
+import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.lcapr.LCAPRMetricOnTheFlyServiceTests;
+import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.resnik.ResnikSimilarityMetricImplServiceTests;
 import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.SameAsResourceServiceTests;
 import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.UnweightedLDSDMetricServiceTests;
+import at.ac.tuwien.ifs.es.middleware.service.integration.analysis.resnik.ResnikSimilarityOnTheFlyServiceTests;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
@@ -21,10 +27,13 @@ import org.junit.runners.Suite.SuiteClasses;
  * @since 1.0
  */
 @RunWith(Suite.class)
-@SuiteClasses({ClassEntropyServiceTests.class, DegreeCentralityMetricServiceTests.class,
-    AllClassesServiceTests.class, PageRankCentralityMetricServiceTests.class,
-    LeastCommonSubsumerServiceTests.class, PeerPressureClusteringMetricServiceTests.class,
-    ResnikSimilarityMetricServiceTests.class, SameAsResourceServiceTests.class,
+@SuiteClasses({LCAOnTheFlyServiceTests.class, LCSWithClassHierarchyServiceTests.class,
+    ResnikSimilarityOnTheFlyServiceTests.class, ClassHierarchyTests.class,
+    LCAPRMetricOnTheFlyServiceTests.class, LCAPRMetricImplTests.class,
+    ResnikSimilarityMetricImplServiceTests.class, AllClassesServiceTests.class,
+    ClassEntropyWithSPARQLServiceTests.class, ClassEntropyWithGremlinServiceTests.class,
+    DegreeCentralityMetricServiceTests.class, PageRankCentralityMetricServiceTests.class,
+    PeerPressureClusteringMetricServiceTests.class, SameAsResourceServiceTests.class,
     UnweightedLDSDMetricServiceTests.class})
 public class AnalysisServiceTestSuite {
 

@@ -11,6 +11,7 @@ import com.google.common.collect.Sets;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
@@ -21,10 +22,13 @@ import org.springframework.stereotype.Service;
  * @version 1.0
  * @since 1.0
  */
+@Primary
 @Service
-@RegisterForAnalyticalProcessing(name = LCSWithClassHierarchyService.LCS_UID, prerequisites = {
+@RegisterForAnalyticalProcessing(name = LCAOnTheFlyService.LCA_UID, prerequisites = {
     ClassHierarchyService.class, ResourceClassService.class})
 public class LCAOnTheFlyService implements LowestCommonAncestorService {
+
+  public static final String LCA_UID = "esm.service.analytics.dataset.lca.online";
 
   private final ResourceClassService resourceClassService;
   private final ClassHierarchyService classHierarchyService;
@@ -43,24 +47,11 @@ public class LCAOnTheFlyService implements LowestCommonAncestorService {
     Optional<Set<Resource>> resourceAOpt = resourceClassService
         .getClassesOf(resourcePair.getFirst());
     if (resourceAOpt.isPresent()) {
-      Set<Resource> mostSpecificClassesA = classHierarchyService
-          .getMostSpecificClasses(resourceAOpt.get());
-      if (!mostSpecificClassesA.isEmpty()) {
-        Optional<Set<Resource>> resourceBOpt = resourceClassService
-            .getClassesOf(resourcePair.getSecond());
-        if (resourceBOpt.isPresent()) {
-          Set<Resource> mostSpecificClassesB = classHierarchyService
-              .getMostSpecificClasses(resourceBOpt.get());
-          if (!mostSpecificClassesB.isEmpty()) {
-            if (mostSpecificClassesA.size() == 1 && mostSpecificClassesB.size() == 1) {
-              return classHierarchyService
-                  .getLowestCommonAncestor(mostSpecificClassesA.iterator().next(),
-                      mostSpecificClassesB.iterator().next());
-            } else {
-
-            }
-          }
-        }
+      Optional<Set<Resource>> resourceBOpt = resourceClassService
+          .getClassesOf(resourcePair.getSecond());
+      if (resourceBOpt.isPresent()) {
+        return classHierarchyService
+            .getLowestCommonAncestor(resourceAOpt.get(), resourceBOpt.get());
       }
     }
     return Sets.newHashSet();

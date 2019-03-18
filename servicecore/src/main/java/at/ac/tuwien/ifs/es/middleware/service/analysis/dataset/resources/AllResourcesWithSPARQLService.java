@@ -8,6 +8,8 @@ import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
@@ -34,14 +35,13 @@ import org.springframework.stereotype.Service;
  * @version 1.0
  * @since 1.0
  */
-@Primary
 @Service
-@RegisterForAnalyticalProcessing(name = AllResourcesWithSPARQLService.UID, requiresSPARQL = true)
+@RegisterForAnalyticalProcessing(name = "esm.service.analytics.dataset.all.resources", requiresSPARQL = true)
 public class AllResourcesWithSPARQLService implements AllResourcesService {
 
   private static final Logger logger = LoggerFactory.getLogger(AllResourcesWithSPARQLService.class);
 
-  public static final String UID = "esm.service.analytics.dataset.all.resources";
+  private static final String UID = "esm.service.analytics.dataset.all.resources";
 
   private static final long LOAD_LIMIT = 100000L;
 
@@ -80,7 +80,16 @@ public class AllResourcesWithSPARQLService implements AllResourcesService {
 
   @Override
   public List<Resource> getResourceList() {
-    return resourceKeyMap.keySet().stream().map(Resource::new).collect(Collectors.toList());
+    List<Resource> resourceList = new LinkedList<>();
+    resourceKeyMap.keySet().forEach(id -> {
+      try {
+        resourceList.add(new Resource(id));
+      } catch (Exception ex) {
+        System.out.println(">" + ex.getMessage() + " :" + id);
+      }
+    });
+    return resourceList;
+    //return resourceKeyMap.keySet().stream().map(Resource::new).collect(Collectors.toList());
   }
 
   @Override
@@ -106,22 +115,27 @@ public class AllResourcesWithSPARQLService implements AllResourcesService {
     List<Map<String, RDFTerm>> results;
     String resourceQuery = new StrSubstitutor(Collections.singletonMap("limit", LOAD_LIMIT))
         .replace(ALL_RESOURCE_IRIS_QUERY);
+    int topId = resourceKeyMap.size();
     do {
       results = sparqlService.<SelectQueryResult>query(
           new StrSubstitutor(Collections.singletonMap("offset", offset)).replace(resourceQuery),
           true).value();
       if (results != null) {
+        Map<String, Integer> resourceKeyIntermediateMap = new HashMap<>();
+        Map<Integer, String> resourceIdIntermediateMap = new HashMap<>();
         for (Map<String, RDFTerm> row : results) {
           String resourceId = BlankOrIRIJsonUtil
               .stringValue((BlankNodeOrIRI) row.get("resource"));
           if (!resourceKeyMap.containsKey(resourceId)) {
-            int key = resourceKeyMap.size() + 1;
-            resourceKeyMap.put(resourceId, key);
-            resourceIdMap.put(key, resourceId);
+            int key = ++topId;
+            resourceKeyIntermediateMap.put(resourceId, key);
+            resourceIdIntermediateMap.put(key, resourceId);
           }
         }
+        resourceKeyMap.putAll(resourceKeyIntermediateMap);
+        resourceIdMap.putAll(resourceIdIntermediateMap);
         offset += results.size();
-        logger.trace("Loaded {} resources. {} resources already loaded.", results.size(), offset);
+        logger.debug("Loaded {} resources. {} resources already loaded.", results.size(), offset);
       } else {
         break;
       }

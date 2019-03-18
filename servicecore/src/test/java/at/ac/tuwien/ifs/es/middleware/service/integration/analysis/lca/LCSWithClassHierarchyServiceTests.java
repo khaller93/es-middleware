@@ -11,6 +11,7 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.AllClasse
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.ClassHierarchyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.ClassHierarchyWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.lca.LCAOnTheFlyService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.lca.LCSWithClassHierarchyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.ResourceClassService;
@@ -29,7 +30,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * This class tests {@link LCAOnTheFlyService}.
+ * This class tests {@link LCSWithClassHierarchyService}.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -42,14 +43,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     SameAsResourceWithSPARQLService.class, SpringCacheConfig.class,
     AllResourcesWithSPARQLService.class, AllClassesWithSPARQLService.class, MapDBDummy.class,
     WineOntologyDatasetResource.class, ClassHierarchyWithSPARQLService.class,
-    ResourceClassWithSPARQLService.class, LCAOnTheFlyService.class})
+    ResourceClassWithSPARQLService.class, LCSWithClassHierarchyService.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
     "esm.db.fts.choice=RDF4JLucene",
     "esm.db.gremlin.choice=ClonedInMemoryGremlin",
 })
-public class LCAOnTheFlyServiceTests extends LowestCommonAncestorServiceTests {
+public class LCSWithClassHierarchyServiceTests extends LowestCommonAncestorServiceTests {
 
   @Autowired
   private AllResourcesService allResourcesService;

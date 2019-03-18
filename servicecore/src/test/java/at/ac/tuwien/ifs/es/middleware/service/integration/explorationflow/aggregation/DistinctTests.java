@@ -15,6 +15,8 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLucene
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.payload.VoidPayload;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceWithSPARQLService;
@@ -49,7 +51,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedInMemoryGremlinDAO.class,
     ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class, Distinct.class,
     SameAsResourceWithSPARQLService.class, SpringCacheConfig.class,
-    MapDBDummy.class, MusicPintaInstrumentsResource.class})
+    MapDBDummy.class, MusicPintaInstrumentsResource.class, AllResourcesWithSPARQLService.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -61,6 +63,8 @@ public class DistinctTests {
   @Rule
   @Autowired
   public MusicPintaInstrumentsResource musicPintaResource;
+  @Autowired
+  private AllResourcesService allResourcesService;
   @Autowired
   private SameAsResourceService sameAsResourceService;
   @Autowired
@@ -79,7 +83,8 @@ public class DistinctTests {
             new Resource("http://dbpedia.org/resource/Banjo_uke"),
             new Resource("http://dbtune.org/musicbrainz/resource/instrument/92"));
     resourceListContext = new ResourceList(resourceList);
-    musicPintaResource.waitForAllDAOsBeingReady();
+    
+    allResourcesService.compute();
     sameAsResourceService.compute();
   }
 

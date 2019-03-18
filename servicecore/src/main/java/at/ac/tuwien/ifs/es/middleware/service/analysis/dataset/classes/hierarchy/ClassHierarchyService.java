@@ -40,7 +40,17 @@ public interface ClassHierarchyService extends AnalysisService {
    * returned.
    * @throws IllegalArgumentException if the given class resource is null.
    */
-  Set<Resource> getParentClasses(Resource classResource);
+  Set<Resource> getSuperClasses(Resource classResource);
+
+  /**
+   * Gets all the children classes of the given class.
+   *
+   * @param classResource for which the children classes shall be returned. It must not be null.
+   * @return a {@link Set} with all the children class {@link Resource}s. {@code null} must not be
+   * returned.
+   * @throws IllegalArgumentException if the given class resource is null.
+   */
+  Set<Resource> getSubClasses(Resource classResource);
 
   /**
    * The set of Lowest Common Ancestors (LCA) of two classes {@code classA} and {@code classB} in a
@@ -54,4 +64,7 @@ public interface ClassHierarchyService extends AnalysisService {
    * @throws IllegalArgumentException if one of the given class resources is null.
    */
   Set<Resource> getLowestCommonAncestor(Resource classA, Resource classB);
+
+
+  Set<Resource> getLowestCommonAncestor(Set<Resource> classAList, Set<Resource> classBList);
 }

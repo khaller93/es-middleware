@@ -18,7 +18,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.swing.tree.TreeNode;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.mapdb.DB;
@@ -28,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -96,7 +94,7 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
   @Override
   public Set<Resource> getMostSpecificClasses(Set<Resource> classes) {
     checkArgument(classes != null, "The given list of classes must not be null.");
-    Set<Resource> parents = classes.stream().flatMap(c -> getParentClasses(c).stream())
+    Set<Resource> parents = classes.stream().flatMap(c -> getSuperClasses(c).stream())
         .collect(Collectors.toSet());
     return classes.stream().filter(c -> !parents.contains(c)).collect(Collectors.toSet());
   }
@@ -106,16 +104,25 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
     checkArgument(classes != null, "The given list of classes must not be null.");
     Set<Resource> allClasses = new HashSet<>(classes);
     for (Resource resource : classes) {
-      allClasses.addAll(getParentClasses(resource));
+      allClasses.addAll(getSuperClasses(resource));
     }
     return allClasses;
   }
 
   @Override
-  public Set<Resource> getParentClasses(Resource classResource) {
-    checkArgument(classResource != null, "The given list of class resource must not be null.");
+  public Set<Resource> getSuperClasses(Resource classResource) {
+    checkArgument(classResource != null, "The given class resource must not be null.");
     return getTreeNodeFor(classResource)
         .map(classTreeNode -> getParentTreeNodes(classTreeNode).stream()
+            .flatMap(tn -> tn.getResources().stream())
+            .map(Resource::new).collect(Collectors.toSet())).orElseGet(HashSet::new);
+  }
+
+  @Override
+  public Set<Resource> getSubClasses(Resource classResource) {
+    checkArgument(classResource != null, "The givenclass resource must not be null.");
+    return getTreeNodeFor(classResource)
+        .map(classTreeNode -> getChildrenTreeNodes(classTreeNode).stream()
             .flatMap(tn -> tn.getResources().stream())
             .map(Resource::new).collect(Collectors.toSet())).orElseGet(HashSet::new);
   }
@@ -130,11 +137,21 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
     return parentsList;
   }
 
+  private Set<ClassTreeNode> getChildrenTreeNodes(ClassTreeNode classTreeNode) {
+    Set<ClassTreeNode> childrenList = new HashSet<>();
+    for (ClassTreeNode treeNode : classTreeNode.getChildren().stream().map(treeNodeMap::get)
+        .collect(Collectors.toSet())) {
+      childrenList.add(treeNode);
+      childrenList.addAll(getChildrenTreeNodes(treeNode));
+    }
+    return childrenList;
+  }
+
   @Override
   public Set<Resource> getLowestCommonAncestor(Resource classA, Resource classB) {
     checkArgument(classA != null && classB != null,
         "The given (classA, classB) pair must not be null.");
-    Set<Resource> aParentClasses = getParentClasses(classA);
+    Set<Resource> aParentClasses = getSuperClasses(classA);
     if (aParentClasses.isEmpty()) {
       return Sets.newHashSet();
     }
@@ -148,6 +165,29 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
       bParentClasses = getNextLevelParent(new HashSet<>(bParentClasses));
     } while (!bParentClasses.isEmpty());
     return Sets.newHashSet();
+  }
+
+  @Override
+  public Set<Resource> getLowestCommonAncestor(Set<Resource> classASet, Set<Resource> classBSet) {
+    checkArgument(classASet != null && classBSet != null,
+        "Both given sets of classes must not be null.");
+    if (classASet.isEmpty() || classBSet.isEmpty()) {
+      return Sets.newHashSet();
+    }
+    Set<Resource> mostSpecificClassesA = getMostSpecificClasses(classASet);
+    Set<Resource> mostSpecificClassesB = getMostSpecificClasses(classBSet);
+    if (mostSpecificClassesA.size() == 1 && mostSpecificClassesB.size() == 1) {
+      return getLowestCommonAncestor(mostSpecificClassesA.iterator().next(),
+          mostSpecificClassesB.iterator().next());
+    } else {
+      Set<Resource> lcaCandidates = new HashSet<>();
+      for (Resource mscA : mostSpecificClassesA) {
+        for (Resource mscB : mostSpecificClassesA) {
+          lcaCandidates.addAll(getLowestCommonAncestor(mscA, mscB));
+        }
+      }
+      return getMostSpecificClasses(lcaCandidates);
+    }
   }
 
   public Set<Resource> getNextLevelParent(Set<Resource> resourceSet) {

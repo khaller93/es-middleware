@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.service.integration.analysis.lca;
+package at.ac.tuwien.ifs.es.middleware.service.integration.analysis.resnik;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.ThreadPoolConfig;
@@ -8,6 +8,8 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchD
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.AllClassesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.AllClassesWithSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.ClassEntropyService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.ClassEntropyWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.ClassHierarchyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.ClassHierarchyWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.lca.LCAOnTheFlyService;
@@ -17,6 +19,7 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.Resourc
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.ResourceClassWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceWithSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.resnik.ResnikSimilarityOnTheFlyService;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.integration.MapDBDummy;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
@@ -29,7 +32,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * This class tests {@link LCAOnTheFlyService}.
+ * This class tests {@link ResnikSimilarityMetricServiceTests}.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -42,14 +45,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     SameAsResourceWithSPARQLService.class, SpringCacheConfig.class,
     AllResourcesWithSPARQLService.class, AllClassesWithSPARQLService.class, MapDBDummy.class,
     WineOntologyDatasetResource.class, ClassHierarchyWithSPARQLService.class,
-    ResourceClassWithSPARQLService.class, LCAOnTheFlyService.class})
+    ClassEntropyWithSPARQLService.class, ResourceClassWithSPARQLService.class,
+    LCAOnTheFlyService.class, ResnikSimilarityOnTheFlyService.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
     "esm.db.fts.choice=RDF4JLucene",
     "esm.db.gremlin.choice=ClonedInMemoryGremlin",
 })
-public class LCAOnTheFlyServiceTests extends LowestCommonAncestorServiceTests {
+public class ResnikSimilarityOnTheFlyServiceTests extends ResnikSimilarityMetricServiceTests {
 
   @Autowired
   private AllResourcesService allResourcesService;

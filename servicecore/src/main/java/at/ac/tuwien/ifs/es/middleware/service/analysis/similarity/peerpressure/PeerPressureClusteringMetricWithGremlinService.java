@@ -50,7 +50,7 @@ public class PeerPressureClusteringMetricWithGremlinService implements
   private final PGS schema;
   private final DB mapDB;
 
-  private final HTreeMap<Integer, String> peerClusterMap;
+  private final HTreeMap<Integer, Object> peerClusterMap;
 
   @Autowired
   public PeerPressureClusteringMetricWithGremlinService(
@@ -61,14 +61,14 @@ public class PeerPressureClusteringMetricWithGremlinService implements
     this.allResourcesService = allResourcesService;
     this.schema = gremlinService.getPropertyGraphSchema();
     this.mapDB = mapDB;
-    this.peerClusterMap = mapDB.hashMap(PEER_PRESSURE_UID, Serializer.INTEGER, Serializer.STRING)
+    this.peerClusterMap = mapDB.hashMap(PEER_PRESSURE_UID, Serializer.INTEGER, Serializer.JAVA)
         .createOrOpen();
   }
 
   @Override
   public Boolean isSharingSameCluster(ResourcePair pair) {
     checkArgument(pair != null, "The given resource pair must not be null.");
-    String clusterA = null, clusterB = null;
+    Object clusterA = null, clusterB = null;
     /*resource a */
     Optional<Integer> optResourcePairAKey = allResourcesService.getResourceKey(pair.getFirst());
     if (optResourcePairAKey.isPresent()) {
@@ -99,8 +99,7 @@ public class PeerPressureClusteringMetricWithGremlinService implements
         Optional<Integer> optResourceKey = allResourcesService
             .getResourceKey(new Resource((String) iri));
         if (optResourceKey.isPresent()) {
-          System.out.println(">Class:" + value.getClass());
-          peerClusterMap.put(optResourceKey.get(), (String) value);
+          peerClusterMap.put(optResourceKey.get(), value);
         }
       });
       mapDB.commit();

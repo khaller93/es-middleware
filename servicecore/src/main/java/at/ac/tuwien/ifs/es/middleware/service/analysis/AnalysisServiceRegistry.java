@@ -101,9 +101,6 @@ public class AnalysisServiceRegistry {
     logger.debug("Registers analysis service {} with requirements {}.", analysisService,
         combinedRequirements);
     if (!annotation.disabled()) {
-      System.out.println(
-          ">>" + env.getProperty("esm.analysis.disable." + annotation.name(), "false").trim()
-              .toLowerCase().equals("true") + " <> " + annotation.name());
       analysisServiceMap
           .put(annotation.name(),
               new AnalysisServiceEntry(annotation.name(), analysisService, combinedRequirements,
