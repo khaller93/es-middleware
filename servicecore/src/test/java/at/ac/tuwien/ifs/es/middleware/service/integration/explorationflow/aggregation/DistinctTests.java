@@ -83,7 +83,7 @@ public class DistinctTests {
             new Resource("http://dbpedia.org/resource/Banjo_uke"),
             new Resource("http://dbtune.org/musicbrainz/resource/instrument/92"));
     resourceListContext = new ResourceList(resourceList);
-    
+
     allResourcesService.compute();
     sameAsResourceService.compute();
   }
