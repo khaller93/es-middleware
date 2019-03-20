@@ -69,7 +69,6 @@ public abstract class ExternalKGResource extends ExternalResource {
     gremlinReadyQueue.clear();
     fulltextsearchQueue.clear();
     /*  */
-    sparqlDAO.update("DELETE {?s ?p ?o} WHERE {?s ?p ?o}");
     gremlinDAO.lock();
     try {
       gremlinDAO.traversal().V().drop().iterate();
@@ -81,6 +80,7 @@ public abstract class ExternalKGResource extends ExternalResource {
     } finally {
       gremlinDAO.unlock();
     }
+    sparqlDAO.update("DELETE {?s ?p ?o} WHERE {?s ?p ?o}");
     /*  */
     Iterator<Statement> statementIterator = getKnowledgeGraphModel().iterator();
     while (statementIterator.hasNext()) {

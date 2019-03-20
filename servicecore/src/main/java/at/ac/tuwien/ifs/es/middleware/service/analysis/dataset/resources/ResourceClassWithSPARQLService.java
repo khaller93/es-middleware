@@ -15,6 +15,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.mapdb.DB;
@@ -60,7 +61,7 @@ public class ResourceClassWithSPARQLService implements ResourceClassService {
   private final AllResourcesService allResourcesService;
   private final DB mapDB;
 
-  private final HTreeMap<Integer, Set<String>> classDbMap;
+  private final HTreeMap<Integer, int[]> resourceClassDbMap;
 
   @Autowired
   public ResourceClassWithSPARQLService(
@@ -69,7 +70,7 @@ public class ResourceClassWithSPARQLService implements ResourceClassService {
     this.sparqlService = sparqlService;
     this.allResourcesService = allResourcesService;
     this.mapDB = mapDB;
-    this.classDbMap = mapDB.hashMap(UID, SERIALIZER.INTEGER, SERIALIZER.JAVA).createOrOpen();
+    this.resourceClassDbMap = mapDB.hashMap(UID, SERIALIZER.INTEGER, SERIALIZER.INT_ARRAY).createOrOpen();
   }
 
   @Override
@@ -77,9 +78,17 @@ public class ResourceClassWithSPARQLService implements ResourceClassService {
     checkArgument(instance != null, "The given instance must not be null.");
     Optional<Integer> optResourceKey = allResourcesService.getResourceKey(instance);
     if (optResourceKey.isPresent()) {
-      Set<String> classSet = classDbMap.get(optResourceKey.get());
-      if (classSet != null) {
-        return Optional.of(classSet.stream().map(Resource::new).collect(Collectors.toSet()));
+      int[] classKeySet = resourceClassDbMap.get(optResourceKey.get());
+      if (classKeySet != null) {
+        Set<Resource> classResourceSet = new HashSet<>();
+        for (int n = 0; n < classKeySet.length; n++) {
+          int classKey = classKeySet[n];
+          Optional<String> resourceIdOptional = allResourcesService.getResourceIdFor(classKey);
+          if (resourceIdOptional.isPresent()) {
+            classResourceSet.add(new Resource(resourceIdOptional.get()));
+          }
+        }
+        return Optional.of(classResourceSet);
       }
     }
     return Optional.empty();
@@ -112,17 +121,19 @@ public class ResourceClassWithSPARQLService implements ResourceClassService {
           "Loaded class relationships for {} resources. {} resources has already been loaded.",
           (end - start), end);
       /* store the class relationships */
-      Map<Integer, Set<String>> classDbIntermediateMap = new HashMap<>();
+      Map<Integer, int[]> classDbIntermediateMap = new HashMap<>();
       for (Entry<Resource, Set<Resource>> entry : classResourceMap.entrySet()) {
         Optional<Integer> optResourceKey = allResourcesService.getResourceKey(entry.getKey());
         if (optResourceKey.isPresent()) {
           classDbIntermediateMap.put(optResourceKey.get(),
-              entry.getValue().stream().map(Resource::getId).collect(Collectors.toSet()));
+              ArrayUtils
+                  .toPrimitive(entry.getValue().stream().map(allResourcesService::getResourceKey)
+                      .filter(Optional::isPresent).map(Optional::get).toArray(Integer[]::new)));
         } else {
           logger.warn("No key could be fetched for resource {}.", entry.getKey());
         }
       }
-      classDbMap.putAll(classDbIntermediateMap);
+      resourceClassDbMap.putAll(classDbIntermediateMap);
     }
     mapDB.commit();
   }

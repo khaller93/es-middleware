@@ -1,8 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.dao.janusgraph;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.ThreadPoolConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
@@ -16,8 +14,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -41,13 +37,12 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
     "esm.db.fts.choice=RDF4JLucene",
     "esm.db.gremlin.choice=LocalSyncingJanusGraph",
-    "janusgraph.dir=janusgraph/",
-    "esm.db.updateInterval=30000"
+    "janusgraph.dir=data/",
 })
-@Ignore
+@Ignore("Test case has to be inspected")
 public class ClonedLocalJanusGraphTest extends AbstractMusicPintaGremlinTests {
 
-  private static final File janusGraphDir = new File("janusgraph/");
+  private static final File janusGraphDir = new File("data/");
 
   @BeforeClass
   public static void setUpClass() throws IOException {

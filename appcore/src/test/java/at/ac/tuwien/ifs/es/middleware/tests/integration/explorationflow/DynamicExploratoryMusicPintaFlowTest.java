@@ -187,7 +187,7 @@ public class DynamicExploratoryMusicPintaFlowTest {
             .getValues("http://dbpedia.org/resource/Tembor",
                 JsonPointer.compile("/describe/description/values/en")).get().get(0)
             .asText(),
-        is("The Tembor is a stringed musical instrument from the Uyghur region, Western China. It has 5 strings in 3 courses and is tuned A A, D, G G. The strings are made get Steel."));
+        is("The Tembor is a stringed musical instrument from the Uyghur region, Western China. It has 5 strings in 3 courses and is tuned A A, D, G G. The strings are made of Steel."));
     assertFalse("The 'Tambura' resource has no description.",
         resources.getValues("http://dbtune.org/musicbrainz/resource/instrument/473",
             JsonPointer.compile("/describe/description/value")).isPresent());

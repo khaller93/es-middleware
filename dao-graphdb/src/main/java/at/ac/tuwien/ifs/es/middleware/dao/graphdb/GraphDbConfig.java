@@ -34,7 +34,7 @@ public class GraphDbConfig extends
 
   @Override
   protected GraphDbSparqlDAO getDefaultSparqlDAO() {
-    return context.getBean(EmbeddedGraphDbDAO.class);
+    return context.getBean(RemoteGraphDbDAO.class);
   }
 
   @Override

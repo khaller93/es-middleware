@@ -88,7 +88,7 @@ public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
     assert repository != null;
     this.repository = repository;
     try {
-      this.repository.initialize();
+      this.repository.init();
       setStatus(new KGDAOReadyStatus());
     } catch (RepositoryException re) {
       setStatus(new KGDAOFailedStatus("Initialization of triplestore failed.", re));

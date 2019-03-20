@@ -1,5 +1,6 @@
-package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
+package at.ac.tuwien.ifs.es.middleware.dao.graphdb.unit;
 
+import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSetupException;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;

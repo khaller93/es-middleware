@@ -3,12 +3,10 @@ package at.ac.tuwien.ifs.es.middleware.dao.graphdb.unit;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 
-import at.ac.tuwien.ifs.es.middleware.dao.graphdb.EmbeddedGraphDbDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbLucene;
 import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbLuceneConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.ThreadPoolConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryGremlinDAO;
@@ -20,6 +18,7 @@ import java.io.InputStream;
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +50,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     "graphdb.embedded.config.path=db/conf/graphdb-musicpinta-instruments.ttl",
 })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
+@Ignore("Problems with missing Ontotext dependencies")
 public class EmbeddedGraphDBMusicPintaGremlinTests extends AbstractMusicPintaSPARQLTests {
 
   @Autowired

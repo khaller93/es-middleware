@@ -1,8 +1,11 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.payload.acquisition.AllResourcesPayload;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
@@ -52,10 +55,12 @@ public class AllResources implements AcquisitionSource<AllResourcesPayload> {
       + "OFFSET ${offset}\n";
 
   private final SPARQLService sparqlService;
+  private final AllResourcesService allResourcesService;
 
   @Autowired
-  public AllResources(SPARQLService sparqlService) {
+  public AllResources(SPARQLService sparqlService, AllResourcesService allResourcesService) {
     this.sparqlService = sparqlService;
+    this.allResourcesService = allResourcesService;
   }
 
   @Override
@@ -65,6 +70,15 @@ public class AllResources implements AcquisitionSource<AllResourcesPayload> {
 
   @Override
   public ExplorationContext apply(AllResourcesPayload payload) {
+    checkArgument(payload != null,
+        "The payload for the \"esm.source.all\" operator must not be null.");
+    if ((payload.getIncludedClasses() == null || payload.getIncludedClasses().isEmpty()) &&
+        (payload.getExcludedClasses() == null || payload.getExcludedClasses().isEmpty()) &&
+        (payload.getFacets() == null || payload.getFacets().isEmpty())) {
+      return new ResourceList(allResourcesService.getResourceList());
+    } else if (payload.getFacets() == null || payload.getFacets().isEmpty()) {
+
+    }
     Map<String, String> valuesMap = new HashMap<>();
     /* construct query body */
     FacetedSearchQueryBuilder queryBuilder = FacetedSearchQueryBuilder.forSubject("s");

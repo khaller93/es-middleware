@@ -67,12 +67,6 @@ public class SPARQLControllerTest {
 
   @Autowired
   private TestRestTemplate restTemplate;
-  @Autowired
-  @Qualifier("getSparqlDAO")
-  private KGSparqlDAO sparqlDAO;
-  @Autowired
-  @Qualifier("getGremlinDAO")
-  private KGGremlinDAO gremlinDAO;
   @Rule
   @Autowired
   public MusicPintaInstrumentsResource musicPintaResource;
@@ -165,8 +159,8 @@ public class SPARQLControllerTest {
               Collectors.toList());
       assertThat("There is only one description for 'Huluhu' in the test data", descriptions,
           hasSize(1));
-      assertThat("The label must be 'Huluhu'.", descriptions.get(0), containsString(
-          "The huluhu is a Chinese bowed string instrument in the huqin family get instruments."));
+      assertThat(descriptions.get(0), containsString(
+          "The huluhu is a Chinese bowed string instrument in the huqin family of instruments."));
       List<String> subjects = resultModel
           .filter(valueFactory.createIRI("http://dbpedia.org/resource/Huluhu"), DCTERMS.SUBJECT,
               null)

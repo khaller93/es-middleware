@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 public class RDF4JDAOConfig extends
     KGGeneralDAOConfig<RDF4JSparqlDAO, KGFullTextSearchDAO, KGGremlinDAO> {
 
-  private ApplicationContext context;
+  private final ApplicationContext context;
 
   @Autowired
   public RDF4JDAOConfig(ApplicationContext context,
