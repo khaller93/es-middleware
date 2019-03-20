@@ -113,7 +113,8 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
   public Set<Resource> getSuperClasses(Resource classResource) {
     checkArgument(classResource != null, "The given class resource must not be null.");
     return getTreeNodeFor(classResource)
-        .map(classTreeNode -> getParentTreeNodes(classTreeNode).stream()
+        .map(classTreeNode -> getParentTreeNodes(Sets.newHashSet(classTreeNode), classTreeNode)
+            .stream()
             .flatMap(tn -> tn.getResources().stream())
             .map(Resource::new).collect(Collectors.toSet())).orElseGet(HashSet::new);
   }
@@ -122,27 +123,38 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
   public Set<Resource> getSubClasses(Resource classResource) {
     checkArgument(classResource != null, "The givenclass resource must not be null.");
     return getTreeNodeFor(classResource)
-        .map(classTreeNode -> getChildrenTreeNodes(classTreeNode).stream()
+        .map(classTreeNode -> getChildrenTreeNodes(Sets.newHashSet(classTreeNode), classTreeNode)
+            .stream()
             .flatMap(tn -> tn.getResources().stream())
             .map(Resource::new).collect(Collectors.toSet())).orElseGet(HashSet::new);
   }
 
-  private Set<ClassTreeNode> getParentTreeNodes(ClassTreeNode classTreeNode) {
+  private Set<ClassTreeNode> getParentTreeNodes(Set<ClassTreeNode> visitedNodes,
+      ClassTreeNode classTreeNode) {
     Set<ClassTreeNode> parentsList = new HashSet<>();
     for (ClassTreeNode treeNode : classTreeNode.getParents().stream().map(treeNodeMap::get)
         .collect(Collectors.toSet())) {
       parentsList.add(treeNode);
-      parentsList.addAll(getParentTreeNodes(treeNode));
+      if (!visitedNodes.contains(classTreeNode)) {
+        Set<ClassTreeNode> newVisitedNodes = new HashSet<>(visitedNodes);
+        newVisitedNodes.add(treeNode);
+        parentsList.addAll(getParentTreeNodes(newVisitedNodes, treeNode));
+      }
     }
     return parentsList;
   }
 
-  private Set<ClassTreeNode> getChildrenTreeNodes(ClassTreeNode classTreeNode) {
+  private Set<ClassTreeNode> getChildrenTreeNodes(Set<ClassTreeNode> visitedNodes,
+      ClassTreeNode classTreeNode) {
     Set<ClassTreeNode> childrenList = new HashSet<>();
     for (ClassTreeNode treeNode : classTreeNode.getChildren().stream().map(treeNodeMap::get)
         .collect(Collectors.toSet())) {
       childrenList.add(treeNode);
-      childrenList.addAll(getChildrenTreeNodes(treeNode));
+      if (!visitedNodes.contains(treeNode)) {
+        Set<ClassTreeNode> newVisitedNodes = new HashSet<>(visitedNodes);
+        newVisitedNodes.add(treeNode);
+        childrenList.addAll(getChildrenTreeNodes(newVisitedNodes, treeNode));
+      }
     }
     return childrenList;
   }

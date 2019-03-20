@@ -87,7 +87,8 @@ class ClassTreeNode implements Serializable {
   @Override
   public String toString() {
     return "ClassTreeNode{" +
-        "resources=" + resources +
+        "id=" + id +
+        ", resources=" + resources +
         ", parents=" + parents +
         ", children=" + children +
         '}';

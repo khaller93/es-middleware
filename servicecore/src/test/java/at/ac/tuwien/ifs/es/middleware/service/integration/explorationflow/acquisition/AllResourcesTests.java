@@ -20,11 +20,20 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLucene
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.AllClassesService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.AllClassesWithSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.ClassHierarchyService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.ClassHierarchyWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesWithSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.ClassResourceService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.ClassResourceWithGremlinService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.payload.acquisition.AllResourcesPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.AllResources;
 import at.ac.tuwien.ifs.es.middleware.service.integration.MapDBDummy;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.SimpleGremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import java.util.Collections;
@@ -53,7 +62,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {SimpleSPARQLService.class, RDF4JLuceneFullTextSearchDAO.class,
     RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedInMemoryGremlinDAO.class,
     ThreadPoolConfig.class, KGDAOConfig.class, RDF4JDAOConfig.class, AllResources.class,
-    MusicPintaInstrumentsResource.class, AllResourcesWithSPARQLService.class, MapDBDummy.class})
+    MusicPintaInstrumentsResource.class, AllResourcesWithSPARQLService.class, MapDBDummy.class,
+    ClassResourceWithGremlinService.class, ClassHierarchyWithSPARQLService.class,
+    SameAsResourceWithSPARQLService.class, AllClassesWithSPARQLService.class,
+    SimpleGremlinService.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
@@ -68,11 +80,23 @@ public class AllResourcesTests {
   @Autowired
   private AllResourcesService allResourcesService;
   @Autowired
+  private SameAsResourceService sameAsResourceService;
+  @Autowired
+  private AllClassesService allClassesService;
+  @Autowired
+  private ClassHierarchyService classHierarchyService;
+  @Autowired
   private AllResources allResources;
+  @Autowired
+  private ClassResourceService classResourceService;
 
   @Before
   public void setUp() throws InterruptedException {
     allResourcesService.compute();
+    allClassesService.compute();
+    sameAsResourceService.compute();
+    classHierarchyService.compute();
+    classResourceService.compute();
   }
 
   public List<Resource> mapToResource(List<String> iriStrings) {

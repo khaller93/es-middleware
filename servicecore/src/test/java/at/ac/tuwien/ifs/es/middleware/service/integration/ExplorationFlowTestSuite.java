@@ -1,9 +1,11 @@
 package at.ac.tuwien.ifs.es.middleware.service.integration;
 
 import at.ac.tuwien.ifs.es.middleware.service.integration.explorationflow.DynamicExplorationFlowFactoryMusicPintaTest;
+import at.ac.tuwien.ifs.es.middleware.service.integration.explorationflow.acquisition.AddResourcesOperatorTests;
 import at.ac.tuwien.ifs.es.middleware.service.integration.explorationflow.acquisition.AllResourcesTests;
 import at.ac.tuwien.ifs.es.middleware.service.integration.explorationflow.acquisition.FullTextSearchTests;
 import at.ac.tuwien.ifs.es.middleware.service.integration.explorationflow.acquisition.MultipleResourcesTests;
+import at.ac.tuwien.ifs.es.middleware.service.integration.explorationflow.acquisition.RemoveResourcesOperatorTests;
 import at.ac.tuwien.ifs.es.middleware.service.integration.explorationflow.acquisition.SingleResourceTests;
 import at.ac.tuwien.ifs.es.middleware.service.integration.explorationflow.aggregation.DistinctTests;
 import at.ac.tuwien.ifs.es.middleware.service.integration.explorationflow.aggregation.LimitTests;
@@ -29,7 +31,7 @@ import org.junit.runners.Suite.SuiteClasses;
     FullTextSearchTests.class, MultipleResourcesTests.class, SingleResourceTests.class,
     MinMaxNormalizationTests.class, ZScoreTests.class, DistinctTests.class,
     LimitTests.class, OffsetTests.class, OrderByTests.class, SampleTests.class,
-    WeightedSumTests.class})
+    WeightedSumTests.class, AddResourcesOperatorTests.class, RemoveResourcesOperatorTests.class})
 public class ExplorationFlowTestSuite {
 
 
