@@ -16,6 +16,13 @@ public interface ExplorationFlowStep<T extends Serializable> extends
     BiFunction<ExplorationContext, T, ExplorationContext> {
 
   /**
+   * Gets the unique id of this exploration flow step.
+   *
+   * @return the unique id of this exploration flow step. It must not be null or an empty string.
+   */
+  String getUID();
+
+  /**
    * This method returns a POJO that matches the expected parameters for this exploration step.
    *
    * @return a POJO for matching the parameters expected for this {@link ExplorationFlowStep}.

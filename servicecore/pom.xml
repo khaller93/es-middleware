@@ -14,6 +14,10 @@
   <name>Service Core</name>
 
   <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-aop</artifactId>
+    </dependency>
     <!-- ESS Modules -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>

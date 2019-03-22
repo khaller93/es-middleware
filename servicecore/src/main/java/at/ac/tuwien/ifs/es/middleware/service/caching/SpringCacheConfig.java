@@ -19,10 +19,8 @@ public class SpringCacheConfig {
     cacheManager.setCaches(Arrays.asList(
         new ConcurrentMapCache("sparql"),
         new ConcurrentMapCache("fts"),
-        new ConcurrentMapCache("sameas"),
-        new ConcurrentMapCache("lcs"),
-        new ConcurrentMapCache("similarity"),
-        new ConcurrentMapCache("centrality")));
+        new ConcurrentMapCache("gremlin"),
+        new ConcurrentMapCache("esm.service.analytics.dataset.class.hierarchy")));
     return cacheManager;
   }
 

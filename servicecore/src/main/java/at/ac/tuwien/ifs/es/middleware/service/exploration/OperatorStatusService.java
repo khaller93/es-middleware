@@ -1,9 +1,9 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration;
 
-import at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation.AggregationOperator;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.AcquisitionOperator;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.AcquisitionSource;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.exploitation.ExploitationOperator;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation.AggregationOperator;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition.AcquisitionOperator;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition.AcquisitionSource;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.exploitation.ExploitationOperator;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFlowRegistry;
 import java.util.HashMap;
 import java.util.LinkedList;

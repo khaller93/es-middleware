@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -33,7 +34,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
 /**
- *
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
@@ -58,8 +58,11 @@ public class AnalysisPipelineProcessorImpl implements AnalysisPipelineProcessor 
   private boolean computeAnalysisOnStart;
 
   @Autowired
-  public AnalysisPipelineProcessorImpl(AnalysisServiceRegistry registry, KGSparqlDAO sparqlDAO,
-      KGGremlinDAO gremlinDAO, KGFullTextSearchDAO fullTextSearchDAO, TaskExecutor taskExecutor) {
+  public AnalysisPipelineProcessorImpl(AnalysisServiceRegistry registry,
+      @Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO,
+      @Qualifier("getGremlinDAO") KGGremlinDAO gremlinDAO,
+      @Qualifier("getFullTextSearchDAO") KGFullTextSearchDAO fullTextSearchDAO,
+      TaskExecutor taskExecutor) {
     this.registry = registry;
     this.taskExecutor = taskExecutor;
     this.sparqlDAO = sparqlDAO;

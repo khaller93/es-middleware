@@ -1,14 +1,13 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.factory;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.payload.exploitation.DescriberPayload.TextLiteralPayload;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.exploitation.DescriberPayload.TextLiteralPayload;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
-import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowServiceException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlow;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.FullTextSearch;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.payload.acquisition.FullTextSearchPayload;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.exploitation.ResourceDescriber;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.payload.exploitation.DescriberPayload;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition.FullTextSearch;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.FullTextSearchPayload;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.exploitation.ResourceDescriber;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.exploitation.DescriberPayload;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;

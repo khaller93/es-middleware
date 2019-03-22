@@ -2,7 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.aquisition.AcquisitionSource;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition.AcquisitionSource;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;

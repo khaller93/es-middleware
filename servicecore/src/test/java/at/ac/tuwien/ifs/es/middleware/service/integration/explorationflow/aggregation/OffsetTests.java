@@ -15,9 +15,9 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLucene
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.payload.aggregation.OffsetPayload;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation.Limit;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.aggregation.Offset;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.aggregation.OffsetPayload;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation.Limit;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation.Offset;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
 import java.util.List;
 import org.assertj.core.util.Lists;

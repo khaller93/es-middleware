@@ -8,6 +8,7 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProc
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.ClassEntropyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.lca.LowestCommonAncestorService;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -47,10 +48,9 @@ public class ResnikSimilarityOnTheFlyService implements ResnikSimilarityMetricSe
         .getLowestCommonAncestor(resourcePair);
     if (lowestCommonAncestors != null) {
       if (!lowestCommonAncestors.isEmpty()) {
-        double resnikValue = lowestCommonAncestors.stream()
+        return lowestCommonAncestors.stream()
             .map(classEntropyService::getEntropyForClass)
-            .filter(Objects::nonNull).reduce(0.0, (a, b) -> a + b);
-        return resnikValue / lowestCommonAncestors.size();
+            .filter(Objects::nonNull).max(Double::compareTo).orElse(0.0);
       } else {
         return 0.0;
       }
