@@ -51,10 +51,19 @@ public class ExplorationFlowStepStopWatchAspect {
       current > Long.MAX_VALUE - delta ? 0 : current + delta;
 
   private ObjectMapper objectMapper;
+  private Boolean loggingExecution;
+  private Boolean stopWatch;
+  private Boolean stopWatchLogging;
 
   @Autowired
-  public ExplorationFlowStepStopWatchAspect(ObjectMapper objectMapper) {
+  public ExplorationFlowStepStopWatchAspect(ObjectMapper objectMapper,
+      @Value("${esm.flow.execution.logging:#{true}}") Boolean loggingExecution,
+      @Value("${esm.flow.stopwatch:#{true}}") Boolean stopWatch,
+      @Value("${esm.flow.stopwatch.logging:#{true}}") Boolean stopWatchLogging) {
     this.objectMapper = objectMapper;
+    this.loggingExecution = loggingExecution;
+    this.stopWatch = stopWatch;
+    this.stopWatchLogging = stopWatchLogging;
   }
 
   @Pointcut(value = "execution(* at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep.apply(..)) && args(context,payload) && this(flowStep)", argNames = "context,payload,flowStep")
@@ -66,22 +75,32 @@ public class ExplorationFlowStepStopWatchAspect {
       ExplorationContext context,
       Object payload, ExplorationFlowStep flowStep) throws Throwable {
     long id = atomicOperatorIdCounter.accumulateAndGet(1, counterFunction);
-    logger.debug("Operator '{}'({}) scheduled with payload {}.", flowStep.getUID(), id, payload);
+    if (loggingExecution) {
+      logger.debug("Operator '{}'({}) scheduled with payload {}.", flowStep.getUID(), id, payload);
+    }
     Instant start = Instant.now();
     try {
       ExplorationContext returnedContext = (ExplorationContext) proceedingJoinPoint.proceed();
-      if (returnedContext != null) {
-        ObjectNode stopWatchOperatorInfo = objectMapper
-            .valueToTree(new StopWatchInfo(flowStep.getUID(), start, Instant.now()));
+      if (stopWatch && returnedContext != null) {
+        StopWatchInfo stopWatchInfo = new StopWatchInfo(flowStep.getUID(), start, Instant.now());
+        ObjectNode stopWatchOperatorInfo = objectMapper.valueToTree(stopWatchInfo);
         ObjectNode stopWatch = (ObjectNode) ((Optional<JsonNode>) returnedContext
             .getMetadataFor("stopwatch")).orElse(JsonNodeFactory.instance.objectNode());
         stopWatch.set(String.valueOf(id), stopWatchOperatorInfo);
         returnedContext.setMetadataFor("stopwatch", stopWatch);
+        if (stopWatchLogging) {
+          logger.debug("Operator '{}'({}) processing time: {}.", flowStep.getUID(), id,
+              stopWatchInfo);
+        }
       }
-      logger.debug("Operator '{}'({}) successfully applied.", flowStep.getUID(), id);
+      if (loggingExecution) {
+        logger.debug("Operator '{}'({}) successfully applied.", flowStep.getUID(), id);
+      }
       return returnedContext;
     } catch (Throwable throwable) {
-      logger.debug("Operator '{}' successfully failed with '{}'.", flowStep.getUID(), throwable);
+      if (loggingExecution) {
+        logger.debug("Operator '{}' successfully failed with '{}'.", flowStep.getUID(), throwable);
+      }
       throw throwable;
     }
   }
