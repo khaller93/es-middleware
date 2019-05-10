@@ -3,6 +3,7 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.agg
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.ExplorationFlowStepPayload;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonPointer;
@@ -16,7 +17,7 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
-public final class WeightedSumPayload implements Serializable {
+public final class WeightedSumPayload implements ExplorationFlowStepPayload {
 
   private JsonPointer path;
   private Map<JsonPointer, Double> candidates;

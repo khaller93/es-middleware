@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component
 @RegisterForExplorationFlow("esm.aggregate.normalisation.zscore")
-public class ZScore implements AggregationOperator<ZScorePayload> {
+public class ZScore implements AggregationOperator<ExplorationContext, ExplorationContext, ZScorePayload> {
 
   private static final Logger logger = LoggerFactory.getLogger(ZScore.class);
 
@@ -41,7 +41,17 @@ public class ZScore implements AggregationOperator<ZScorePayload> {
   }
 
   @Override
-  public Class<ZScorePayload> getParameterClass() {
+  public Class<ExplorationContext> getExplorationContextInputClass() {
+    return ExplorationContext.class;
+  }
+
+  @Override
+  public Class<ExplorationContext> getExplorationContextOutputClass() {
+    return ExplorationContext.class;
+  }
+
+  @Override
+  public Class<ZScorePayload> getPayloadClass() {
     return ZScorePayload.class;
   }
 

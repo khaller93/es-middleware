@@ -6,6 +6,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.request.ExplorationFlowSte
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.ExplorationFlowStepPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFlowRegistry;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -83,8 +84,8 @@ public class DynamicExplorationFlowFactory {
       if (optionalClass.isPresent()) {
         try {
           ExplorationFlowStep stepObject = context.getBean(optionalClass.get());
-          flow.appendFlowStep(stepObject, (Serializable) payloadMapper
-              .treeToValue(step.getParameterPayload(), stepObject.getParameterClass()));
+          flow.appendFlowStep(stepObject, (ExplorationFlowStepPayload) payloadMapper
+              .treeToValue(step.getParameterPayload(), stepObject.getPayloadClass()));
         } catch (JsonProcessingException j) {
           throw new ExplorationFlowSpecificationException(String
               .format("The payload for exploration flow step '%s' is invalid. %s", step.getName(),

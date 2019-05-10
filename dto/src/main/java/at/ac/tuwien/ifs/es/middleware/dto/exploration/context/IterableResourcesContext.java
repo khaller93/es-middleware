@@ -8,13 +8,13 @@ import java.util.Set;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 
 /**
- * Instances of this interface allow to iterate over the containing resources (IRI or blank node).
+ * Instances of this interface allow one to iterate over the contained resources.
  *
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
  */
-public interface IterableResourcesContext {
+public interface IterableResourcesContext<T extends IdentifiableResult> extends ExplorationContext<T> {
 
   /**
    * Gets an iterator with which it is possible to iterate over all resources in the context.

@@ -25,7 +25,8 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component
 @RegisterForExplorationFlow("esm.parallel")
-public class ParallelOperator implements ExplorationFlowStep<ParallelPayload> {
+public class ParallelOperator implements
+    ExplorationFlowStep<ExplorationContext, ExplorationContext, ParallelPayload> {
 
   private static final Logger logger = LoggerFactory.getLogger(ParallelOperator.class);
 
@@ -46,7 +47,17 @@ public class ParallelOperator implements ExplorationFlowStep<ParallelPayload> {
   }
 
   @Override
-  public Class<ParallelPayload> getParameterClass() {
+  public Class<ExplorationContext> getExplorationContextInputClass() {
+    return ExplorationContext.class;
+  }
+
+  @Override
+  public Class<ExplorationContext> getExplorationContextOutputClass() {
+    return ExplorationContext.class;
+  }
+
+  @Override
+  public Class<ParallelPayload> getPayloadClass() {
     return ParallelPayload.class;
   }
 
@@ -77,6 +88,9 @@ public class ParallelOperator implements ExplorationFlowStep<ParallelPayload> {
     return context;
   }
 
+  /**
+   * Callback for the parallel execution of {@link ExplorationFlow}s.
+   */
   private final class ExplorationContextCallback implements Callable<ExplorationContext> {
 
     private ExplorationContext context;
@@ -89,7 +103,7 @@ public class ParallelOperator implements ExplorationFlowStep<ParallelPayload> {
     }
 
     @Override
-    public ExplorationContext call() throws Exception {
+    public ExplorationContext call() {
       return dynamicExplorationFlowFactory.constructFlow(context, flow).execute();
     }
   }

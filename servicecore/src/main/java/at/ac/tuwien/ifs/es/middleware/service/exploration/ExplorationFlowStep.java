@@ -1,19 +1,20 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.ExplorationFlowStepPayload;
 import java.io.Serializable;
 import java.util.function.BiFunction;
 
 /**
  * An {@link ExplorationFlowStep} represents an operation in an {@link ExplorationFlow}.
  *
- * @param <T> the POJO class holding expected parameters.
+ * @param <P> the POJO class holding expected parameters.
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
  */
-public interface ExplorationFlowStep<T extends Serializable> extends
-    BiFunction<ExplorationContext, T, ExplorationContext> {
+public interface ExplorationFlowStep<I extends ExplorationContext, O extends ExplorationContext,
+    P extends ExplorationFlowStepPayload> extends BiFunction<I, P, O> {
 
   /**
    * Gets the unique id of this exploration flow step.
@@ -23,11 +24,25 @@ public interface ExplorationFlowStep<T extends Serializable> extends
   String getUID();
 
   /**
-   * This method returns a POJO that matches the expected parameters for this exploration step.
+   * Gets the {@link Class} that is expected as input {@link ExplorationContext}.
    *
-   * @return a POJO for matching the parameters expected for this {@link ExplorationFlowStep}.
+   * @return the {@link Class} that is expected as input {@link ExplorationContext}.
    */
-  Class<T> getParameterClass();
+  Class<I> getExplorationContextInputClass();
+
+  /**
+   * Gets the {@link Class} that is expected as output {@link ExplorationContext}.
+   *
+   * @return the {@link Class} that is expected as output {@link ExplorationContext}.
+   */
+  Class<O> getExplorationContextOutputClass();
+
+  /**
+   * Gets the {@link Class} of the {@link ExplorationFlowStepPayload} expected by this operator.
+   *
+   * @return the {@link Class} of the {@link ExplorationFlowStepPayload} expected by this operator.
+   */
+  Class<P> getPayloadClass();
 
   /**
    * Applies this step based on the given {@code context} and {@code parameter}. The resulting
@@ -38,5 +53,6 @@ public interface ExplorationFlowStep<T extends Serializable> extends
    * @return {@link ExplorationContext} resulting from the application get this step.
    */
   @Override
-  ExplorationContext apply(ExplorationContext context, T payload);
+  O apply(I context, P payload);
+
 }

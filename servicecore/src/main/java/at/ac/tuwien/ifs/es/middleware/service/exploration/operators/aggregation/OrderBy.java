@@ -29,9 +29,7 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component
 @RegisterForExplorationFlow("esm.aggregate.orderby")
-public class OrderBy implements AggregationOperator<OrderByPayload> {
-
-  private static final Logger logger = LoggerFactory.getLogger(OrderBy.class);
+public class OrderBy implements AggregationOperator<ExplorationContext, ExplorationContext, OrderByPayload> {
 
   @Override
   public String getUID() {
@@ -39,7 +37,17 @@ public class OrderBy implements AggregationOperator<OrderByPayload> {
   }
 
   @Override
-  public Class<OrderByPayload> getParameterClass() {
+  public Class<ExplorationContext> getExplorationContextInputClass() {
+    return ExplorationContext.class;
+  }
+
+  @Override
+  public Class<ExplorationContext> getExplorationContextOutputClass() {
+    return ExplorationContext.class;
+  }
+
+  @Override
+  public Class<OrderByPayload> getPayloadClass() {
     return OrderByPayload.class;
   }
 

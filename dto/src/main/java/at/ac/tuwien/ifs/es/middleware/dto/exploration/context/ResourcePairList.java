@@ -28,7 +28,7 @@ import java.util.stream.Stream;
  * @version 1.0
  * @since 1.0
  */
-public class ResourcePairList extends AbstractExplorationContext<ResourcePair> implements IterableResourcesContext {
+public class ResourcePairList extends AbstractExplorationContext<ResourcePair> implements IterableResourcesContext<ResourcePair> {
 
   @JsonProperty(value = "pairs")
   private List<ResourcePair> pairs;

@@ -21,9 +21,7 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component
 @RegisterForExplorationFlow("esm.aggregate.limit")
-public class Limit implements AggregationOperator<LimitPayload> {
-
-  private static final Logger logger = LoggerFactory.getLogger(Limit.class);
+public class Limit implements AggregationOperator<ExplorationContext, ExplorationContext, LimitPayload> {
 
   @Override
   public String getUID() {
@@ -31,7 +29,17 @@ public class Limit implements AggregationOperator<LimitPayload> {
   }
 
   @Override
-  public Class<LimitPayload> getParameterClass() {
+  public Class<ExplorationContext> getExplorationContextInputClass() {
+    return ExplorationContext.class;
+  }
+
+  @Override
+  public Class<ExplorationContext> getExplorationContextOutputClass() {
+    return ExplorationContext.class;
+  }
+
+  @Override
+  public Class<LimitPayload> getPayloadClass() {
     return LimitPayload.class;
   }
 

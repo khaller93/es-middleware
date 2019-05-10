@@ -22,10 +22,7 @@ import java.util.stream.Stream;
  * @version 1.0
  * @since 1.0
  */
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.MINIMAL_CLASS,
-    include = JsonTypeInfo.As.PROPERTY,
-    property = "@class")
+@JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS, property = "@class")
 public interface ExplorationContext<T extends IdentifiableResult> extends Iterable<T>,
     Collector<T, ExplorationContextContainer<T>, ExplorationContext<T>> {
 
@@ -90,7 +87,7 @@ public interface ExplorationContext<T extends IdentifiableResult> extends Iterab
    *
    * @param metadataMap that should be merged with the current metadata map.
    */
-  void mergeMetadata(Map<String, ObjectNode> metadataMap);
+  void mergeMetadata(Map<String, JsonNode> metadataMap);
 
   /**
    * Puts the given {@code data} to the value node with the given {@code id} on the given position.

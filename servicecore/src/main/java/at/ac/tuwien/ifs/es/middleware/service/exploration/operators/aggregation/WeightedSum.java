@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component
 @RegisterForExplorationFlow("esm.aggregate.weightedsum")
-public class WeightedSum implements AggregationOperator<WeightedSumPayload> {
+public class WeightedSum implements AggregationOperator<ExplorationContext, ExplorationContext, WeightedSumPayload> {
 
   private static final Logger logger = LoggerFactory.getLogger(WeightedSum.class);
 
@@ -37,7 +37,17 @@ public class WeightedSum implements AggregationOperator<WeightedSumPayload> {
   }
 
   @Override
-  public Class<WeightedSumPayload> getParameterClass() {
+  public Class<ExplorationContext> getExplorationContextInputClass() {
+    return ExplorationContext.class;
+  }
+
+  @Override
+  public Class<ExplorationContext> getExplorationContextOutputClass() {
+    return ExplorationContext.class;
+  }
+
+  @Override
+  public Class<WeightedSumPayload> getPayloadClass() {
     return WeightedSumPayload.class;
   }
 

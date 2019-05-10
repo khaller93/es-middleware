@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceCollection;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.FullTextSearchPayload;
@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component
 @RegisterForExplorationFlow("esm.source.fts")
-public class FullTextSearch implements AcquisitionSource<FullTextSearchPayload> {
+public class FullTextSearch implements AcquisitionSource<ResourceCollection, FullTextSearchPayload> {
 
   private static final Logger logger = LoggerFactory.getLogger(FullTextSearch.class);
 
@@ -53,12 +53,17 @@ public class FullTextSearch implements AcquisitionSource<FullTextSearchPayload> 
   }
 
   @Override
-  public Class<FullTextSearchPayload> getParameterClass() {
+  public Class<ResourceCollection> getExplorationContextOutputClass() {
+    return ResourceCollection.class;
+  }
+
+  @Override
+  public Class<FullTextSearchPayload> getPayloadClass() {
     return FullTextSearchPayload.class;
   }
 
   @Override
-  public ExplorationContext apply(FullTextSearchPayload payload) {
+  public ResourceCollection apply(FullTextSearchPayload payload) {
     List<Map<String, RDFTerm>> fullTextResultTable = fullTextSearchService
         .searchFullText(payload.getKeyword(),
             payload.getClasses() != null ? payload.getClasses().stream().map(Resource::value)

@@ -172,7 +172,7 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
   }
 
   @Override
-  public void mergeMetadata(Map<String, ObjectNode> metadataMap) {
+  public void mergeMetadata(Map<String, JsonNode> metadataMap) {
     checkArgument(metadataMap != null, "The metadata map to merge with must not be null.");
     /* make a deep copy */
     Map<String, JsonNode> metadataValues = new HashMap<>();
@@ -180,7 +180,7 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
       metadataValues.put(id, metadata.get(id).deepCopy());
     }
     /* compute the merge */
-    for (Entry<String, ObjectNode> metadataEntry : metadataMap.entrySet()) {
+    for (Entry<String, JsonNode> metadataEntry : metadataMap.entrySet()) {
       if (metadataValues.containsKey(metadataEntry.getKey())) {
         metadataValues.put(metadataEntry.getKey(),
             mergeNodes(metadataValues.get(metadataEntry.getKey()),

@@ -8,7 +8,7 @@ import static org.junit.Assert.assertThat;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition.AddResourcesOperator;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.exploitation.resourcelist.AddResourcesOperator;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.AddResourcesPayload;
 import at.ac.tuwien.ifs.es.middleware.testutil.util.TestUtil;
 import java.util.Arrays;

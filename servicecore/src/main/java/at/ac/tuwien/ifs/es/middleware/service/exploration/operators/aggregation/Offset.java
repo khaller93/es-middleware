@@ -21,9 +21,7 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component
 @RegisterForExplorationFlow("esm.aggregate.offset")
-public class Offset implements AggregationOperator<OffsetPayload> {
-
-  private static final Logger logger = LoggerFactory.getLogger(Offset.class);
+public class Offset implements AggregationOperator<ExplorationContext, ExplorationContext, OffsetPayload> {
 
   @Override
   public String getUID() {
@@ -31,7 +29,17 @@ public class Offset implements AggregationOperator<OffsetPayload> {
   }
 
   @Override
-  public Class<OffsetPayload> getParameterClass() {
+  public Class<ExplorationContext> getExplorationContextInputClass() {
+    return ExplorationContext.class;
+  }
+
+  @Override
+  public Class<ExplorationContext> getExplorationContextOutputClass() {
+    return ExplorationContext.class;
+  }
+
+  @Override
+  public Class<OffsetPayload> getPayloadClass() {
     return OffsetPayload.class;
   }
 

@@ -19,6 +19,7 @@ import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecifica
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition.FullTextSearch;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.ExplorationFlowStepPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.FullTextSearchPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.exploitation.ResourceDescriber;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.exploitation.DescriberPayload;
@@ -85,11 +86,11 @@ public class DynamicExplorationFlowFactoryMusicPintaTest {
         + "}]}", DynamicExplorationFlowRequest.class);
     ExplorationFlow explorationFlow = factory.constructFlow(request);
     assertNotNull(explorationFlow);
-    List<Pair<ExplorationFlowStep, Serializable>> flowStepList = explorationFlow.asList();
+    List<Pair<ExplorationFlowStep, ExplorationFlowStepPayload>> flowStepList = explorationFlow.asList();
     assertThat("The returned flow must have two steps. A full-text-search and describe operation.",
         flowStepList, hasSize(2));
     // Check first fts step
-    Pair<ExplorationFlowStep, Serializable> ftsPair = explorationFlow.asList().get(0);
+    Pair<ExplorationFlowStep, ExplorationFlowStepPayload> ftsPair = explorationFlow.asList().get(0);
     assertThat(ftsPair.getValue0(), instanceOf(FullTextSearch.class));
     assertThat(ftsPair.getValue1(), instanceOf(FullTextSearchPayload.class));
     FullTextSearchPayload ftsPayload = (FullTextSearchPayload) ftsPair.getValue1();
@@ -97,7 +98,7 @@ public class DynamicExplorationFlowFactoryMusicPintaTest {
     assertThat(ftsPayload.getLimit(), is(5));
     assertNull(ftsPayload.getOffset());
     // Check second describer step
-    Pair<ExplorationFlowStep, Serializable> describerPair = explorationFlow.asList().get(1);
+    Pair<ExplorationFlowStep, ExplorationFlowStepPayload> describerPair = explorationFlow.asList().get(1);
     assertThat(describerPair.getValue0(), instanceOf(ResourceDescriber.class));
     assertThat(describerPair.getValue1(), instanceOf(DescriberPayload.class));
     DescriberPayload describerPayload = (DescriberPayload) describerPair.getValue1();

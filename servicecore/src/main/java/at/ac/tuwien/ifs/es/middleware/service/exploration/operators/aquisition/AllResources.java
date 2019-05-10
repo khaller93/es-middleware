@@ -3,6 +3,7 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceCollection;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
@@ -41,7 +42,7 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component
 @RegisterForExplorationFlow("esm.source.all")
-public class AllResources implements AcquisitionSource<AllResourcesPayload> {
+public class AllResources implements AcquisitionSource<ResourceCollection, AllResourcesPayload> {
 
   private static final Logger logger = LoggerFactory.getLogger(AllResources.class);
 
@@ -75,12 +76,17 @@ public class AllResources implements AcquisitionSource<AllResourcesPayload> {
   }
 
   @Override
-  public Class<AllResourcesPayload> getParameterClass() {
+  public Class<ResourceCollection> getExplorationContextOutputClass() {
+    return ResourceCollection.class;
+  }
+
+  @Override
+  public Class<AllResourcesPayload> getPayloadClass() {
     return AllResourcesPayload.class;
   }
 
   @Override
-  public ExplorationContext apply(AllResourcesPayload payload) {
+  public ResourceCollection apply(AllResourcesPayload payload) {
     checkArgument(payload != null,
         "The payload for the \"esm.source.all\" operator must not be null.");
     if ((payload.getIncludedClasses() == null || payload.getIncludedClasses().isEmpty()) &&

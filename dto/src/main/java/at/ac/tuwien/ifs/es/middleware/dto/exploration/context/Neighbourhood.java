@@ -37,7 +37,7 @@ import java.util.stream.Stream;
  * @since 1.0
  */
 public class Neighbourhood extends AbstractExplorationContext<NEntry> implements
-    IterableResourcesContext {
+    IterableResourcesContext<NEntry> {
 
   @JsonProperty("neighbourhood")
   @JsonSerialize(keyUsing = ResourceJsonComponent.MapSerializer.class)

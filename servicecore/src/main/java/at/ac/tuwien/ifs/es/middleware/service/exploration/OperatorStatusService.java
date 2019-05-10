@@ -1,7 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration;
 
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation.AggregationOperator;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition.AcquisitionOperator;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition.AcquisitionSource;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.exploitation.ExploitationOperator;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFlowRegistry;
@@ -33,7 +32,7 @@ public class OperatorStatusService {
   /**
    * Looks for all registered {@link at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlow}
    * for this middleware and checks whether it is a {@link AcquisitionSource}, {@link
-   * AcquisitionOperator}, {@link ExploitationOperator} and {@link AggregationOperator}.
+   * ExploitationOperator} and {@link AggregationOperator}.
    * <p/>
    * Then it returns a map, where the key is the type get operator {@code source}, {@code
    * acquisition}, {@code exploitation}, and {@code aggregation}.
@@ -49,8 +48,6 @@ public class OperatorStatusService {
       String type = "unknown";
       Class<? extends ExplorationFlowStep> clazz = entry.getValue();
       if (AcquisitionSource.class.isAssignableFrom(clazz)) {
-        type = "source";
-      } else if (AcquisitionOperator.class.isAssignableFrom(clazz)) {
         type = "acquisition";
       } else if (ExploitationOperator.class.isAssignableFrom(clazz)) {
         type = "exploitation";

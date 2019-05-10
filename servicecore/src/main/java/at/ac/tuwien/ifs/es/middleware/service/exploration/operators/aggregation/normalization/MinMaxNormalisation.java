@@ -30,9 +30,7 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component
 @RegisterForExplorationFlow("esm.aggregate.normalisation.minmax")
-public class MinMaxNormalisation implements AggregationOperator<MinMaxPayload> {
-
-  private static final Logger logger = LoggerFactory.getLogger(MinMaxNormalisation.class);
+public class MinMaxNormalisation implements AggregationOperator<ExplorationContext, ExplorationContext, MinMaxPayload> {
 
   @Override
   public String getUID() {
@@ -40,7 +38,17 @@ public class MinMaxNormalisation implements AggregationOperator<MinMaxPayload> {
   }
 
   @Override
-  public Class<MinMaxPayload> getParameterClass() {
+  public Class<ExplorationContext> getExplorationContextInputClass() {
+    return ExplorationContext.class;
+  }
+
+  @Override
+  public Class<ExplorationContext> getExplorationContextOutputClass() {
+    return ExplorationContext.class;
+  }
+
+  @Override
+  public Class<MinMaxPayload> getPayloadClass() {
     return MinMaxPayload.class;
   }
 

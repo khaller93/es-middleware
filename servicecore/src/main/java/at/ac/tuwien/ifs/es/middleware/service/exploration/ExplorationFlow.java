@@ -3,6 +3,7 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition.AcquisitionSource;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.ExplorationFlowStepPayload;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
@@ -19,7 +20,7 @@ import org.javatuples.Pair;
 public class ExplorationFlow {
 
   private ExplorationContext initialContext;
-  private List<Pair<ExplorationFlowStep, Serializable>> steps;
+  private List<Pair<ExplorationFlowStep, ExplorationFlowStepPayload>> steps;
 
   public ExplorationFlow() {
     this(null);
@@ -32,7 +33,7 @@ public class ExplorationFlow {
 
   private ExplorationFlow(
       ExplorationContext initialContext,
-      List<Pair<ExplorationFlowStep, Serializable>> steps) {
+      List<Pair<ExplorationFlowStep, ExplorationFlowStepPayload>> steps) {
     this.initialContext = initialContext;
     this.steps = steps;
   }
@@ -44,7 +45,7 @@ public class ExplorationFlow {
    * @param step {@link ExplorationFlowStep} that shall be appended to the flow.
    * @param payload specifying parameters for the given {@link ExplorationFlowStep} in this flow.
    */
-  public void appendFlowStep(ExplorationFlowStep step, Serializable payload) {
+  public void appendFlowStep(ExplorationFlowStep step, ExplorationFlowStepPayload payload) {
     if (steps.isEmpty() && initialContext == null && !(step instanceof AcquisitionSource)) {
       throw new ExplorationFlowSpecificationException(
           "The first step of the flow must be an acquisition source.");
@@ -57,7 +58,7 @@ public class ExplorationFlow {
    *
    * @return a {@link List} get {@link ExplorationFlowStep} with their parameters.
    */
-  public List<Pair<ExplorationFlowStep, Serializable>> asList() {
+  public List<Pair<ExplorationFlowStep, ExplorationFlowStepPayload>> asList() {
     return new LinkedList<>(steps);
   }
 
@@ -70,7 +71,7 @@ public class ExplorationFlow {
   @SuppressWarnings("unchecked")
   public ExplorationContext execute() {
     ExplorationContext context = initialContext;
-    for (Pair<ExplorationFlowStep, Serializable> step : steps) {
+    for (Pair<ExplorationFlowStep, ExplorationFlowStepPayload> step : steps) {
       try {
         context = step.getValue0().apply(context, step.getValue1());
       } catch (ClassCastException c) {

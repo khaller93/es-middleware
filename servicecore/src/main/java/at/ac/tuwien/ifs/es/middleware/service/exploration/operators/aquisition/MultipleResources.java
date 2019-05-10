@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceCollection;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component
 @RegisterForExplorationFlow("esm.source.multiple")
-public class MultipleResources implements AcquisitionSource<MultipleResourcesPayload> {
+public class MultipleResources implements AcquisitionSource<ResourceCollection, MultipleResourcesPayload> {
 
   private static final Logger logger = LoggerFactory.getLogger(MultipleResources.class);
 
@@ -63,12 +63,17 @@ public class MultipleResources implements AcquisitionSource<MultipleResourcesPay
   }
 
   @Override
-  public Class<MultipleResourcesPayload> getParameterClass() {
+  public Class<ResourceCollection> getExplorationContextOutputClass() {
+    return ResourceCollection.class;
+  }
+
+  @Override
+  public Class<MultipleResourcesPayload> getPayloadClass() {
     return MultipleResourcesPayload.class;
   }
 
   @Override
-  public ExplorationContext apply(MultipleResourcesPayload payload) {
+  public ResourceCollection apply(MultipleResourcesPayload payload) {
     List<Resource> resources = payload.getResources();
     if (!resources.isEmpty()) {
       logger.debug("A list of resources with IRIs {} was passed as source.", resources);

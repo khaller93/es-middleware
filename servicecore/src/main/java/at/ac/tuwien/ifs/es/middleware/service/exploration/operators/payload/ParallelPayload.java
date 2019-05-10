@@ -3,7 +3,6 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.request.ExplorationFlowStepRequest;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -13,7 +12,7 @@ import java.util.List;
  * @version 1.0
  * @since 1.0
  */
-public class ParallelPayload implements Serializable {
+public class ParallelPayload implements ExplorationFlowStepPayload {
 
   @JsonProperty(value = "flows", required = true)
   private List<List<ExplorationFlowStepRequest>> flows;

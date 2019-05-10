@@ -32,7 +32,7 @@ import org.apache.commons.rdf.api.RDFTerm;
  * @since 1.0
  */
 public class ResourceList extends AbstractExplorationContext<Resource> implements
-    IterableResourcesContext {
+    ResourceCollection {
 
   @JsonProperty("list")
   private List<Resource> list;

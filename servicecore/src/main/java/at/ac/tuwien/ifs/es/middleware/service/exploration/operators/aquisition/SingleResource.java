@@ -1,6 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceCollection;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.AskQueryResult;
@@ -34,7 +35,7 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component
 @RegisterForExplorationFlow("esm.source.single")
-public class SingleResource implements AcquisitionSource<SingleResourcePayload> {
+public class SingleResource implements AcquisitionSource<ResourceCollection, SingleResourcePayload> {
 
   private static final Logger logger = LoggerFactory.getLogger(SingleResource.class);
 
@@ -53,13 +54,18 @@ public class SingleResource implements AcquisitionSource<SingleResourcePayload> 
   }
 
   @Override
-  public Class<SingleResourcePayload> getParameterClass() {
+  public Class<ResourceCollection> getExplorationContextOutputClass() {
+    return ResourceCollection.class;
+  }
+
+  @Override
+  public Class<SingleResourcePayload> getPayloadClass() {
     return SingleResourcePayload.class;
   }
 
 
   @Override
-  public ExplorationContext apply(SingleResourcePayload payload) {
+  public ResourceCollection apply(SingleResourcePayload payload) {
     Map<String, String> valueMap = Collections
         .singletonMap("s",
             BlankOrIRIJsonUtil.stringForSPARQLResourceOf(payload.getResource().value()));

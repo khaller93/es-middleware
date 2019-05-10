@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component
 @RegisterForExplorationFlow("esm.aggregate.sample")
-public class Sample implements AggregationOperator<SamplePayload> {
+public class Sample implements AggregationOperator<ExplorationContext, ExplorationContext, SamplePayload> {
 
   private static final Logger logger = LoggerFactory.getLogger(Sample.class);
 
@@ -36,7 +36,17 @@ public class Sample implements AggregationOperator<SamplePayload> {
   }
 
   @Override
-  public Class<SamplePayload> getParameterClass() {
+  public Class<ExplorationContext> getExplorationContextInputClass() {
+    return ExplorationContext.class;
+  }
+
+  @Override
+  public Class<ExplorationContext> getExplorationContextOutputClass() {
+    return ExplorationContext.class;
+  }
+
+  @Override
+  public Class<SamplePayload> getPayloadClass() {
     return SamplePayload.class;
   }
 
