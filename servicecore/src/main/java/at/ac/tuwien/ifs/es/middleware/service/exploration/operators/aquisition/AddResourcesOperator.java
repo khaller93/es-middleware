@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
  */
 @Lazy
 @Component
-@RegisterForExplorationFlow("esm.source.resourcelist.add")
+@RegisterForExplorationFlow("esm.resourcelist.add")
 public class AddResourcesOperator implements AcquisitionOperator<AddResourcesPayload> {
 
   @Override

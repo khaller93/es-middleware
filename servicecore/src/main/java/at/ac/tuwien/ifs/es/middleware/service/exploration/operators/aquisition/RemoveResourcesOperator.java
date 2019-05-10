@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
  */
 @Lazy
 @Component
-@RegisterForExplorationFlow("esm.source.resourcelist.remove")
+@RegisterForExplorationFlow("esm.resourcelist.remove")
 public class RemoveResourcesOperator implements AcquisitionOperator<RemoveResourcesPayload> {
 
   @Override

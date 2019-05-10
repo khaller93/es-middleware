@@ -67,8 +67,14 @@ public class ResourcePairing implements AcquisitionOperator<PairingPayload> {
             targetResources.remove(sourceR);
           }
         }
-        //TODO: hand over the values and metadata
-        return new ResourcePairList(resourcePairs);
+        ResourcePairList pairedContext = new ResourcePairList(resourcePairs);
+        // merge values
+        pairedContext.mergeValues(context.getAllValues());
+        pairedContext.mergeValues(oTarget.getAllValues());
+        // merge metadata
+        pairedContext.mergeMetadata(context.getMetadata());
+        pairedContext.mergeMetadata(oTarget.getMetadata());
+        return pairedContext;
       } else {
         throw new ExplorationFlowSpecificationException(String.format(
             "The result of the specified steps must allow to iterate over resources, but for %s this is not the case.",
