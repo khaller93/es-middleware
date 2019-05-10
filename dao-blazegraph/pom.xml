@@ -20,6 +20,11 @@
       <artifactId>middleware.dao-rdf4j</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.sparql-builder</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
 

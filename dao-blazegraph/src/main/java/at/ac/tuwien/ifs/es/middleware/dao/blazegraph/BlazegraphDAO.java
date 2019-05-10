@@ -1,7 +1,18 @@
 package at.ac.tuwien.ifs.es.middleware.dao.blazegraph;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.Facet;
+import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.FacetedSearchQueryBuilder;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.annotation.PostConstruct;
+import org.apache.commons.rdf.api.BlankNodeOrIRI;
+import org.apache.commons.rdf.api.RDFTerm;
+import org.apache.commons.text.StringSubstitutor;
 import org.eclipse.rdf4j.repository.sparql.SPARQLRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,16 +36,28 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component("BlazegraphDAO")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-public class BlazegraphDAO extends RDF4JSparqlDAO {
+public class BlazegraphDAO extends RDF4JSparqlDAO implements KGFullTextSearchDAO {
 
   private static final Logger logger = LoggerFactory.getLogger(BlazegraphDAO.class);
 
-  @Value("${blazegraph.queryEndpointURL}")
+  private static final String FT_SEARCH_QUERY = "prefix bds: <http://www.bigdata.com/rdf/search#>\n"
+      + "SELECT ?s (max(?litScore) as ?score) WHERE {\n"
+      + "    _:lit bds:search \"shining\" .\n"
+      + "    _:lit bds:matchAllTerms \"true\" .\n"
+      + "    _:lit bds:relevance ?litScore .\n"
+      + "    ?s ?p _:lit .\n"
+      + "    ${body}\n"
+      + "} GROUP BY(?s)\n"
+      + "${offset}\n"
+      + "${limit}";
+
   private String queryEndpointURL;
 
   @Autowired
-  public BlazegraphDAO(ApplicationContext context) {
+  public BlazegraphDAO(ApplicationContext context,
+      @Value("${blazegraph.address}") String queryEndpointURL) {
     super(context);
+    this.queryEndpointURL = queryEndpointURL;
   }
 
   @PostConstruct
@@ -42,4 +65,33 @@ public class BlazegraphDAO extends RDF4JSparqlDAO {
     init(new SPARQLRepository(queryEndpointURL));
   }
 
+  @Override
+  public List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
+      Integer offset, Integer limit) throws KnowledgeGraphDAOException {
+    return searchFullText(keyword, classes, offset, limit, null);
+  }
+
+  @Override
+  public List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
+      Integer offset, Integer limit, List<Facet> facets) throws KnowledgeGraphDAOException {
+    logger.debug("Searching for '{}' of classes {} with limit={}, offset={}.", keyword, classes,
+        offset, limit);
+    Map<String, String> queryValuesMap = new HashMap<>();
+    queryValuesMap.put("keyword", keyword);
+    /* windowing */
+    queryValuesMap.put("offset", offset != null ? String.format("OFFSET %d", offset) : "");
+    queryValuesMap.put("limit", limit != null ? String.format("LIMIT %d", limit) : "");
+    /* build facets */
+    FacetedSearchQueryBuilder queryBuilder = FacetedSearchQueryBuilder.forSubject("s");
+    queryBuilder.includeInstancesOfClasses(classes);
+    if (facets != null) {
+      facets.forEach(queryBuilder::addPropertyFacet);
+    }
+    queryValuesMap.put("body", queryBuilder.getQueryBody());
+    String searchQuery = new StringSubstitutor(queryValuesMap).replace(FT_SEARCH_QUERY);
+    logger
+        .trace("Searching with '{}' for '{}' of classes {} with limit={}, offset={}.", searchQuery,
+            keyword, classes, offset, limit);
+    return this.<SelectQueryResult>query(searchQuery, true).value();
+  }
 }
