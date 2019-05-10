@@ -51,8 +51,7 @@ public class StardogKnowledgeGraphDAO extends RDF4JSparqlDAO implements
       + "WHERE {\n"
       + "?resource ?p ?l.\n"
       + "(?l ?score) <tag:stardog:api:property:textMatch> '${keyword}'.\n"
-      + "${classes-filter}\n"
-      + "${facets}\n"
+      + "${body}\n"
       + "}\n"
       + "ORDER BY DESC(?score)"
       + "${offset}\n"
@@ -100,6 +99,11 @@ public class StardogKnowledgeGraphDAO extends RDF4JSparqlDAO implements
     return searchFullText(keyword, classes, offset, limit, null);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @see <a href="https://www.stardog.com/docs/#_enabling_search">Stardog FTS</a>
+   */
   @Override
   public List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
       Integer offset, Integer limit, List<Facet> facets) throws KnowledgeGraphDAOException {
