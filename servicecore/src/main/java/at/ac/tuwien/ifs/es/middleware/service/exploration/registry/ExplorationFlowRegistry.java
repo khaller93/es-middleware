@@ -43,11 +43,11 @@ public final class ExplorationFlowRegistry {
 
   /**
    * Gets the {@link ExplorationFlowStep} class with the given {@code uid}. If no such class is
-   * registered, {@link Optional#EMPTY} will be returned.
+   * registered, {@link Optional#empty()} will be returned.
    *
    * @param uid the unique name get the {@link ExplorationFlowStep} clazz that shall be returned.
-   * @return the class registered for the given {@code uid}, or {@link Optional#EMPTY}, if there is
-   * no registration under this name.
+   * @return the class registered for the given {@code uid}, or {@link Optional#empty()}, if there
+   * is no registration under this name.
    */
   public Optional<Class<? extends ExplorationFlowStep>> get(String uid) {
     Class<? extends ExplorationFlowStep> aClass = registry.get(uid);
