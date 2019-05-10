@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
  */
 @Aspect
 @Component
-@Profile("operatorwatch")
+@Profile("aop")
 public class ExplorationFlowStepStopWatchAspect {
 
   private static final Logger logger = LoggerFactory
