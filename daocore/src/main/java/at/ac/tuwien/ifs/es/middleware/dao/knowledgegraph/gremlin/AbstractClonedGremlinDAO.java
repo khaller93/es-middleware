@@ -277,16 +277,20 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
           .has(schema.iri().identifierAsString(), sIRI);
       if (vertexIt.hasNext()) {
         Vertex v = vertexIt.next();
-        v.property(Cardinality.single, "version", Date.from(issuedTimestamp));
+        v.property(Cardinality.single, "version", toTimeStampInNs(issuedTimestamp));
         cache.put(resource, v);
         return v;
       } else {
         Vertex v = graph
             .addVertex(schema.iri().identifier(), sIRI, schema.kind().identifier(), "iri",
-                "version", Date.from(issuedTimestamp));
+                "version", toTimeStampInNs(issuedTimestamp));
         cache.put(resource, v);
         return v;
       }
+    }
+
+    private long toTimeStampInNs(Instant timestamp) {
+      return timestamp.getEpochSecond() * 10 ^ 9 + timestamp.getNano();
     }
 
     @Override
@@ -318,7 +322,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
               Vertex objectVertex = prepareVertex((BlankNodeOrIRI) row.get("o"), vertexCacheMap);
               subjectVertex
                   .addEdge(BlankOrIRIJsonUtil.stringValue(property), objectVertex, "version",
-                      Date.from(issuedTimestamp));
+                      toTimeStampInNs(issuedTimestamp));
             }
             logger
                 .info("Loaded {} statements from the knowledge graph {}.", offset + values.size(),
@@ -352,7 +356,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
         }
       }
       /* remove old/corrupt data */
-      Date cT = Date.from(issuedTimestamp);
+      long cT = toTimeStampInNs(issuedTimestamp);
       AbstractClonedGremlinDAO.this.lock();
       try {
         if (successful) {
