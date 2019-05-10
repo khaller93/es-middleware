@@ -85,7 +85,7 @@ public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
    * @param repository {@link Repository} that shall be initialized.
    */
   protected void init(Repository repository) {
-    assert repository != null;
+    checkArgument(repository != null, "The given repository msut not be null.");
     this.repository = repository;
     try {
       this.repository.init();
