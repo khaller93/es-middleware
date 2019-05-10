@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -111,7 +110,6 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
   }
 
   @Override
-  @Cacheable({"esm.service.analytics.dataset.class.hierarchy"})
   public Set<Resource> getSuperClasses(Resource classResource) {
     checkArgument(classResource != null, "The given class resource must not be null.");
     return getTreeNodeFor(classResource)
@@ -123,7 +121,7 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
 
   @Override
   public Set<Resource> getSubClasses(Resource classResource) {
-    checkArgument(classResource != null, "The givenclass resource must not be null.");
+    checkArgument(classResource != null, "The given class resource must not be null.");
     return getTreeNodeFor(classResource)
         .map(classTreeNode -> getChildrenTreeNodes(Sets.newHashSet(classTreeNode), classTreeNode)
             .stream()
@@ -137,7 +135,7 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
     for (ClassTreeNode treeNode : classTreeNode.getParents().stream().map(treeNodeMap::get)
         .collect(Collectors.toSet())) {
       parentsList.add(treeNode);
-      if (!visitedNodes.contains(classTreeNode)) {
+      if (!visitedNodes.contains(treeNode)) {
         Set<ClassTreeNode> newVisitedNodes = new HashSet<>(visitedNodes);
         newVisitedNodes.add(treeNode);
         parentsList.addAll(getParentTreeNodes(newVisitedNodes, treeNode));

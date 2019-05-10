@@ -8,6 +8,8 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProc
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Element;
@@ -40,6 +42,8 @@ public class DegreeCentralityMetricWithGremlinService implements DegreeCentralit
   private static final Logger logger = LoggerFactory
       .getLogger(DegreeCentralityMetricWithGremlinService.class);
 
+  private static final int LOAD_SIZE = 100000;
+
   public static final String DEGREE_PROP_NAME = "esm.service.analytics.centrality.degree";
 
   private final GremlinService gremlinService;
@@ -71,21 +75,35 @@ public class DegreeCentralityMetricWithGremlinService implements DegreeCentralit
 
   @Override
   public void compute() {
-    logger.info("Starting to compute degree metric.");
     gremlinService.lock();
     try {
-      gremlinService
-          .traversal().V().group()
-          .by(__.map(traverser -> schema.iri().<String>apply((Element) traverser.get())))
-          .by(__.inE().count()).next().forEach((iri, value) -> {
-        Optional<Integer> resourceKeyOptional = allResourcesService
-            .getResourceKey(new Resource((String) iri));
+      int n = 0, total = 0;
+      Map<Integer, Long> degreeIntermediateMap = new HashMap<>();
+      for (Resource resource : allResourcesService.getResourceList()) {
+        Optional<Integer> resourceKeyOptional = allResourcesService.getResourceKey(resource);
         if (resourceKeyOptional.isPresent()) {
-          degreeMap.put(resourceKeyOptional.get(), (Long) value);
-        } else {
-          logger.warn("No mapped key can be found for {}.", iri);
+          Optional<Long> degreeCountOptional = gremlinService.traversal().V()
+              .has(schema.iri().identifierAsString(), resource.getId())
+              .inE().count().tryNext();
+          if (degreeCountOptional.isPresent()) {
+            degreeIntermediateMap.put(resourceKeyOptional.get(), degreeCountOptional.get());
+            n++;
+            total++;
+          }
         }
-      });
+        if (n == LOAD_SIZE) {
+          degreeMap.putAll(degreeIntermediateMap);
+          logger.debug("Computed degree for {} resources. Degree computed for {} resources in total.",
+              LOAD_SIZE, total);
+          n = 0;
+          degreeIntermediateMap = new HashMap<>();
+        }
+      }
+      if (!degreeIntermediateMap.isEmpty()) {
+        degreeMap.putAll(degreeIntermediateMap);
+        logger.debug("Computed degree for {} resources. Degree computed for {} resources in total.",
+            degreeIntermediateMap.size(), total);
+      }
       mapDB.commit();
       gremlinService.commit();
     } catch (Exception e) {
@@ -94,7 +112,6 @@ public class DegreeCentralityMetricWithGremlinService implements DegreeCentralit
     } finally {
       gremlinService.unlock();
     }
-    logger.info("Degree metric has been successfully computed.");
   }
 
 }

@@ -7,10 +7,14 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.tinkerpop.gremlin.process.computer.ranking.pagerank.PageRankVertexProgram;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Element;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.mapdb.DB;
 import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
@@ -40,6 +44,8 @@ public class PageRankCentralityMetricWithGremlinService implements PageRankCentr
       .getLogger(PageRankCentralityMetricWithGremlinService.class);
 
   private final String PAGE_RANK_PROP_NAME = "esm.service.analytics.centrality.pagerank";
+
+  private static final int LOAD_LIMIT = 1000;
 
   private final GremlinService gremlinService;
   private final AllResourcesService allResourcesService;
@@ -77,18 +83,36 @@ public class PageRankCentralityMetricWithGremlinService implements PageRankCentr
     logger.info("Starting to compute page rank metric.");
     gremlinService.lock();
     try {
-      gremlinService.traversal().withComputer().V().pageRank()
-          .group()
-          .by(__.map(traverser -> schema.iri().<String>apply((Element) traverser.get())))
-          .by(__.values(PageRankVertexProgram.PAGE_RANK)).next().forEach((iri, value) -> {
-        Optional<Integer> optionalResourceKey = allResourcesService
-            .getResourceKey(new Resource((String) iri));
-        if (optionalResourceKey.isPresent()) {
-          pageRankMap.put(optionalResourceKey.get(), (Double) value);
-        } else {
-          logger.warn("No mapped key can be found for {}.", iri);
+      final AtomicInteger n = new AtomicInteger();
+      final AtomicInteger total = new AtomicInteger();
+      final Map<Integer, Double> pageRankIntermediateMap = new HashMap<>();
+      gremlinService.traversal().withComputer().V().pageRank().sideEffect(vertexTraverser -> {
+        Vertex vertex = vertexTraverser.get();
+        Optional<Integer> resourceKeyOptional = allResourcesService
+            .getResourceKey(new Resource(schema.iri().<String>apply(vertex)));
+        if (resourceKeyOptional.isPresent()) {
+          pageRankIntermediateMap.put(resourceKeyOptional.get(),
+              (Double) vertex.values(PageRankVertexProgram.PAGE_RANK).next());
+          n.addAndGet(1);
+          total.addAndGet(1);
         }
-      });
+        boolean load = n.compareAndSet(LOAD_LIMIT, 0);
+        if (load) {
+          pageRankMap.putAll(pageRankIntermediateMap);
+          pageRankIntermediateMap.clear();
+          logger
+              .debug(
+                  "Computed page rank for {} resources. Page Rank computed for {} resources in total.",
+                  LOAD_LIMIT, total.get());
+        }
+      }).iterate();
+      if (!pageRankIntermediateMap.isEmpty()) {
+        pageRankMap.putAll(pageRankIntermediateMap);
+        logger
+            .debug(
+                "Computed page rank for {} resources. Page Rank computed for {} resources in total.",
+                pageRankIntermediateMap.size(), total.get());
+      }
       mapDB.commit();
       gremlinService.commit();
     } catch (Exception e) {
