@@ -86,6 +86,13 @@ public interface ExplorationContext<T extends IdentifiableResult> extends Iterab
   Map<String, JsonNode> getMetadata();
 
   /**
+   * Merges the given metadata map with the value map of this context.
+   *
+   * @param metadataMap that should be merged with the current metadata map.
+   */
+  void mergeMetadata(Map<String, ObjectNode> metadataMap);
+
+  /**
    * Puts the given {@code data} to the value node with the given {@code id} on the given position.
    * The data can then be accessed with {@link ExplorationContext#getValues(String, JsonPointer)}.
    *

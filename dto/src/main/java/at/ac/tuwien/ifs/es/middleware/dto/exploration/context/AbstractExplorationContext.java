@@ -171,6 +171,28 @@ public abstract class AbstractExplorationContext<T extends IdentifiableResult> i
     this.values = copiedValues;
   }
 
+  @Override
+  public void mergeMetadata(Map<String, ObjectNode> metadataMap) {
+    checkArgument(metadataMap != null, "The metadata map to merge with must not be null.");
+    /* make a deep copy */
+    Map<String, JsonNode> metadataValues = new HashMap<>();
+    for (String id : metadata.keySet()) {
+      metadataValues.put(id, metadata.get(id).deepCopy());
+    }
+    /* compute the merge */
+    for (Entry<String, ObjectNode> metadataEntry : metadataMap.entrySet()) {
+      if (metadataValues.containsKey(metadataEntry.getKey())) {
+        metadataValues.put(metadataEntry.getKey(),
+            mergeNodes(metadataValues.get(metadataEntry.getKey()),
+                metadataEntry.getValue()));
+      } else {
+        metadataValues.put(metadataEntry.getKey(), metadataEntry.getValue());
+      }
+    }
+    /* set the merged values map */
+    this.metadata = metadataValues;
+  }
+
   /**
    * Merges the given source {@link JsonNode} and {@code toMerge} {@link JsonNode}. Later has
    * precedence. Value, array and null nodes are considered as atomic and are not merged, only
