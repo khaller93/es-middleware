@@ -3,6 +3,7 @@ package at.ac.tuwien.ifs.es.middleware.dto.exploration.context.meta;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 /**
  * This class maintains information about ingestion of the request, as well as release time. Thus,
@@ -16,10 +17,12 @@ public class TimeMetadata {
 
   private Instant ingestion;
   private Instant release;
+  private Long processingTimeInMs;
 
   public TimeMetadata(Instant ingestion) {
     this.ingestion = ingestion;
     this.release = Instant.now();
+    this.processingTimeInMs = ingestion.until(release, ChronoUnit.MILLIS);
   }
 
   @JsonCreator
@@ -37,11 +40,16 @@ public class TimeMetadata {
     return release;
   }
 
+  public Long getProcessingTimeInMs() {
+    return processingTimeInMs;
+  }
+
   @Override
   public String toString() {
     return "TimeMetadata{" +
         "ingestion=" + ingestion +
         ", release=" + release +
+        ", processingTimeInMs=" + processingTimeInMs +
         '}';
   }
 }
