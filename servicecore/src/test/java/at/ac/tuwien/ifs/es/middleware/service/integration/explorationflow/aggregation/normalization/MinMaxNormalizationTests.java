@@ -18,8 +18,8 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceList;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.aggregation.normalisation.MinMaxPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.aggregation.normalisation.MinMaxPayload.MinMaxTarget;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation.normalization.MinMaxNormalisation;
@@ -81,7 +81,7 @@ public class MinMaxNormalizationTests {
       int n = 0;
       for (Resource resource : resourceList) {
         resourceListContext
-            .putValuesData(resource.getId(), entry.getKey(),
+            .values().put(resource.getId(), entry.getKey(),
                 JsonNodeFactory.instance.numberNode(entry.getValue().get(n)));
         n++;
       }
@@ -105,7 +105,7 @@ public class MinMaxNormalizationTests {
         Lists.newArrayList(minMaxTargetX, minMaxTargetY)));
     assertNotNull(context);
     List<Double> xPropValueList = resourceList.stream()
-        .map(r -> ((DoubleNode) context.getValues(r.getId(), JsonPointer.compile("/x/val")).get())
+        .map(r -> ((DoubleNode) context.values().get(r.getId(), JsonPointer.compile("/x/val")).get())
             .asDouble()).collect(Collectors.toList());
     assertThat(xPropValueList, everyItem(allOf(greaterThanOrEqualTo(0.0), lessThanOrEqualTo(1.0))));
     assertThat(
@@ -115,7 +115,7 @@ public class MinMaxNormalizationTests {
         "The x-value get the fourth entry is the overall maximum and thus must be mapped to 1.0.",
         xPropValueList.get(3), equalTo(1.0));
     List<Double> yPropValueList = resourceList.stream()
-        .map(r -> ((DoubleNode) context.getValues(r.getId(), JsonPointer.compile("/y/val")).get())
+        .map(r -> ((DoubleNode) context.values().get(r.getId(), JsonPointer.compile("/y/val")).get())
             .asDouble()).collect(Collectors.toList());
     assertThat(yPropValueList, everyItem(allOf(greaterThanOrEqualTo(0.0), lessThanOrEqualTo(1.0))));
     assertThat(yPropValueList,
@@ -128,7 +128,7 @@ public class MinMaxNormalizationTests {
         .apply(resourceListContext, new MinMaxPayload(Lists.newArrayList()));
     assertNotNull(context);
     assertThat(resourceList.stream()
-            .map(r -> resourceListContext.getValues(r.getId(), JsonPointer.compile("/x/val"))
+            .map(r -> resourceListContext.values().get(r.getId(), JsonPointer.compile("/x/val"))
                 .orElse(null)).map(r -> r != null ? r.asDouble() : r).collect(Collectors.toList()),
         contains(resourceValueMap.get(JsonPointer.compile("/x/val")).toArray()));
   }
@@ -155,7 +155,7 @@ public class MinMaxNormalizationTests {
         .apply(resourceListContext, new MinMaxPayload(Lists.newArrayList(minMaxTargetX)));
     assertNotNull(context);
     List<Double> pPropValueList = resourceList.stream()
-        .map(r -> (context.getValues(r.getId(), JsonPointer.compile("/p/val"))))
+        .map(r -> (context.values().get(r.getId(), JsonPointer.compile("/p/val"))))
         .map(r -> r.get().isNumber() ? r.get().asDouble() : null)
         .collect(Collectors.toList());
     assertThat(pPropValueList, everyItem(equalTo(null)));
@@ -171,7 +171,7 @@ public class MinMaxNormalizationTests {
         .apply(resourceListContext, new MinMaxPayload(Lists.newArrayList(minMaxTargetZ)));
     assertNotNull(context);
     List<Double> zPropValueList = resourceList.stream()
-        .map(r -> (context.getValues(r.getId(), JsonPointer.compile("/z/val"))))
+        .map(r -> (context.values().get(r.getId(), JsonPointer.compile("/z/val"))))
         .map(r -> r.get().isNumber() ? r.get().asDouble() : null)
         .collect(Collectors.toList());
     assertNull(zPropValueList.get(0));
@@ -194,7 +194,7 @@ public class MinMaxNormalizationTests {
         .apply(resourceListContext, new MinMaxPayload(Lists.newArrayList(minMaxTargetO)));
     assertNotNull(context);
     List<Double> oPropValueList = resourceList.stream()
-        .map(r -> ((DoubleNode) context.getValues(r.getId(), JsonPointer.compile("/o/val")).get())
+        .map(r -> ((DoubleNode) context.values().get(r.getId(), JsonPointer.compile("/o/val")).get())
             .asDouble()).collect(Collectors.toList());
     assertThat(oPropValueList, contains(1.0, 1.0, 1.0, 1.0));
   }

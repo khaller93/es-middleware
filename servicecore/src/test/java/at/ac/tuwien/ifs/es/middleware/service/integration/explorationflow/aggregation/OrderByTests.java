@@ -14,8 +14,8 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceList;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.aggregation.OrderByPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.aggregation.OrderByPayload.ORDER_STRATEGY;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowServiceException;
@@ -78,7 +78,7 @@ public class OrderByTests {
       int n = 0;
       for (Resource resource : resourceList) {
         resourceListContext
-            .putValuesData(resource.getId(), entry.getKey(),
+            .values().put(resource.getId(), entry.getKey(),
                 JsonNodeFactory.instance.numberNode(entry.getValue().get(n)));
         n++;
       }

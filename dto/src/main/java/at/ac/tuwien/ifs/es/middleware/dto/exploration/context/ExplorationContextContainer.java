@@ -1,9 +1,10 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.context;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import static com.google.common.base.Preconditions.checkArgument;
+
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.util.box.ValueBox;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.util.box.ValueBoxFactory;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -14,18 +15,18 @@ import java.util.Map;
  */
 public abstract class ExplorationContextContainer<T extends IdentifiableResult> {
 
-  private Map<String, ObjectNode> originalValuesMap;
-  private Map<String, JsonNode> metadata;
+  private ValueBox originalValuesMap;
+  private ValueBox metadata;
 
   private Collection<T> resultCollection;
-  private Map<String, ObjectNode> valuesMap;
+  private ValueBox valuesMap;
 
-  protected ExplorationContextContainer(Map<String, ObjectNode> originalValuesMap,
-      Map<String, JsonNode> metadata, Collection<T> resultCollection) {
-    this.originalValuesMap = originalValuesMap;
-    this.metadata = metadata;
+  public ExplorationContextContainer(Collection<T> resultCollection, ValueBox originalValuesMap,
+      ValueBox metadata) {
     this.resultCollection = resultCollection;
-    this.valuesMap = new HashMap<>();
+    this.originalValuesMap = originalValuesMap;
+    this.valuesMap = ValueBoxFactory.newBox();
+    this.metadata = metadata;
   }
 
   /**
@@ -37,9 +38,24 @@ public abstract class ExplorationContextContainer<T extends IdentifiableResult> 
     return resultCollection;
   }
 
+  /**
+   * Adds a new result into this container.
+   *
+   * @param result that shall be added to this container. It must not be null.
+   */
   public void addResult(T result) {
+    checkArgument(result != null, "The given result must not be null.");
     resultCollection.add(result);
-    valuesMap.putAll(getValuesOf(result, originalValuesMap));
+    valuesMap.merge(getValuesOf(result, originalValuesMap));
+  }
+
+  /**
+   * Gets the current values map maintained by this container.
+   *
+   * @return the current values map maintained by this container.
+   */
+  public ValueBox getValues() {
+    return valuesMap;
   }
 
   /**
@@ -51,24 +67,16 @@ public abstract class ExplorationContextContainer<T extends IdentifiableResult> 
    * extracted.
    * @return a map of values for the given {@code result}.
    */
-  protected abstract Map<String, ObjectNode> getValuesOf(T result,
-      Map<String, ObjectNode> originalValuesMap);
+  protected abstract ValueBox getValuesOf(T result, ValueBox originalValuesMap);
 
   /**
    * Gets the meta data maintained by this container.
    *
    * @return the meta data maintained by this container.
    */
-  public Map<String, JsonNode> getMetadata() {
+  public ValueBox getMetadata() {
     return metadata;
   }
 
-  /**
-   * Gets the current values map maintained by this container.
-   *
-   * @return the current values map maintained by this container.
-   */
-  public Map<String, ObjectNode> getValuesMap() {
-    return valuesMap;
-  }
+
 }

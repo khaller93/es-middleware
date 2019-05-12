@@ -16,8 +16,8 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceList;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.aggregation.normalisation.ZScorePayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation.normalization.MinMaxNormalisation;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation.normalization.ZScore;
@@ -91,7 +91,7 @@ public class ZScoreTests {
       int n = 0;
       for (Resource resource : resourceList) {
         resourceListContext
-            .putValuesData(resource.getId(), entry.getKey(),
+            .values().put(resource.getId(), entry.getKey(),
                 JsonNodeFactory.instance.numberNode(entry.getValue().get(n)));
         n++;
       }
@@ -108,7 +108,7 @@ public class ZScoreTests {
             Lists.newArrayList(JsonPointer.compile("/x/val"), JsonPointer.compile("/y/val"))));
     assertNotNull(context);
     List<Double> xPropValueList = resourceList.stream()
-        .map(r -> ((DoubleNode) context.getValues(r.getId(), JsonPointer.compile("/x/val")).get())
+        .map(r -> ((DoubleNode) context.values().get(r.getId(), JsonPointer.compile("/x/val")).get())
             .asDouble())
         .collect(Collectors.toList());
     assertThat(xPropValueList, everyItem(lessThan(3.0)));
@@ -122,11 +122,11 @@ public class ZScoreTests {
         .apply(resourceListContext, new ZScorePayload(Lists.emptyList()));
     assertNotNull(context);
     assertThat(resourceList.stream()
-            .map(r -> resourceListContext.getValues(r.getId(), JsonPointer.compile("/x/val"))
+            .map(r -> resourceListContext.values().get(r.getId(), JsonPointer.compile("/x/val"))
                 .orElse(null)).map(r -> r != null ? r.asDouble() : r).collect(Collectors.toList()),
         contains(resourceValueMap.get(JsonPointer.compile("/x/val")).toArray()));
     assertThat(resourceList.stream()
-            .map(r -> resourceListContext.getValues(r.getId(), JsonPointer.compile("/y/val"))
+            .map(r -> resourceListContext.values().get(r.getId(), JsonPointer.compile("/y/val"))
                 .orElse(null)).map(r -> r != null ? r.asDouble() : r).collect(Collectors.toList()),
         contains(resourceValueMap.get(JsonPointer.compile("/y/val")).toArray()));
   }
@@ -147,7 +147,7 @@ public class ZScoreTests {
             new ZScorePayload(Lists.newArrayList(JsonPointer.compile("/p/val"))));
     assertNotNull(context);
     List<Double> pPropValueList = resourceList.stream()
-        .map(r -> (context.getValues(r.getId(), JsonPointer.compile("/p/val"))))
+        .map(r -> (context.values().get(r.getId(), JsonPointer.compile("/p/val"))))
         .map(r -> r.get().isNumber() ? r.get().asDouble() : null)
         .collect(Collectors.toList());
     assertThat(pPropValueList, everyItem(equalTo(null)));
@@ -160,7 +160,7 @@ public class ZScoreTests {
             new ZScorePayload(Lists.newArrayList(JsonPointer.compile("/z/val"))));
     assertNotNull(context);
     List<Double> zPropValueList = resourceList.stream()
-        .map(r -> (context.getValues(r.getId(), JsonPointer.compile("/z/val"))))
+        .map(r -> (context.values().get(r.getId(), JsonPointer.compile("/z/val"))))
         .map(r -> r.get().isNumber() ? r.get().asDouble() : null)
         .collect(Collectors.toList());
     assertThat(zPropValueList, contains(null, 1.0, null, 1.0, null, -1.0, null, -1.0, null, null));
@@ -173,7 +173,7 @@ public class ZScoreTests {
             new ZScorePayload(Lists.newArrayList(JsonPointer.compile("/o/val"))));
     assertNotNull(context);
     List<Double> oPropValueList = resourceList.stream()
-        .map(r -> ((DoubleNode) context.getValues(r.getId(), JsonPointer.compile("/o/val")).get())
+        .map(r -> ((DoubleNode) context.values().get(r.getId(), JsonPointer.compile("/o/val")).get())
             .asDouble()).collect(Collectors.toList());
     assertThat(oPropValueList, contains(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
   }

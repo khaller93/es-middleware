@@ -4,7 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.Facet;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.OrFacet;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;

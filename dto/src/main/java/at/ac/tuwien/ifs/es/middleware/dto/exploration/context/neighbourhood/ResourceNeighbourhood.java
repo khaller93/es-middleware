@@ -1,8 +1,9 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result;
+package at.ac.tuwien.ifs.es.middleware.dto.exploration.context.neighbourhood;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IdentifiableResult;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.ResourceJsonComponent;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;

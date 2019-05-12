@@ -2,10 +2,9 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceCollection;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceCollection;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceList;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.ClassResourceService;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.AllResourcesPayload;
@@ -25,8 +24,6 @@ import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.text.StringSubstitutor;
 import org.eclipse.collections.impl.factory.Sets;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -41,10 +38,10 @@ import org.springframework.stereotype.Component;
  */
 @Lazy
 @Component
-@RegisterForExplorationFlow("esm.source.all")
+@RegisterForExplorationFlow(AllResources.OID)
 public class AllResources implements AcquisitionSource<ResourceCollection, AllResourcesPayload> {
 
-  private static final Logger logger = LoggerFactory.getLogger(AllResources.class);
+  public static final String OID = "esm.source.all";
 
   private static final int LOAD_LIMIT = 100000;
 

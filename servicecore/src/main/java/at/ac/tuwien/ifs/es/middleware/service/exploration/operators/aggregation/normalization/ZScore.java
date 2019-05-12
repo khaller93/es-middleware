@@ -68,7 +68,7 @@ public class ZScore implements AggregationOperator<ExplorationContext, Explorati
         }
         eContext.streamOfResults().forEach(entity -> {
           for (JsonPointer pointer : targets) {
-            Optional<JsonNode> valueOptional = eContext.getValues(entity.getId(), pointer);
+            Optional<JsonNode> valueOptional = eContext.values().get(entity.getId(), pointer);
             if (valueOptional.isPresent()) {
               JsonNode valueNode = valueOptional.get();
               if (valueNode.isNumber()) {
@@ -92,7 +92,7 @@ public class ZScore implements AggregationOperator<ExplorationContext, Explorati
         /* compute z-score */
         eContext.streamOfResults().forEach(entity -> {
           for (JsonPointer pointer : targets) {
-            Optional<JsonNode> valueOptional = eContext.getValues(entity.getId(), pointer);
+            Optional<JsonNode> valueOptional = eContext.values().get(entity.getId(), pointer);
             if (valueOptional.isPresent()) {
               JsonNode value = valueOptional.get();
               if (value.isNumber()) {
@@ -100,12 +100,12 @@ public class ZScore implements AggregationOperator<ExplorationContext, Explorati
                 if (zScoreInfo != null) {
                   if (Double.compare(zScoreInfo.getStandardDeviation(), 0.0) > 0) {
                     eContext
-                        .putValuesData(entity.getId(), pointer, JsonNodeFactory.instance.numberNode(
+                        .values().put(entity.getId(), pointer, JsonNodeFactory.instance.numberNode(
                             (value.asDouble() - zScoreInfo.getAverage()) / zScoreInfo
                                 .getStandardDeviation()));
                   } else {
                     eContext
-                        .putValuesData(entity.getId(), pointer,
+                        .values().put(entity.getId(), pointer,
                             JsonNodeFactory.instance.numberNode(0.0));
                   }
                 }

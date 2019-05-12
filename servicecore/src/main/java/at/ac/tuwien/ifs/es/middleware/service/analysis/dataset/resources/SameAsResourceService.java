@@ -1,8 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisService;
-import java.util.Map;
 import java.util.Set;
 
 /**

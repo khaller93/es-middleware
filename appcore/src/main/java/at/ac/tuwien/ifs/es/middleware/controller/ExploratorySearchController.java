@@ -64,7 +64,7 @@ public class ExploratorySearchController {
       throws ExplorationFlowSpecificationException {
     Instant timestampEntered = Instant.now();
     ExplorationContext context = dynamicExplorationFlowFactory.constructFlow(request).execute();
-    context.setMetadataFor("time", payloadMapper.valueToTree(new TimeMetadata(timestampEntered)));
+    context.metadata().put("time", payloadMapper.valueToTree(new TimeMetadata(timestampEntered)));
     return context;
   }
 
@@ -80,7 +80,7 @@ public class ExploratorySearchController {
     Instant timestampEntered = Instant.now();
     ExplorationContext context = commonExplorationFlowFactory
         .constructFullTextSearchFlow(keyword, languages, classes, limit, offset).execute();
-    context.setMetadataFor("time", payloadMapper.valueToTree(new TimeMetadata(timestampEntered)));
+    context.metadata().put("time", payloadMapper.valueToTree(new TimeMetadata(timestampEntered)));
     return context;
   }
 

@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IdentifiableResult;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResultCollectionContext;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.aggregation.OrderByPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.aggregation.OrderByPayload.ORDER_STRATEGY;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowServiceException;
@@ -11,8 +11,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -28,22 +26,24 @@ import org.springframework.stereotype.Component;
  */
 @Lazy
 @Component
-@RegisterForExplorationFlow("esm.aggregate.orderby")
-public class OrderBy implements AggregationOperator<ExplorationContext, ExplorationContext, OrderByPayload> {
+@RegisterForExplorationFlow(OrderBy.OID)
+public class OrderBy implements AggregationOperator<ResultCollectionContext, ResultCollectionContext, OrderByPayload> {
+
+  public static final String OID = "esm.aggregate.orderby";
 
   @Override
   public String getUID() {
-    return "esm.aggregate.orderby";
+    return OID;
   }
 
   @Override
-  public Class<ExplorationContext> getExplorationContextInputClass() {
-    return ExplorationContext.class;
+  public Class<ResultCollectionContext> getExplorationContextInputClass() {
+    return ResultCollectionContext.class;
   }
 
   @Override
-  public Class<ExplorationContext> getExplorationContextOutputClass() {
-    return ExplorationContext.class;
+  public Class<ResultCollectionContext> getExplorationContextOutputClass() {
+    return ResultCollectionContext.class;
   }
 
   @Override
@@ -52,12 +52,12 @@ public class OrderBy implements AggregationOperator<ExplorationContext, Explorat
   }
 
   @Override
-  public ExplorationContext apply(ExplorationContext context, OrderByPayload payload) {
-    ExplorationContext<IdentifiableResult> identifiableResults = (ExplorationContext<IdentifiableResult>) context;
+  public ResultCollectionContext apply(ResultCollectionContext context, OrderByPayload payload) {
+    ResultCollectionContext<IdentifiableResult> identifiableResults = (ResultCollectionContext<IdentifiableResult>) context;
     final Map<String, Double> valuesMap = new HashMap<>();
     for (IdentifiableResult identifiableResult : identifiableResults) {
       String id = identifiableResult.getId();
-      Optional<JsonNode> optionalValueNode = identifiableResults.getValues(id, payload.getPath());
+      Optional<JsonNode> optionalValueNode = identifiableResults.values().get(id, payload.getPath());
       if (optionalValueNode.isPresent()) {
         JsonNode valueNode = optionalValueNode.get();
         if (valueNode.isNumber()) {
@@ -83,7 +83,7 @@ public class OrderBy implements AggregationOperator<ExplorationContext, Explorat
         }
         return strategy * Double.compare(valueT1, ValueT2);
       }
-    }).collect(identifiableResults);
+    }).collect(identifiableResults.collector());
   }
 
 }

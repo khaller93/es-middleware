@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result;
+package at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IdentifiableResult;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;

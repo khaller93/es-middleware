@@ -85,9 +85,9 @@ public class ExplorationFlowStepStopWatchAspect {
         StopWatchInfo stopWatchInfo = new StopWatchInfo(flowStep.getUID(), start, Instant.now());
         ObjectNode stopWatchOperatorInfo = objectMapper.valueToTree(stopWatchInfo);
         ObjectNode stopWatch = (ObjectNode) ((Optional<JsonNode>) returnedContext
-            .getMetadataFor("stopwatch")).orElse(JsonNodeFactory.instance.objectNode());
+            .metadata().get("stopwatch")).orElse(JsonNodeFactory.instance.objectNode());
         stopWatch.set(String.valueOf(id), stopWatchOperatorInfo);
-        returnedContext.setMetadataFor("stopwatch", stopWatch);
+        returnedContext.metadata().put("stopwatch", stopWatch);
         if (stopWatchLogging) {
           logger.debug("Operator '{}'({}) processing time: {}.", flowStep.getUID(), id,
               stopWatchInfo);

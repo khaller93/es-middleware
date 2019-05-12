@@ -2,7 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.util.List;
 import org.apache.commons.rdf.api.RDFTerm;

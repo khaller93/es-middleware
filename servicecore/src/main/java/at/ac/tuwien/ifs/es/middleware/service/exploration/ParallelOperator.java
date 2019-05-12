@@ -75,7 +75,7 @@ public class ParallelOperator implements
         try {
           Future<ExplorationContext> ctxFuture = completionService.take();
           ExplorationContext ctx = ctxFuture.get();
-          context.mergeValues(ctx.getAllValues());
+          context.values().merge(ctx.values());
         } catch (InterruptedException e) {
           e.printStackTrace();
         } catch (ExecutionException e) {

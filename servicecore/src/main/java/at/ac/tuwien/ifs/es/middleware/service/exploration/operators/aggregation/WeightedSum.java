@@ -27,13 +27,14 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Component
 @RegisterForExplorationFlow("esm.aggregate.weightedsum")
-public class WeightedSum implements AggregationOperator<ExplorationContext, ExplorationContext, WeightedSumPayload> {
+public class WeightedSum implements
+    AggregationOperator<ExplorationContext, ExplorationContext, WeightedSumPayload> {
 
-  private static final Logger logger = LoggerFactory.getLogger(WeightedSum.class);
+  public static final String OID = "esm.aggregate.weightedsum";
 
   @Override
   public String getUID() {
-    return "esm.aggregate.weightedsum";
+    return OID;
   }
 
   @Override
@@ -53,34 +54,28 @@ public class WeightedSum implements AggregationOperator<ExplorationContext, Expl
 
   @Override
   public ExplorationContext apply(ExplorationContext context, WeightedSumPayload payload) {
-    JsonPointer ptr = payload.getPath();
     ExplorationContext<IdentifiableResult> eContext = context;
-    if (!ptr.matches()) {
-      Map<JsonPointer, Double> candidates = payload.getCandidates();
-      eContext.streamOfResults().forEach(r -> {
-        String id = r.getId();
-        Double sum = 0.0;
-        for (Entry<JsonPointer, Double> candidate : candidates.entrySet()) {
-          Optional<JsonNode> optionalValue = eContext.getValues(id, candidate.getKey());
-          if (optionalValue.isPresent()) {
-            JsonNode valueNode = optionalValue.get();
-            if (valueNode.isNumber() && sum != null) {
-              sum += candidate.getValue() * valueNode.asDouble();
-            } else {
-              sum = null;
-            }
+    Map<JsonPointer, Double> candidates = payload.getCandidates();
+    eContext.streamOfResults().forEach(r -> {
+      String id = r.getId();
+      Double sum = 0.0;
+      for (Entry<JsonPointer, Double> candidate : candidates.entrySet()) {
+        Optional<JsonNode> optionalValue = eContext.values().get(id, candidate.getKey());
+        if (optionalValue.isPresent()) {
+          JsonNode valueNode = optionalValue.get();
+          if (valueNode.isNumber() && sum != null) {
+            sum += candidate.getValue() * valueNode.asDouble();
           } else {
-            throw new ExplorationFlowSpecificationException(String
-                .format("There is no value associated with the given entry '%s' for '%s'.",
-                    candidate.getKey(), id));
+            sum = null;
           }
+        } else {
+          throw new ExplorationFlowSpecificationException(String
+              .format("There is no value associated with the given entry '%s' for '%s'.",
+                  candidate.getKey(), id));
         }
-        context.putValuesData(r.getId(), ptr, JsonNodeFactory.instance.numberNode(sum));
-      });
-      return context;
-    } else {
-      throw new ExplorationFlowSpecificationException(
-          String.format("The given path must not be empty, but was '%s'.", ptr));
-    }
+      }
+      context.values().put(r.getId(), payload.getPath(), JsonNodeFactory.instance.numberNode(sum));
+    });
+    return context;
   }
 }

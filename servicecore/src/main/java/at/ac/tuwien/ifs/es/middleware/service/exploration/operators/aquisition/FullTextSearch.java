@@ -1,14 +1,14 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceCollection;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceCollection;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceList;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.FullTextSearchPayload;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.fts.FullTextSearchService;
+import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -26,9 +26,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * This is an implementation get {@link AcquisitionSource} that searches for resources with the given
- * keyword. The result list is ordered descending by the full-text-search score get the result. This
- * operator is registered as {@code esm.source.fts} at {@link at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFlowRegistry}.
+ * This is an implementation get {@link AcquisitionSource} that searches for resources with the
+ * given keyword. The result list is ordered descending by the full-text-search score get the
+ * result. This operator is registered as {@code esm.source.fts} at {@link
+ * at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFlowRegistry}.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -36,20 +37,24 @@ import org.springframework.stereotype.Component;
  */
 @Lazy
 @Component
-@RegisterForExplorationFlow("esm.source.fts")
-public class FullTextSearch implements AcquisitionSource<ResourceCollection, FullTextSearchPayload> {
+@RegisterForExplorationFlow(FullTextSearch.OID)
+public class FullTextSearch implements
+    AcquisitionSource<ResourceCollection, FullTextSearchPayload> {
 
   private static final Logger logger = LoggerFactory.getLogger(FullTextSearch.class);
 
-  private FullTextSearchService fullTextSearchService;
+  public static final String OID = "esm.source.fts";
 
-  public FullTextSearch(@Autowired FullTextSearchService fullTextSearchService) {
+  private final FullTextSearchService fullTextSearchService;
+
+  @Autowired
+  public FullTextSearch(FullTextSearchService fullTextSearchService) {
     this.fullTextSearchService = fullTextSearchService;
   }
 
   @Override
   public String getUID() {
-    return "esm.source.fts";
+    return OID;
   }
 
   @Override
@@ -82,9 +87,8 @@ public class FullTextSearch implements AcquisitionSource<ResourceCollection, Ful
     ResourceList rlContext = ResourceList.of(resourceList);
     if (!scoreMap.isEmpty()) {
       for (Entry<String, Double> e : scoreMap.entrySet()) {
-        ObjectNode ftsInfo = JsonNodeFactory.instance.objectNode();
-        ftsInfo.put("score", e.getValue());
-        rlContext.putValuesData(e.getKey(), Collections.singletonList("fts"), ftsInfo);
+        rlContext.values().put(e.getKey(), JsonPointer.compile("/fts/score"),
+            JsonNodeFactory.instance.numberNode(e.getValue()));
       }
     } else {
       logger.debug("The used full-text-search dao '{}' does not hand over a score.",

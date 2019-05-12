@@ -29,12 +29,14 @@ import org.springframework.stereotype.Component;
  */
 @Lazy
 @Component
-@RegisterForExplorationFlow("esm.aggregate.normalisation.minmax")
+@RegisterForExplorationFlow(MinMaxNormalisation.OID)
 public class MinMaxNormalisation implements AggregationOperator<ExplorationContext, ExplorationContext, MinMaxPayload> {
+
+  public static final String OID = "esm.aggregate.normalisation.minmax";
 
   @Override
   public String getUID() {
-    return "esm.aggregate.normalisation.minmax";
+    return OID;
   }
 
   @Override
@@ -65,7 +67,7 @@ public class MinMaxNormalisation implements AggregationOperator<ExplorationConte
     Map<JsonPointer, ActualMinMax> actualMinMaxMap = new HashMap<>();
     eContext.streamOfResults().forEach((r -> {
       for (JsonPointer ptr : minMaxPointers) {
-        Optional<JsonNode> valueOptional = eContext.getValues(r.getId(), ptr);
+        Optional<JsonNode> valueOptional = eContext.values().get(r.getId(), ptr);
         if (valueOptional.isPresent()) {
           JsonNode valueNode = valueOptional.get();
           if (valueNode.isNumber()) {
@@ -90,15 +92,15 @@ public class MinMaxNormalisation implements AggregationOperator<ExplorationConte
     eContext.streamOfResults().forEach(r -> {
       String id = r.getId();
       for (JsonPointer ptr : minMaxPointers) {
-        Optional<JsonNode> optionalVal = eContext.getValues(id, ptr);
+        Optional<JsonNode> optionalVal = eContext.values().get(id, ptr);
         if (optionalVal.isPresent() && optionalVal.get().isNumber()) {
           ActualMinMax actualMinMax = actualMinMaxMap.get(ptr);
           double range = actualMinMax.getMax() - actualMinMax.getMin();
           if (Double.compare(range, 0.0) != 0) {
             double val = (optionalVal.get().asDouble() - actualMinMax.getMin()) / range;
-            eContext.putValuesData(id, ptr, JsonNodeFactory.instance.numberNode(val));
+            eContext.values().put(id, ptr, JsonNodeFactory.instance.numberNode(val));
           } else {
-            eContext.putValuesData(id, ptr, JsonNodeFactory.instance.numberNode(1.0));
+            eContext.values().put(id, ptr, JsonNodeFactory.instance.numberNode(1.0));
           }
         }
       }

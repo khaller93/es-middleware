@@ -1,7 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceCollection;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceCollection;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.VoidPayload;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceService;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * This is an {@link AggregationOperator} that eliminates duplicates in an {@link
- * at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList}. Duplicates are resources
+ * ResourceList}. Duplicates are resources
  * which hold an {@code owl:sameAs} relationship.
  *
  * @author Kevin Haller
@@ -24,11 +25,13 @@ import org.springframework.stereotype.Component;
  */
 @Lazy
 @Component
-@RegisterForExplorationFlow("esm.aggregate.distinct")
+@RegisterForExplorationFlow(Distinct.OID)
 public class Distinct implements
     AggregationOperator<ResourceCollection, ResourceCollection, VoidPayload> {
 
-  private SameAsResourceService sameAsResourceService;
+  public static final String OID = "esm.aggregate.distinct";
+
+  private final SameAsResourceService sameAsResourceService;
 
   @Autowired
   public Distinct(SameAsResourceService sameAsResourceService) {
@@ -37,7 +40,7 @@ public class Distinct implements
 
   @Override
   public String getUID() {
-    return "esm.aggregate.distinct";
+    return OID;
   }
 
   @Override
@@ -66,6 +69,6 @@ public class Distinct implements
         recognizedResources.addAll(sameAsResourceService.getSameAsResourcesFor(resource));
       }
     }
-    return (ResourceCollection) newResourceList.stream().collect(resourceCollection);
+    return (ResourceCollection) newResourceList.stream().collect(resourceCollection.collector());
   }
 }

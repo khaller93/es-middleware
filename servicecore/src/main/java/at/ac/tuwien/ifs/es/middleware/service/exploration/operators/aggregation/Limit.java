@@ -2,6 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IdentifiableResult;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResultCollectionContext;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.aggregation.LimitPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
 import org.slf4j.Logger;
@@ -20,22 +21,24 @@ import org.springframework.stereotype.Component;
  */
 @Lazy
 @Component
-@RegisterForExplorationFlow("esm.aggregate.limit")
-public class Limit implements AggregationOperator<ExplorationContext, ExplorationContext, LimitPayload> {
+@RegisterForExplorationFlow(Limit.OID)
+public class Limit implements AggregationOperator<ResultCollectionContext, ResultCollectionContext, LimitPayload> {
+
+  public static final String OID = "esm.aggregate.limit";
 
   @Override
   public String getUID() {
-    return "esm.aggregate.limit";
+    return OID;
   }
 
   @Override
-  public Class<ExplorationContext> getExplorationContextInputClass() {
-    return ExplorationContext.class;
+  public Class<ResultCollectionContext> getExplorationContextInputClass() {
+    return ResultCollectionContext.class;
   }
 
   @Override
-  public Class<ExplorationContext> getExplorationContextOutputClass() {
-    return ExplorationContext.class;
+  public Class<ResultCollectionContext> getExplorationContextOutputClass() {
+    return ResultCollectionContext.class;
   }
 
   @Override
@@ -45,9 +48,9 @@ public class Limit implements AggregationOperator<ExplorationContext, Exploratio
 
   @SuppressWarnings("unchecked")
   @Override
-  public ExplorationContext apply(ExplorationContext context, LimitPayload payload) {
-    ExplorationContext<IdentifiableResult> identifiableResultsContext = (ExplorationContext<IdentifiableResult>) context;
+  public ResultCollectionContext apply(ResultCollectionContext context, LimitPayload payload) {
+    ResultCollectionContext<IdentifiableResult> identifiableResultsContext = (ResultCollectionContext<IdentifiableResult>) context;
     return identifiableResultsContext.streamOfResults().limit(payload.getNumber())
-        .collect(identifiableResultsContext);
+        .collect(identifiableResultsContext.collector());
   }
 }

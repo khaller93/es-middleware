@@ -1,8 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceCollection;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceCollection;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.AskQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
@@ -12,8 +11,6 @@ import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLServic
 import java.util.Collections;
 import java.util.Map;
 import org.apache.commons.text.StringSubstitutor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -34,14 +31,15 @@ import org.springframework.stereotype.Component;
  */
 @Lazy
 @Component
-@RegisterForExplorationFlow("esm.source.single")
-public class SingleResource implements AcquisitionSource<ResourceCollection, SingleResourcePayload> {
+@RegisterForExplorationFlow(SingleResource.OID)
+public class SingleResource implements
+    AcquisitionSource<ResourceCollection, SingleResourcePayload> {
 
-  private static final Logger logger = LoggerFactory.getLogger(SingleResource.class);
+  public static final String OID = "esm.source.single";
 
   private static final String ASK_EXIST_QUERY = "ASK WHERE { {${s} ?p ?o .} UNION {?t ${s} ?o} UNION {?t ?p ${s}} }";
 
-  private SPARQLService sparqlService;
+  private final SPARQLService sparqlService;
 
   @Autowired
   public SingleResource(SPARQLService sparqlService) {
@@ -50,7 +48,7 @@ public class SingleResource implements AcquisitionSource<ResourceCollection, Sin
 
   @Override
   public String getUID() {
-    return "esm.source.single";
+    return OID;
   }
 
   @Override

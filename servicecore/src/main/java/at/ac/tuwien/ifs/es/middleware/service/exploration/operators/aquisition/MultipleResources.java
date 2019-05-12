@@ -1,8 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceCollection;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceCollection;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceList;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
@@ -36,8 +36,10 @@ import org.springframework.stereotype.Component;
  */
 @Lazy
 @Component
-@RegisterForExplorationFlow("esm.source.multiple")
+@RegisterForExplorationFlow(MultipleResources.OID)
 public class MultipleResources implements AcquisitionSource<ResourceCollection, MultipleResourcesPayload> {
+
+  public static final String OID = "esm.source.multiple";
 
   private static final Logger logger = LoggerFactory.getLogger(MultipleResources.class);
 
@@ -50,7 +52,7 @@ public class MultipleResources implements AcquisitionSource<ResourceCollection, 
       + "\t}\n"
       + "}";
 
-  private SPARQLService sparqlService;
+  private final SPARQLService sparqlService;
 
   @Autowired
   public MultipleResources(SPARQLService sparqlService) {
@@ -59,7 +61,7 @@ public class MultipleResources implements AcquisitionSource<ResourceCollection, 
 
   @Override
   public String getUID() {
-    return "esm.source.multiple";
+    return OID;
   }
 
   @Override

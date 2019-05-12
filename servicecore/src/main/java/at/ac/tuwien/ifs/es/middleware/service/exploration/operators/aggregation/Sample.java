@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IdentifiableResult;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResultCollectionContext;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.aggregation.SamplePayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
 import java.util.ArrayList;
@@ -25,24 +25,26 @@ import org.springframework.stereotype.Component;
  */
 @Lazy
 @Component
-@RegisterForExplorationFlow("esm.aggregate.sample")
-public class Sample implements AggregationOperator<ExplorationContext, ExplorationContext, SamplePayload> {
+@RegisterForExplorationFlow(Sample.OID)
+public class Sample implements AggregationOperator<ResultCollectionContext, ResultCollectionContext, SamplePayload> {
+
+  public static final String OID = "esm.aggregate.sample";
 
   private static final Logger logger = LoggerFactory.getLogger(Sample.class);
 
   @Override
   public String getUID() {
-    return "esm.aggregate.sample";
+    return OID;
   }
 
   @Override
-  public Class<ExplorationContext> getExplorationContextInputClass() {
-    return ExplorationContext.class;
+  public Class<ResultCollectionContext> getExplorationContextInputClass() {
+    return ResultCollectionContext.class;
   }
 
   @Override
-  public Class<ExplorationContext> getExplorationContextOutputClass() {
-    return ExplorationContext.class;
+  public Class<ResultCollectionContext> getExplorationContextOutputClass() {
+    return ResultCollectionContext.class;
   }
 
   @Override
@@ -52,18 +54,18 @@ public class Sample implements AggregationOperator<ExplorationContext, Explorati
 
   @SuppressWarnings("unchecked")
   @Override
-  public ExplorationContext apply(ExplorationContext context, SamplePayload payload) {
+  public ResultCollectionContext apply(ResultCollectionContext context, SamplePayload payload) {
     Long n = payload.getNumber();
     if (n >= 0) {
       Random randomGenerator = new Random();
-      ExplorationContext<IdentifiableResult> eContext = (ExplorationContext<IdentifiableResult>) context;
+      ResultCollectionContext<IdentifiableResult> eContext = (ResultCollectionContext<IdentifiableResult>) context;
       List<IdentifiableResult> results = eContext.streamOfResults()
           .collect(Collectors.toCollection(ArrayList::new));
       List<IdentifiableResult> sampledResults = new LinkedList<>();
       for (int i = 0; i < n && !results.isEmpty(); i++) {
         sampledResults.add(results.remove(randomGenerator.nextInt(results.size())));
       }
-      return sampledResults.stream().collect(eContext);
+      return sampledResults.stream().collect(eContext.collector());
     } else {
       logger.error(
           "A negative number ({}) was passed for aggregation operator sample, but must be positive.",

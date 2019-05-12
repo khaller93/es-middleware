@@ -1,9 +1,9 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IterableResourcesContext;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.Neighbourhood;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceCollection;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.neighbourhood.Neighbourhood;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceCollection;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.exploitation.ExploitationOperator;
@@ -33,9 +33,11 @@ import org.springframework.stereotype.Component;
  */
 @Lazy
 @Component
-@RegisterForExplorationFlow("esm.source.neighbourhood")
+@RegisterForExplorationFlow(NeighbourhoodOperator.OID)
 public class NeighbourhoodOperator implements
     ExploitationOperator<ResourceCollection, Neighbourhood, NeighbourhoodOpPayload> {
+
+  public static final String OID = "esm.source.neighbourhood";
 
   private static final String QUERY = "SELECT ?s ?p ?o WHERE { \n"
       + "VALUES ?s {\n"
@@ -67,7 +69,7 @@ public class NeighbourhoodOperator implements
 
   @Override
   public String getUID() {
-    return "esm.source.neighbourhood";
+    return OID;
   }
 
   @Override
@@ -134,7 +136,7 @@ public class NeighbourhoodOperator implements
           });
     }
     Neighbourhood neighbourhood = Neighbourhood.of(nMap);
-    neighbourhood.mergeValues(source.getAllValues());
+    neighbourhood.values().merge(source.values());
     return neighbourhood;
   }
 }

@@ -15,10 +15,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
 import at.ac.tuwien.ifs.es.middleware.ExploratorySearchApplication;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResourceList;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceList;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -34,7 +32,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.PostConstruct;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.rdf.api.IRI;
 import org.junit.Before;
@@ -43,7 +40,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
@@ -51,7 +47,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
@@ -176,20 +171,20 @@ public class DynamicExploratoryMusicPintaFlowTest {
     ResourceList resources = parameterMapper
         .readValue(descriptionResponse.getBody(), ResourceList.class);
     assertThat(resources
-        .getValues("http://dbpedia.org/resource/Santur",
+        .values().get("http://dbpedia.org/resource/Santur",
             JsonPointer.compile("/describe/label/values/en"))
         .get().get(0).asText(), is("Santur"));
     assertThat(resources
-        .getValues("http://dbpedia.org/resource/Santur",
+        .values().get("http://dbpedia.org/resource/Santur",
             JsonPointer.compile("/describe/label/values/en"))
         .get().get(0).asText(), is("Santur"));
     assertThat(resources
-            .getValues("http://dbpedia.org/resource/Tembor",
+            .values().get("http://dbpedia.org/resource/Tembor",
                 JsonPointer.compile("/describe/description/values/en")).get().get(0)
             .asText(),
         is("The Tembor is a stringed musical instrument from the Uyghur region, Western China. It has 5 strings in 3 courses and is tuned A A, D, G G. The strings are made of Steel."));
     assertFalse("The 'Tambura' resource has no description.",
-        resources.getValues("http://dbtune.org/musicbrainz/resource/instrument/473",
+        resources.values().get("http://dbtune.org/musicbrainz/resource/instrument/473",
             JsonPointer.compile("/describe/description/value")).isPresent());
   }
 
@@ -233,32 +228,32 @@ public class DynamicExploratoryMusicPintaFlowTest {
         "http://dbtune.org/musicbrainz/resource/instrument/377"));
 
     Optional<JsonNode> electricGuitarLabelOptional = resources
-        .getValues("http://dbtune.org/musicbrainz/resource/instrument/78",
+        .values().get("http://dbtune.org/musicbrainz/resource/instrument/78",
             JsonPointer.compile("/describe/label/values/en"));
     assertTrue(electricGuitarLabelOptional.isPresent());
     assertThat(electricGuitarLabelOptional.get().get(0).asText(), is(equalTo("Electric guitar")));
     Optional<JsonNode> electricGuitarDescriptionOptional = resources
-        .getValues("http://dbtune.org/musicbrainz/resource/instrument/78",
+        .values().get("http://dbtune.org/musicbrainz/resource/instrument/78",
             JsonPointer.compile("/describe/description"));
     assertFalse(
         "The description must not be given, because the custom describer did not specify this content.",
         electricGuitarDescriptionOptional.isPresent());
     Optional<JsonNode> electricGuitarThumbOptional = resources
-        .getValues("http://dbtune.org/musicbrainz/resource/instrument/78",
+        .values().get("http://dbtune.org/musicbrainz/resource/instrument/78",
             JsonPointer.compile("/describe/thumb/values"));
     assertTrue(electricGuitarThumbOptional.isPresent());
     assertThat(electricGuitarThumbOptional.get().get(0).asText(), is(equalTo(
         "http://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Godin_LG-Squier_Strat.jpg/200px-Godin_LG-Squier_Strat.jpg")));
 
     Optional<JsonNode> guitaleleLabelOptional = resources
-        .getValues("http://dbpedia.org/resource/Guitalele",
+        .values().get("http://dbpedia.org/resource/Guitalele",
             JsonPointer.compile("/describe/label/values/en"));
     assertTrue(guitaleleLabelOptional.isPresent());
     assertThat("http://dbpedia.org/resource/Guitalele",
         guitaleleLabelOptional.get().get(0).asText(),
         is(equalTo("Guitalele")));
     Optional<JsonNode> guitaleleThumbOptional = resources
-        .getValues("http://dbpedia.org/resource/Guitalele",
+        .values().get("http://dbpedia.org/resource/Guitalele",
             JsonPointer.compile("/describe/thumb/values"));
     assertFalse("There is no thumbnail get a 'guitalele' in the data",
         guitaleleThumbOptional.isPresent());
@@ -302,7 +297,7 @@ public class DynamicExploratoryMusicPintaFlowTest {
     /* get class and check them */
     Iterable<Iterable<? super String>> classes = resourceList.stream().map(r -> {
       Optional<JsonNode> optionalClasses = resourcesContext
-          .getValues(r.getId(), JsonPointer.compile("/describe/class/values"));
+          .values().get(r.getId(), JsonPointer.compile("/describe/class/values"));
       if (optionalClasses.isPresent()) {
         List<String> resourceClasses = new LinkedList<>();
         optionalClasses.get().iterator().forEachRemaining(c -> resourceClasses.add(c.asText()));
@@ -316,7 +311,7 @@ public class DynamicExploratoryMusicPintaFlowTest {
     /* get labels and check them */
     List<String> labels = resourceList.stream().flatMap(r -> {
       Optional<JsonNode> optionalLabels = resourcesContext
-          .getValues(r.getId(), JsonPointer.compile("/describe/label/values/en"));
+          .values().get(r.getId(), JsonPointer.compile("/describe/label/values/en"));
       if (optionalLabels.isPresent()) {
         List<String> labelList = new LinkedList<>();
         optionalLabels.get().forEach(l -> {
@@ -345,18 +340,18 @@ public class DynamicExploratoryMusicPintaFlowTest {
     List<Double> scoreNumbers = resourcesContext.streamOfResults()
         .map(r -> {
           Optional<JsonNode> optionalScore = resourcesContext
-              .getValues(r.getId(), JsonPointer.compile("/fts/score"));
+              .values().get(r.getId(), JsonPointer.compile("/fts/score"));
           return optionalScore.map(JsonNode::asDouble).orElse(null);
         }).collect(Collectors.toList());
     assertThat(scoreNumbers, everyItem(allOf(greaterThanOrEqualTo(0.0), lessThanOrEqualTo(1.0))));
     /* check individual scores */
     Optional<JsonNode> topMostResourceScore = resourcesContext
-        .getValues("http://dbtune.org/musicbrainz/resource/instrument/323",
+        .values().get("http://dbtune.org/musicbrainz/resource/instrument/323",
             JsonPointer.compile("/fts/score"));
     assertTrue(topMostResourceScore.isPresent());
     assertThat(topMostResourceScore.get().asDouble(), is(equalTo(1.0)));
     Optional<JsonNode> furthestDownResourceScore = resourcesContext
-        .getValues("http://dbtune.org/musicbrainz/resource/instrument/475",
+        .values().get("http://dbtune.org/musicbrainz/resource/instrument/475",
             JsonPointer.compile("/fts/score"));
     assertTrue(furthestDownResourceScore.isPresent());
     assertThat(furthestDownResourceScore.get().asDouble(), is(equalTo(0.0)));
