@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration.context.meta;
+package at.ac.tuwien.ifs.es.middleware.controller.meta;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
