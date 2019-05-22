@@ -10,7 +10,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.SparqlDAOStateCha
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.Facet;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
@@ -161,7 +161,7 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
             keyword, offset, limit, classes);
     Map<String, String> valueMap = new HashMap<>();
     valueMap.put("name", graphDbLuceneConfig.getLuceneIndexIRI());
-    valueMap.put("keyword", keyword);
+    valueMap.put("keyword", keyword.replace("\"", "\\\""));
     /* build facets */
     FacetedSearchQueryBuilder queryBuilder = FacetedSearchQueryBuilder.forSubject("resource");
     queryBuilder.includeInstancesOfClasses(classes);
@@ -192,10 +192,10 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
       return "";
     } else if (classes.size() == 1) {
       return String.format("?resource a/rdfs:subClassOf* %s .",
-          BlankOrIRIJsonUtil.stringForSPARQLResourceOf(classes.get(0)));
+          RDFTermJsonUtil.stringForSPARQLResourceOf(classes.get(0)));
     } else {
       return classes.stream().map(clazz -> String.format("{?resource a/rdfs:subClassOf* %s}",
-          BlankOrIRIJsonUtil.stringForSPARQLResourceOf(clazz)))
+          RDFTermJsonUtil.stringForSPARQLResourceOf(clazz)))
           .collect(Collectors.joining("\nUNION\n"));
     }
   }

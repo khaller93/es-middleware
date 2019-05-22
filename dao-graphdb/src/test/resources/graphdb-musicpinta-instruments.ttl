@@ -26,8 +26,8 @@
 
             owlim:enablePredicateList "true" ;
 
-            owlim:in-memory-literal-properties "true" ;
-            owlim:enable-literal-index "true" ;
+            owlim:in-memory-RDFLiteral-properties "true" ;
+            owlim:enable-RDFLiteral-index "true" ;
 
             owlim:check-for-inconsistencies "false" ;
             owlim:disable-sameAs  "false" ;

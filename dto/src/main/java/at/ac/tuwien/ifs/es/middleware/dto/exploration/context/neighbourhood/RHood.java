@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 1.0
  * @since 1.0
  */
-public class ResourceNeighbourhood implements IdentifiableResult {
+public class RHood implements IdentifiableResult {
 
   @JsonIgnore
   private static final AtomicLong idCounter1 = new AtomicLong(1L);
@@ -37,8 +37,8 @@ public class ResourceNeighbourhood implements IdentifiableResult {
    * @param propertyMap a map of properties and its objects.
    * @return a new empty neighbourhood for the given {@link Resource}.
    */
-  public static ResourceNeighbourhood of(Map<Resource, List<Resource>> propertyMap) {
-    String id = "#" + idCounter1.get() + "." + idCounter2.getAndUpdate(l -> {
+  public static RHood of(Map<Resource, List<RDFTerm>> propertyMap) {
+    String id = "H#" + idCounter1.get() + "." + idCounter2.getAndUpdate(l -> {
       if (l == Long.MAX_VALUE) {
         idCounter1.incrementAndGet();
         return 1L;
@@ -46,17 +46,18 @@ public class ResourceNeighbourhood implements IdentifiableResult {
         return l + 1;
       }
     });
-    return new ResourceNeighbourhood(id, propertyMap);
+    return new RHood(id, propertyMap);
   }
 
   private String id;
+
   @JsonSerialize(keyUsing = ResourceJsonComponent.MapSerializer.class)
   @JsonDeserialize(keyUsing = ResourceJsonComponent.MapDeserializer.class)
-  private Map<Resource, List<Resource>> properties;
+  private Map<Resource, List<RDFTerm>> properties;
 
   @JsonCreator
-  public ResourceNeighbourhood(@JsonProperty(value = "id", required = true) String id,
-      @JsonProperty(value = "properties") Map<Resource, List<Resource>> properties) {
+  public RHood(@JsonProperty(value = "id", required = true) String id,
+      @JsonProperty(value = "properties") Map<Resource, List<RDFTerm>> properties) {
     checkArgument(id != null && !id.isEmpty(),
         "An id must be specified for the neighbourhood of a resource.");
     this.id = id;
@@ -68,13 +69,13 @@ public class ResourceNeighbourhood implements IdentifiableResult {
     return id;
   }
 
-  public Map<Resource, List<Resource>> getProperties() {
+  public Map<Resource, List<RDFTerm>> getProperties() {
     return properties;
   }
 
   @Override
   public String toString() {
-    return "ResourceNeighbourhood{" +
+    return "RHood{" +
         "id='" + id + '\'' +
         ", properties=" + properties +
         '}';

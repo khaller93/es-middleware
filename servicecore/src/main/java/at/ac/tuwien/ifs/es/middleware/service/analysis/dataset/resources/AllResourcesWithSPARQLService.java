@@ -3,7 +3,7 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
@@ -123,7 +123,7 @@ public class AllResourcesWithSPARQLService implements AllResourcesService {
         Map<String, Integer> resourceKeyIntermediateMap = new HashMap<>();
         Map<Integer, String> resourceIdIntermediateMap = new HashMap<>();
         for (Map<String, RDFTerm> row : results) {
-          String resourceId = BlankOrIRIJsonUtil
+          String resourceId = RDFTermJsonUtil
               .stringValue((BlankNodeOrIRI) row.get("resource"));
           if (!resourceKeyMap.containsKey(resourceId)) {
             int key = ++topId;

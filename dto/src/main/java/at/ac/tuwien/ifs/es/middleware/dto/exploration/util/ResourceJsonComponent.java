@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.util;
 
-import static at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil.stringValue;
-import static at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil.valueOf;
+import static at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil.stringValue;
+import static at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil.valueOf;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
 import com.fasterxml.jackson.core.JsonGenerator;

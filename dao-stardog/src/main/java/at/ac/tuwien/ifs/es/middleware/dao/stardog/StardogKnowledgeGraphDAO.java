@@ -5,7 +5,6 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.Facet;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
@@ -15,7 +14,6 @@ import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.FacetedSearchQueryBuilder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;

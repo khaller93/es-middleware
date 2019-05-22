@@ -42,9 +42,9 @@ public final class PGS {
   }
 
   /**
-   * Gets the {@link PGSProp} for the kind of resource (IRI, Blanknode, Literal).
+   * Gets the {@link PGSProp} for the kind of resource (IRI, Blanknode, RDFLiteral).
    *
-   * @return the {@link PGSProp} for the kind of resource (IRI, Blanknode, Literal).
+   * @return the {@link PGSProp} for the kind of resource (IRI, Blanknode, RDFLiteral).
    */
   public PGSProp kind() {
     return kind;

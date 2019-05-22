@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
@@ -63,7 +63,7 @@ public class AllClassesWithSPARQLService implements AllClassesService {
   @Override
   public void compute() {
     classList.addAll(((SelectQueryResult) sparqlService.query(ALL_CLASSES_QUERY, true)).value()
-        .stream().map(row -> BlankOrIRIJsonUtil.stringValue((BlankNodeOrIRI) row.get("class")))
+        .stream().map(row -> RDFTermJsonUtil.stringValue((BlankNodeOrIRI) row.get("class")))
         .collect(Collectors.toSet()));
     mapDb.commit();
   }

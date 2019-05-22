@@ -2,9 +2,10 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IterableResourcesContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.neighbourhood.Neighbourhood;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.neighbourhood.RDFTerm;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceCollection;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.exploitation.ExploitationOperator;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.NeighbourhoodOpPayload;
@@ -17,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
-import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -46,7 +46,7 @@ public class NeighbourhoodOperator implements
       + "${propertyInclusion}\n"
       + "?s ?p ?o .\n"
       + "${propertyExclusion}\n"
-      + "FILTER(isIRI(?o)) .\n"
+      + "FILTER(isIRI(?o) || isLiteral(?o)) .\n"
       + "}";
 
   private static final String PROP_VALUES = "VALUES ?p {\n"
@@ -92,13 +92,13 @@ public class NeighbourhoodOperator implements
     /* construct query */
     Map<String, String> valueMap = new HashMap<>();
     valueMap.put("resourceList", source.asResourceSet().stream().map(
-        BlankOrIRIJsonUtil::stringForSPARQLResourceOf).collect(Collectors.joining("\n")));
+        RDFTermJsonUtil::stringForSPARQLResourceOf).collect(Collectors.joining("\n")));
     // deal with included properties
     List<Resource> includedProperties = payload.getIncludedProperties();
     if (includedProperties != null && !includedProperties.isEmpty()) {
       valueMap.put("propertyInclusion", new StringSubstitutor(
           Collections.singletonMap("propertyList", includedProperties.stream().map(
-              BlankOrIRIJsonUtil::stringForSPARQLResourceOf).collect(Collectors.joining("\n"))))
+              RDFTermJsonUtil::stringForSPARQLResourceOf).collect(Collectors.joining("\n"))))
           .replace(PROP_VALUES));
     } else {
       valueMap.put("propertyInclusion", "");
@@ -108,27 +108,27 @@ public class NeighbourhoodOperator implements
     if (excludedProperties != null && !excludedProperties.isEmpty()) {
       valueMap.put("propertyExclusion", new StringSubstitutor(
           Collections.singletonMap("propertyList", excludedProperties.stream().map(
-              BlankOrIRIJsonUtil::stringForSPARQLResourceOf).collect(Collectors.joining("\n"))))
+              RDFTermJsonUtil::stringForSPARQLResourceOf).collect(Collectors.joining("\n"))))
           .replace(MINUS_PROP_VALUES));
     } else {
       valueMap.put("propertyExclusion", "");
     }
     /* query and unpack results */
-    List<Map<String, RDFTerm>> valueSet = sparqlService.<SelectQueryResult>query(
+    List<Map<String, org.apache.commons.rdf.api.RDFTerm>> valueSet = sparqlService.<SelectQueryResult>query(
         new StringSubstitutor(valueMap).replace(QUERY), true)
         .value();
-    Map<Resource, Map<Resource, List<Resource>>> nMap = new HashMap<>();
-    for (Map<String, RDFTerm> row : valueSet) {
+    Map<Resource, Map<Resource, List<RDFTerm>>> nMap = new HashMap<>();
+    for (Map<String, org.apache.commons.rdf.api.RDFTerm> row : valueSet) {
       Resource subject = new Resource((BlankNodeOrIRI) row.get("s"));
       Resource property = new Resource((BlankNodeOrIRI) row.get("p"));
-      Resource object = new Resource((BlankNodeOrIRI) row.get("o"));
+      RDFTerm object = RDFTerm.of(row.get("o"));
       nMap.compute(subject,
           (resource, resourceListMap) -> {
-            Map<Resource, List<Resource>> propMap =
+            Map<Resource, List<RDFTerm>> propMap =
                 resourceListMap != null ? resourceListMap : new HashMap<>();
             propMap.compute(property,
                 (resource1, list) -> {
-                  List<Resource> objectList = list != null ? list : new LinkedList<>();
+                  List<RDFTerm> objectList = list != null ? list : new LinkedList<>();
                   objectList.add(object);
                   return objectList;
                 });

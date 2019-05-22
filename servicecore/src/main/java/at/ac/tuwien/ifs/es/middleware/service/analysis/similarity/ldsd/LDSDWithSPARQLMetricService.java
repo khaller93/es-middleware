@@ -4,7 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.pairs.ResourcePair;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
@@ -142,8 +142,8 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
           }
         } else { // store the result of pairs.
           valueList.append(String
-              .format("(%s %s)\n", BlankOrIRIJsonUtil.stringForSPARQLResourceOf(resourceA),
-                  BlankOrIRIJsonUtil.stringForSPARQLResourceOf(resourceB)));
+              .format("(%s %s)\n", RDFTermJsonUtil.stringForSPARQLResourceOf(resourceA),
+                  RDFTermJsonUtil.stringForSPARQLResourceOf(resourceB)));
           n++;
           if (n == LOAD_SIZE) {
             processSPARQLResult(sparqlService.<SelectQueryResult>query(

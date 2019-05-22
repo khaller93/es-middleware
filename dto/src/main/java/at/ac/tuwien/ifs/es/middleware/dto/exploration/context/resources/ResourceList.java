@@ -121,6 +121,18 @@ public class ResourceList implements ResourceCollection {
     this.list.add(entry);
   }
 
+  /**
+   * Adds the given {@link Resource} {@code entry} at the given index in this resource list.
+   *
+   * @param entry {@link Resource} that shall be added.
+   * @param index a positive number or 0, at which position the entry shall be added.
+   */
+  public void add(int index, Resource entry) {
+    checkArgument(index >= 0, "The index must be a positive number or 0.");
+    checkArgument(entry != null, "The given entry must not be null.");
+    this.list.add(index, entry);
+  }
+
   @Override
   public void remove(Resource entry) {
     checkArgument(entry != null, "The given entry must not be null.");

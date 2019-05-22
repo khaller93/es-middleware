@@ -2,7 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceCollection;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceList;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.AskQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.SingleResourcePayload;
@@ -66,7 +66,7 @@ public class SingleResource implements
   public ResourceCollection apply(SingleResourcePayload payload) {
     Map<String, String> valueMap = Collections
         .singletonMap("s",
-            BlankOrIRIJsonUtil.stringForSPARQLResourceOf(payload.getResource().value()));
+            RDFTermJsonUtil.stringForSPARQLResourceOf(payload.getResource().value()));
     AskQueryResult existResult = sparqlService
         .query(new StringSubstitutor(valueMap).replace(ASK_EXIST_QUERY), true);
     if (existResult.value()) {

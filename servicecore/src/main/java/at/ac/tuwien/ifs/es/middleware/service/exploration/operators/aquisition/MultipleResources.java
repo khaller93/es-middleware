@@ -3,7 +3,7 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceCollection;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.MultipleResourcesPayload;
@@ -80,7 +80,7 @@ public class MultipleResources implements AcquisitionSource<ResourceCollection, 
     if (!resources.isEmpty()) {
       logger.debug("A list of resources with IRIs {} was passed as source.", resources);
       SelectQueryResult notExistResult = sparqlService.query(String.format(SELECT_NOT_EXIST_QUERY,
-          resources.stream().map(BlankOrIRIJsonUtil::stringForSPARQLResourceOf)
+          resources.stream().map(RDFTermJsonUtil::stringForSPARQLResourceOf)
               .collect(Collectors.joining("\n"))), true);
       List<RDFTerm> notExistingResources = new LinkedList<>();
       for (Map<String, RDFTerm> row : notExistResult.value()) {

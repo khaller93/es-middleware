@@ -1,5 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.util;
 
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.neighbourhood.RDFLiteral;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.neighbourhood.RDFTerm;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -15,7 +17,7 @@ import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.simple.SimpleRDF;
 
-public class BlankOrIRIJsonUtil {
+public class RDFTermJsonUtil {
 
   private static RDF valueFactory = new SimpleRDF();
 
@@ -83,6 +85,22 @@ public class BlankOrIRIJsonUtil {
       return "<" + ((IRI) value).getIRIString() + ">";
     } else {
       return "<_:" + ((BlankNode) value).uniqueReference() + ">";
+    }
+  }
+
+  public static String stringForSPARQLLiteralOf(RDFLiteral literal) {
+    return literal.value().ntriplesString();
+  }
+
+  public static String stringForSPARQLRDFTermOf(RDFTerm term) {
+    if (term instanceof Resource) {
+      return stringForSPARQLResourceOf((Resource) term);
+    } else if (term instanceof RDFLiteral) {
+      return stringForSPARQLLiteralOf((RDFLiteral) term);
+    } else {
+      throw new IllegalArgumentException(String
+          .format("Could not transform given value (%s) into SPARQL string.",
+              term.getClass().getName()));
     }
   }
 

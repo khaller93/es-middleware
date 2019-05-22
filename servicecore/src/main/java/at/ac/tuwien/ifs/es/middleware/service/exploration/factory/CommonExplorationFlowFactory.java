@@ -2,7 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.factory;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.exploitation.DescriberPayload.TextLiteralPayload;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition.FullTextSearch;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.FullTextSearchPayload;
@@ -62,7 +62,7 @@ public class CommonExplorationFlowFactory {
       List<String> classes, Integer limit, Integer offset) {
     ExplorationFlow flow = new ExplorationFlow();
     FullTextSearchPayload ftsParameterPayload = new FullTextSearchPayload(keyword,
-        classes != null ? classes.stream().map(c -> new Resource(BlankOrIRIJsonUtil.valueOf(c)))
+        classes != null ? classes.stream().map(c -> new Resource(RDFTermJsonUtil.valueOf(c)))
             .collect(Collectors.toList()) : null, offset, limit, null);
     flow.appendFlowStep(fullTextSearch, ftsParameterPayload);
     DescriberPayload describerPayload = new DescriberPayload(false);

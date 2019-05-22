@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IdentifiableResult;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.neighbourhood.RDFTerm;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.ResourceJsonComponent;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -18,7 +18,7 @@ import org.apache.commons.rdf.api.BlankNodeOrIRI;
  */
 @JsonSerialize(using = ResourceJsonComponent.Serializer.class, keyAs = ResourceJsonComponent.Serializer.class)
 @JsonDeserialize(using = ResourceJsonComponent.Deserializer.class, keyAs = ResourceJsonComponent.Deserializer.class)
-public final class Resource implements IdentifiableResult {
+public final class Resource extends RDFTerm {
 
   private BlankNodeOrIRI resource;
 
@@ -27,12 +27,12 @@ public final class Resource implements IdentifiableResult {
   }
 
   public Resource(String resourceString) {
-    this.resource = BlankOrIRIJsonUtil.valueOf(resourceString);
+    this.resource = RDFTermJsonUtil.valueOf(resourceString);
   }
 
   @Override
   public String getId() {
-    return BlankOrIRIJsonUtil.stringValue(resource);
+    return RDFTermJsonUtil.stringValue(resource);
   }
 
   public BlankNodeOrIRI value() {

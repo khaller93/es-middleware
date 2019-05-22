@@ -9,7 +9,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.GremlinDAOStateCh
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.SparqlDAOStateChangeEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
@@ -19,7 +19,6 @@ import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus.CODE;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOUpdatingStatus;
 
 import java.time.Instant;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -29,7 +28,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
@@ -46,7 +44,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
 
@@ -272,7 +269,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
       if (cache.containsKey(resource)) {
         return cache.get(resource);
       }
-      String sIRI = BlankOrIRIJsonUtil.stringValue(resource);
+      String sIRI = RDFTermJsonUtil.stringValue(resource);
       Iterator<Vertex> vertexIt = graph.traversal().V()
           .has(schema.iri().identifierAsString(), sIRI);
       if (vertexIt.hasNext()) {
@@ -321,7 +318,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
               Vertex subjectVertex = prepareVertex((BlankNodeOrIRI) row.get("s"), vertexCacheMap);
               Vertex objectVertex = prepareVertex((BlankNodeOrIRI) row.get("o"), vertexCacheMap);
               subjectVertex
-                  .addEdge(BlankOrIRIJsonUtil.stringValue(property), objectVertex, "version",
+                  .addEdge(RDFTermJsonUtil.stringValue(property), objectVertex, "version",
                       toTimeStampInNs(issuedTimestamp));
             }
             logger

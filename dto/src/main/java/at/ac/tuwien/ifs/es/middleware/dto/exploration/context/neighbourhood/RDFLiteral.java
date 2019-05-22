@@ -3,30 +3,39 @@ package at.ac.tuwien.ifs.es.middleware.dto.exploration.context.neighbourhood;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
+import org.apache.commons.rdf.api.Literal;
 
 /**
+ * This is an implementation of {@link RDFTerm} that represents RDF literals.
+ *
  * @author Kevin Haller
  */
-public class Literal implements RDFTerm {
+public class RDFLiteral extends RDFTerm {
 
   @JsonIgnore
   private static final AtomicLong idCounter1 = new AtomicLong(1L);
 
   private String id;
-  private org.apache.commons.rdf.api.Literal literal;
+  private Literal literal;
 
-  public Literal(org.apache.commons.rdf.api.Literal literal) {
-    checkArgument(literal != null, "The literal must not be null.");
-    this.literal = literal;
-    this.id = "L#" + idCounter1.getAndUpdate(l -> {
+  public RDFLiteral(Literal literal) {
+    this("L#" + idCounter1.getAndUpdate(l -> {
       if (l == Long.MAX_VALUE) {
         idCounter1.incrementAndGet();
         return 1L;
       } else {
         return l + 1;
       }
-    });
+    }), literal);
+  }
+
+  public RDFLiteral(String id, Literal literal) {
+    checkArgument(id != null, "The id must not be null.");
+    checkArgument(literal != null, "The literal must not be null.");
+    this.id = id;
+    this.literal = literal;
   }
 
   @Override
@@ -34,15 +43,30 @@ public class Literal implements RDFTerm {
     return id;
   }
 
-  public org.apache.commons.rdf.api.Literal value(){
+  public Literal value() {
     return literal;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    RDFLiteral RDFLiteral = (RDFLiteral) o;
+    return id.equals(RDFLiteral.id);
+  }
 
+  @Override
+  public int hashCode() {
+    return Objects.hash(id);
+  }
 
   @Override
   public String toString() {
-    return "Literal{" +
+    return "RDFLiteral{" +
         "id='" + id + '\'' +
         ", literal=" + literal +
         '}';

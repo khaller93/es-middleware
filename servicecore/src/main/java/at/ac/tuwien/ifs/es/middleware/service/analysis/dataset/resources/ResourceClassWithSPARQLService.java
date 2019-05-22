@@ -3,7 +3,7 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
@@ -110,7 +110,7 @@ public class ResourceClassWithSPARQLService implements ResourceClassService {
       /* fetch class relationships */
       List<Map<String, RDFTerm>> results = sparqlService.<SelectQueryResult>query(
           String.format(ALL_INSTANCE_CLASSES_QUERY, resourceList.subList(start, end).stream().map(
-              BlankOrIRIJsonUtil::stringForSPARQLResourceOf).collect(Collectors.joining("\n"))),
+              RDFTermJsonUtil::stringForSPARQLResourceOf).collect(Collectors.joining("\n"))),
           true)
           .value();
       for (Map<String, RDFTerm> row : results) {

@@ -11,33 +11,33 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource
 public class NEntry implements IdentifiableResult {
 
   private Resource subject;
-  private ResourceNeighbourhood resourceNeighbourhood;
+  private RHood RHood;
 
   public NEntry(
       Resource subject,
-      ResourceNeighbourhood resourceNeighbourhood) {
+      RHood RHood) {
     this.subject = subject;
-    this.resourceNeighbourhood = resourceNeighbourhood;
+    this.RHood = RHood;
   }
 
   public Resource getSubject() {
     return subject;
   }
 
-  public ResourceNeighbourhood getResourceNeighbourhood() {
-    return resourceNeighbourhood;
+  public RHood getRHood() {
+    return RHood;
   }
 
   @Override
   public String getId() {
-    return resourceNeighbourhood.getId();
+    return RHood.getId();
   }
 
   @Override
   public String toString() {
     return "NEntry{" +
         "subject=" + subject +
-        ", resourceNeighbourhood=" + resourceNeighbourhood +
+        ", RHood=" + RHood +
         '}';
   }
 }

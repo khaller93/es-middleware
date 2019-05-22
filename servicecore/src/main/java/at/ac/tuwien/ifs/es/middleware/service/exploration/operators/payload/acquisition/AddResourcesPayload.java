@@ -6,6 +6,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.ExplorationFlowStepPayload;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -39,7 +40,7 @@ public class AddResourcesPayload implements ExplorationFlowStepPayload {
       @JsonProperty(value = "nodup") Boolean nodup,
       @JsonProperty(value = "index") Integer index) {
     checkArgument(resources != null, "The resource list must not be null.");
-    this.resources = resources;
+    this.resources = resources != null ? resources : Collections.emptyList();
     this.nodup = nodup != null ? nodup : false;
     this.index = index != null ? index : -1;
   }

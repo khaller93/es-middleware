@@ -3,7 +3,8 @@ package at.ac.tuwien.ifs.es.middleware.dto.exploration.context.neighbourhood;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContextContainer;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IterableObjectsContext;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IterablePredicatesContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IterableResourcesContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.util.box.ValueBox;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.util.box.ValueBoxFactory;
@@ -32,12 +33,14 @@ import java.util.stream.Stream;
  * @version 1.0
  * @since 1.0
  */
-public class Neighbourhood implements IterableResourcesContext<NEntry> {
+public class Neighbourhood implements IterableResourcesContext<NEntry>,
+    IterablePredicatesContext<NEntry>,
+    IterableObjectsContext<NEntry> {
 
   @JsonProperty("neighbourhood")
   @JsonSerialize(keyUsing = ResourceJsonComponent.MapSerializer.class)
   @JsonDeserialize(keyUsing = ResourceJsonComponent.MapDeserializer.class)
-  private Map<Resource, ResourceNeighbourhood> resourceNeighbourhood;
+  private Map<Resource, RHood> resourceNeighbourhood;
 
   private ValueBox values;
   private ValueBox metadata;
@@ -48,22 +51,22 @@ public class Neighbourhood implements IterableResourcesContext<NEntry> {
    * @param neighbourhoodMap a map of subjects and their property maps.
    * @return a {@link Neighbourhood} that represents the given map.
    */
-  public static Neighbourhood of(Map<Resource, Map<Resource, List<Resource>>> neighbourhoodMap) {
-    Map<Resource, ResourceNeighbourhood> resourceNeighbourhood = new HashMap<>();
-    for (Entry<Resource, Map<Resource, List<Resource>>> entry : neighbourhoodMap.entrySet()) {
-      resourceNeighbourhood.put(entry.getKey(), ResourceNeighbourhood.of(entry.getValue()));
+  public static Neighbourhood of(Map<Resource, Map<Resource, List<RDFTerm>>> neighbourhoodMap) {
+    Map<Resource, RHood> resourceNeighbourhood = new HashMap<>();
+    for (Entry<Resource, Map<Resource, List<RDFTerm>>> entry : neighbourhoodMap.entrySet()) {
+      resourceNeighbourhood.put(entry.getKey(), RHood.of(entry.getValue()));
     }
     return new Neighbourhood(resourceNeighbourhood);
   }
 
   public Neighbourhood(
-      @JsonProperty("neighbourhood") Map<Resource, ResourceNeighbourhood> resourceNeighbourhood) {
+      @JsonProperty("neighbourhood") Map<Resource, RHood> resourceNeighbourhood) {
     this(resourceNeighbourhood, ValueBoxFactory.newBox(), ValueBoxFactory.newBox());
   }
 
   @JsonCreator
   public Neighbourhood(
-      @JsonProperty("neighbourhood") Map<Resource, ResourceNeighbourhood> resourceNeighbourhood,
+      @JsonProperty("neighbourhood") Map<Resource, RHood> resourceNeighbourhood,
       @JsonProperty("values") ValueBox values,
       @JsonProperty("metadata") ValueBox metadata) {
     checkArgument(resourceNeighbourhood != null,
@@ -116,96 +119,57 @@ public class Neighbourhood implements IterableResourcesContext<NEntry> {
    * Neighbourhood} are added.
    */
   private void collectResources(Collection<Resource> resourceCollection) {
-    for (Entry<Resource, ResourceNeighbourhood> resourceNeighbourhoodEntry : resourceNeighbourhood
+    for (Entry<Resource, RHood> resourceNeighbourhoodEntry : resourceNeighbourhood
         .entrySet()) {
       resourceCollection.add(resourceNeighbourhoodEntry.getKey());
-      Map<Resource, List<Resource>> propertyMap = resourceNeighbourhoodEntry.getValue()
+      Map<Resource, List<RDFTerm>> propertyMap = resourceNeighbourhoodEntry.getValue()
           .getProperties();
       for (Resource property : propertyMap.keySet()) {
         resourceCollection.add(property);
-        resourceCollection.addAll(propertyMap.get(property));
+        propertyMap.get(property).stream().filter(term -> term instanceof Resource)
+            .map(term -> (Resource) term).forEach(resourceCollection::add);
       }
     }
   }
 
- /* @Override
-  public Iterator<NEntry> iterator() {
-    return resourceNeighbourhood.entrySet().stream()
-        .map(ne -> new NEntry(ne.getKey(), ne.getValue())).iterator();
+  @Override
+  public Iterator<Resource> getPredicateIterator() {
+    return resourceNeighbourhood.keySet().iterator();
   }
 
   @Override
-  public Supplier<ExplorationContextContainer<NEntry>> supplier() {
-    return () -> NeighbourhoodContainer.of(this);
+  public List<Resource> asPredicateList() {
+    return new LinkedList<>(resourceNeighbourhood.keySet());
   }
 
   @Override
-  public BiConsumer<ExplorationContextContainer<NEntry>, NEntry> accumulator() {
-    return ExplorationContextContainer::addResult;
+  public Set<Resource> asPredicateSet() {
+    return resourceNeighbourhood.keySet();
   }
 
-  @Override
-  public BinaryOperator<ExplorationContextContainer<NEntry>> combiner() {
-    return null;
-  }
-
-  @Override
-  public Function<ExplorationContextContainer<NEntry>, ExplorationContext<NEntry>> finisher() {
-    return container -> {
-      Map<Resource, ResourceNeighbourhood> nMap = new HashMap<>();
-      for (NEntry entry : container.getResultCollection()) {
-        nMap.put(entry.getSubject(), entry.getResourceNeighbourhood());
-      }
-      return new Neighbourhood(nMap, container.getValues(), container.getMetadata());
-    };
-  }
-
-  @Override
-  public Set<Characteristics> characteristics() {
-    return Collections.unmodifiableSet(new HashSet<>());
-  }*/
-
-  /**
-   * This is an implementation of {@link ExplorationContextContainer} for neighbourhood entries
-   * ({@link NEntry}).
-   */
-  /*private static final class NeighbourhoodContainer extends
-      ExplorationContextContainer<NEntry> {
-
-    private NeighbourhoodContainer(
-        ValueBox originalValuesMap,
-        ValueBox metadata,
-        Collection<NEntry> resultCollection) {
-      super(originalValuesMap, metadata, resultCollection);
+  private List<RDFTerm> traverseObjects() {
+    List<RDFTerm> objects = new LinkedList<>();
+    for (RHood neighbourhood : resourceNeighbourhood.values()) {
+       for(List<RDFTerm> neighObjects : neighbourhood.getProperties().values()){
+         objects.addAll(neighObjects);
+       }
     }
+    return objects;
+  }
 
-    public static NeighbourhoodContainer of(Neighbourhood neighbourhood) {
-      return new NeighbourhoodContainer(neighbourhood.values(),
-          neighbourhood.metadata(), new LinkedList<>());
-    }
+  @Override
+  public Iterator<RDFTerm> getObjectIterator() {
+    return traverseObjects().iterator();
+  }
 
-    @Override
-    protected ValueBox getValuesOf(NEntry result,
-        ValueBox originalValuesMap) {
-      ValueBox valueBox = ValueBoxFactory.newBox();
-      Optional<JsonNode> subjectNodeOptional = originalValuesMap.get(result.getSubject().getId());
-      if (subjectNodeOptional.isPresent()) {
-        valueBox.put(result.getSubject().getId(), subjectNodeOptional.get());
-      }
-      for (Entry<Resource, List<Resource>> e : result.getResourceNeighbourhood().getProperties()
-          .entrySet()) {
-        Optional<JsonNode> propertyNodeOptional = originalValuesMap.get(e.getKey().getId());
-        if (propertyNodeOptional.isPresent()) {
-          valueBox.put(e.getKey().getId(), propertyNodeOptional.get());
-        }
-        for (Resource objectResource : e.getValue()) {
-          Optional<JsonNode> objNodeOpt = originalValuesMap.get(objectResource.getId());
-          if(objNodeOpt.isPresent()) {
-            valueBox.put(objectResource.getId(), objNodeOpt.get());
-          }
-        }
-      }
-      return valueBox;
-    }
-  }*/
+  @Override
+  public List<RDFTerm> asObjectList() {
+    return traverseObjects();
+  }
+
+  @Override
+  public Set<RDFTerm> asObjectSet() {
+    return new HashSet<>(traverseObjects());
+  }
+
 }

@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.GremlinService;
@@ -109,7 +109,7 @@ public class ClassEntropyWithSPARQLService implements ClassEntropyService {
           if (n == LOAD_SIZE) {
             processSPARQLResult(classList, sparqlService.<SelectQueryResult>query(
                 String.format(CLASS_DISTRIBUTION_QUERY,
-                    classList.stream().map(c -> BlankOrIRIJsonUtil.stringForSPARQLResourceOf(c.value())).collect(
+                    classList.stream().map(c -> RDFTermJsonUtil.stringForSPARQLResourceOf(c.value())).collect(
                         Collectors.joining("\n"))),
                 true).value(), total);
             n = 0;
@@ -119,7 +119,7 @@ public class ClassEntropyWithSPARQLService implements ClassEntropyService {
         if (n > 0) {
           processSPARQLResult(classList,
               sparqlService.<SelectQueryResult>query(String.format(CLASS_DISTRIBUTION_QUERY,
-                  classList.stream().map(c -> BlankOrIRIJsonUtil.stringForSPARQLResourceOf(c.value())).collect(
+                  classList.stream().map(c -> RDFTermJsonUtil.stringForSPARQLResourceOf(c.value())).collect(
                       Collectors.joining("\n"))), true).value(), total);
         }
         mapDB.commit();

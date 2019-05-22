@@ -4,7 +4,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.FullTextSearchPayload;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.BlankOrIRIJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.fts.FullTextSearchService;
 import com.fasterxml.jackson.core.JsonPointer;
@@ -79,7 +79,7 @@ public class FullTextSearch implements
     for (Map<String, RDFTerm> row : fullTextResultTable) {
       BlankNodeOrIRI resource = (BlankNodeOrIRI) row.get("resource");
       if (row.containsKey("score")) {
-        scoreMap.put(BlankOrIRIJsonUtil.stringValue(resource),
+        scoreMap.put(RDFTermJsonUtil.stringValue(resource),
             Double.parseDouble(((Literal) row.get("score")).getLexicalForm()));
       }
       resourceList.addLast(resource);

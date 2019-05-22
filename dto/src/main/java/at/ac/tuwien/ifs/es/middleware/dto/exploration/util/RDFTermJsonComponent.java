@@ -156,7 +156,7 @@ public final class RDFTermJsonComponent {
           } else {
             return rdfFactory.createIRI(text);
           }
-        } else if (node.isObject()) { // Literal
+        } else if (node.isObject()) { // RDFLiteral
           return readLiteral(node);
         } else if (node.isNull()) {
           return null;
