@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration.request;
+package at.ac.tuwien.ifs.es.middleware.service.exploration.request;
 
 import static com.google.common.base.Preconditions.checkArgument;
 

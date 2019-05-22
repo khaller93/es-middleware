@@ -1,8 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.factory;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.request.DynamicExplorationFlowRequest;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.request.ExplorationFlowStepRequest;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.request.DynamicExplorationFlowRequest;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.request.ExplorationFlowStepRequest;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
@@ -10,7 +10,6 @@ import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.Expl
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFlowRegistry;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
