@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.dto.status;
+package at.ac.tuwien.ifs.es.middleware.controller.meta;
 
 import java.time.Instant;
 

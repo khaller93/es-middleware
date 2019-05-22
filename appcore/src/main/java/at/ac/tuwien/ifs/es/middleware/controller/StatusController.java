@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.controller;
 
 import at.ac.tuwien.ifs.es.middleware.SystemInfo;
-import at.ac.tuwien.ifs.es.middleware.dto.status.Beat;
+import at.ac.tuwien.ifs.es.middleware.controller.meta.Beat;
 import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
 import at.ac.tuwien.ifs.es.middleware.service.systemstatus.BackendObserverService;
 import io.swagger.annotations.Api;

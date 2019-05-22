@@ -1,9 +1,9 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration.context.neighbourhood;
+package at.ac.tuwien.ifs.es.middleware.service.exploration.context.neighbourhood;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IdentifiableResult;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.context.IdentifiableResult;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.context.result.Resource;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;

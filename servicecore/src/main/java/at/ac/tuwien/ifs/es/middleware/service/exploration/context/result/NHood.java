@@ -1,7 +1,6 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration.context.neighbourhood;
+package at.ac.tuwien.ifs.es.middleware.service.exploration.context.result;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IdentifiableResult;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.context.IdentifiableResult;
 
 /**
  * @author Kevin Haller
@@ -11,7 +10,7 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource
 public class NEntry implements IdentifiableResult {
 
   private Resource subject;
-  private RHood RHood;
+  private at.ac.tuwien.ifs.es.middleware.service.exploration.context.result.RHood RHood;
 
   public NEntry(
       Resource subject,

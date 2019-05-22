@@ -1,10 +1,10 @@
-package at.ac.tuwien.ifs.es.middleware.dto.exploration.util;
+package at.ac.tuwien.ifs.es.middleware.service.exploration.context.util;
 
 import static at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil.stringValue;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.neighbourhood.RDFLiteral;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.neighbourhood.RDFTerm;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.context.neighbourhood.RDFLiteral;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.context.neighbourhood.RDFTerm;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.context.resources.Resource;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -28,7 +28,7 @@ import org.springframework.boot.jackson.JsonComponent;
  * @since 1.0
  */
 @JsonComponent
-public final class ContextRDFTermJsonComponent {
+public final class RDFTermJsonComponent {
 
   private static RDF rdfFactory = new SimpleRDF();
 
