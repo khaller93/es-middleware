@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.dto.unit;
+package at.ac.tuwien.ifs.es.middleware.service.integration.explorationflow.context;
 
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.hasItems;
@@ -11,6 +11,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.util.box.ValueBox;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

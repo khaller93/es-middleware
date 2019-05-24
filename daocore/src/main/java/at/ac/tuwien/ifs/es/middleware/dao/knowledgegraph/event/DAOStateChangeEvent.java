@@ -3,7 +3,7 @@ package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAO;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOStatus;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.context.ApplicationEvent;

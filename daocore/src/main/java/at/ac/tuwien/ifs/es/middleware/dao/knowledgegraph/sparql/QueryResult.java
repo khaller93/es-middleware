@@ -1,7 +1,7 @@
-package at.ac.tuwien.ifs.es.middleware.dto.sparql;
+package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exception.SPARQLResultFormatException;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.SPARQLResultSerializationException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLResultFormatException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLResultSerializationException;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -20,7 +20,7 @@ public interface QueryResult {
    * mime type. If there is no supported type in the list, then {@code null will be returned}.
    *
    * @param mimeTypes for which the match shall be found.
-   * @return the mime type, or {@code {@link Optional#EMPTY}}, if no mime type in the given list is
+   * @return the mime type, or {@code {@link Optional#empty()}}, if no mime type in the given list is
    * supported.
    */
   Optional<String> matchMimeType(List<String> mimeTypes);
@@ -32,7 +32,7 @@ public interface QueryResult {
    * @param mimeTypes list of unsupported mime types that could not be matched ({@link
    * QueryResult#matchMimeType(List)}).
    */
-  Supplier<SPARQLResultFormatException> getMimeTypeException(List<String> mimeTypes);
+  Supplier<KGSPARQLResultFormatException> getMimeTypeException(List<String> mimeTypes);
 
   /**
    * Transforms the query result into the given {@code mimeType}. This method will be called
@@ -40,12 +40,12 @@ public interface QueryResult {
    *
    * @param mimeType MIME type of the format into which this result should be serialized.
    * @return the serialized query result in the given mime type.
-   * @throws SPARQLResultFormatException if the given mime type is not supported by this query
+   * @throws KGSPARQLResultFormatException if the given mime type is not supported by this query
    * result.
-   * @throws SPARQLResultSerializationException if the result could not be serialized.
+   * @throws KGSPARQLResultSerializationException if the result could not be serialized.
    */
   byte[] transform(String mimeType)
-      throws SPARQLResultFormatException, SPARQLResultSerializationException;
+      throws KGSPARQLResultFormatException, KGSPARQLResultSerializationException;
 
   /**
    * Transforms the query result into the first format that is supported in the given list of {@code
@@ -54,11 +54,11 @@ public interface QueryResult {
    *
    * @param mimeTypes a list of MIME types into which this result should potentially be serialized.
    * @return the serialized query result in the first supported mime type.
-   * @throws SPARQLResultFormatException if the given mime types are not supported by this query
+   * @throws KGSPARQLResultFormatException if the given mime types are not supported by this query
    * result.
-   * @throws SPARQLResultSerializationException if the result could not be serialized.
+   * @throws KGSPARQLResultSerializationException if the result could not be serialized.
    */
   byte[] transform(List<String> mimeTypes)
-      throws SPARQLResultFormatException, SPARQLResultSerializationException;
+      throws KGSPARQLResultFormatException, KGSPARQLResultSerializationException;
 
 }

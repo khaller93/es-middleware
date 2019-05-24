@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j.util;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exception.SPARQLResultFormatException;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.AskQueryResult;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLResultFormatException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.AskQueryResult;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
@@ -46,12 +46,12 @@ public class RDF4JAskQueryResult extends RDF4JQueryResult<QueryResultFormat> imp
   }
 
   @Override
-  public byte[] performTransformation(QueryResultFormat format) throws SPARQLResultFormatException {
+  public byte[] performTransformation(QueryResultFormat format) throws KGSPARQLResultFormatException {
     try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
       QueryResultIO.createBooleanWriter(format, out).handleBoolean(value);
       return out.toByteArray();
     } catch (IOException e) {
-      throw new SPARQLResultFormatException(e);
+      throw new KGSPARQLResultFormatException(e);
     }
   }
 

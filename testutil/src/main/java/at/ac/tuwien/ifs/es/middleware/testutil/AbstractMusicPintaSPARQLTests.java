@@ -11,14 +11,13 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.MalformedSPARQLQueryException;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.AskQueryResult;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.GraphQueryResult;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.QueryResult;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGMalformedSPARQLQueryException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.AskQueryResult;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.GraphQueryResult;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.QueryResult;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.SelectQueryResult;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,7 +28,6 @@ import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.rdf.api.Triple;
 import org.apache.commons.rdf.simple.SimpleRDF;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,7 +90,7 @@ public abstract class AbstractMusicPintaSPARQLTests {
             "http://dbpedia.org/resource/Concertina"));
   }
 
-  @Test(expected = MalformedSPARQLQueryException.class)
+  @Test(expected = KGMalformedSPARQLQueryException.class)
   public void test_executeUpdateQueryOnQueryMethod_throwMalformedSPARQLQueryException()
       throws Exception {
     sparqlDAO.query(
@@ -179,7 +177,7 @@ public abstract class AbstractMusicPintaSPARQLTests {
             valueFactory.createLiteral("A test instance.")));
   }
 
-  @Test(expected = KnowledgeGraphSPARQLException.class)
+  @Test(expected = KGSPARQLException.class)
   public void test_updateInsertDataWithInvalidIRI_mustRespondWithFailure() throws Exception {
     sparqlDAO
         .update("INSERT DATA { <:a/\\path> a <http://purl.org/ontology/mo/Instrument>. }");

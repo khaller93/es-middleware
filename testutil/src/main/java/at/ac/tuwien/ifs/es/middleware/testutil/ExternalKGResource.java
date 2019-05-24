@@ -4,12 +4,10 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus.CODE;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOFailedStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOStatus.CODE;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Iterator;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -18,9 +16,6 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
 import org.junit.rules.ExternalResource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
 /**
  * This is an external resource that loads the musicpinta instruments subset into the specified DAOs

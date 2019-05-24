@@ -1,8 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
 
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSetupException;
-import javax.annotation.PostConstruct;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLSetupException;
 import org.eclipse.rdf4j.repository.http.HTTPRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,7 +29,7 @@ public class RemoteGraphDbDAO extends RDF4JSparqlDAO implements GraphDbSparqlDAO
    */
   @Autowired
   public RemoteGraphDbDAO(ApplicationContext context, @Value("${graphdb.address}") String address,
-      @Value("${graphdb.repository.id}") String repositoryId) throws KnowledgeGraphSetupException {
+      @Value("${graphdb.repository.id}") String repositoryId) throws KGSPARQLSetupException {
     super(context);
     this.init(new HTTPRepository(address, repositoryId));
   }

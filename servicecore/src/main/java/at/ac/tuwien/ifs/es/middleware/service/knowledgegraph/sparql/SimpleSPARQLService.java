@@ -1,9 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.QueryResult;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.QueryResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
@@ -33,12 +32,12 @@ public class SimpleSPARQLService implements SPARQLService {
   @Cacheable({"sparql"})
   @Override
   public <T extends QueryResult> T query(String query, boolean includeInference)
-      throws KnowledgeGraphSPARQLException {
+      throws KGSPARQLException {
     return sparqlDAO.query(query, includeInference);
   }
 
   @Override
-  public void update(String query) throws KnowledgeGraphSPARQLException {
+  public void update(String query) throws KGSPARQLException {
     sparqlDAO.update(query);
   }
 }

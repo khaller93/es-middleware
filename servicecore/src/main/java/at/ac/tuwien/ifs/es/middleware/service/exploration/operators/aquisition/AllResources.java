@@ -4,11 +4,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceCollection;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceList;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.ClassResourceService;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.AllResourcesPayload;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.FacetedSearchQueryBuilder;
@@ -88,9 +88,9 @@ public class AllResources implements AcquisitionSource<ResourceCollection, AllRe
         "The payload for the \"esm.source.all\" operator must not be null.");
     if ((payload.getIncludedClasses() == null || payload.getIncludedClasses().isEmpty()) &&
         (payload.getExcludedClasses() == null || payload.getExcludedClasses().isEmpty()) &&
-        (payload.getFacets() == null || payload.getFacets().isEmpty())) {
+        (payload.getFacetFilters() == null || payload.getFacetFilters().isEmpty())) {
       return new ResourceList(allResourcesService.getResourceList());
-    } else if (payload.getFacets() == null || payload.getFacets().isEmpty()) {
+    } else if (payload.getFacetFilters() == null || payload.getFacetFilters().isEmpty()) {
       Set<Resource> resourceSet;
       if (payload.getIncludedClasses() != null && !payload.getIncludedClasses().isEmpty()) {
         resourceSet = Collections.emptySet();
@@ -127,8 +127,8 @@ public class AllResources implements AcquisitionSource<ResourceCollection, AllRe
           payload.getExcludedClasses() != null ? payload.getExcludedClasses()
               : Collections.emptyList());
       /* property facets */
-      if (payload.getFacets() != null) {
-        payload.getFacets().forEach(queryBuilder::addPropertyFacet);
+      if (payload.getFacetFilters() != null) {
+        payload.getFacetFilters().forEach(queryBuilder::addPropertyFacet);
       }
       valuesMap.put("body", queryBuilder.getQueryBody());
       valuesMap.put("limit", String.valueOf(LOAD_LIMIT));

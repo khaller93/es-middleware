@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
 
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOStatus;
 
 /**
  * Instances of this interface represent a DAO to the knowledge graph. It is expected from a DAO

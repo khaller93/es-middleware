@@ -5,18 +5,18 @@ import static com.google.common.base.Preconditions.checkArgument;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOStatusChangeListener;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.SparqlDAOStateChangeEvent;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.MalformedSPARQLQueryException;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.SPARQLExecutionException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLExecutionException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGMalformedSPARQLQueryException;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.util.RDF4JAskQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.util.RDF4JGraphQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.util.RDF4JSelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.QueryResult;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOReadyStatus;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOUpdatingStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.QueryResult;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOFailedStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOInitStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOReadyStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOUpdatingStatus;
 import java.time.Instant;
 import java.util.Date;
 import java.util.LinkedList;
@@ -131,7 +131,7 @@ public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
   @Override
   @SuppressWarnings("unchecked")
   public <T extends QueryResult> T query(String queryString, boolean includeInferred)
-      throws KnowledgeGraphSPARQLException {
+      throws KGSPARQLException {
     logger
         .trace("Query {} was requested to be executed. Inference={}",
             queryString.replaceAll("\\n", "\\\\n"), includeInferred);
@@ -149,20 +149,20 @@ public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
         return (T) new RDF4JGraphQueryResult(graphQueryResult.getNamespaces(),
             QueryResults.asList(graphQueryResult));
       } else {
-        throw new MalformedSPARQLQueryException(String
+        throw new KGMalformedSPARQLQueryException(String
             .format(
                 "Given query must be a SELECT, ASK or CONSTRUCT query, but was '%s'. For update queries use the corresponding endpoint.",
                 query));
       }
     } catch (MalformedQueryException e) {
-      throw new MalformedSPARQLQueryException(e);
+      throw new KGMalformedSPARQLQueryException(e);
     } catch (RDF4JException e) {
-      throw new SPARQLExecutionException(e);
+      throw new KGSPARQLExecutionException(e);
     }
   }
 
   @Override
-  public void update(String query) throws KnowledgeGraphSPARQLException {
+  public void update(String query) throws KGSPARQLException {
     checkArgument(query != null && !query.isEmpty(),
         "The given query string must be specified and not be null or empty.");
     logger.trace("Update {} was requested to be executed", query.replaceAll("\\n", "\\\\n"));
@@ -170,7 +170,7 @@ public abstract class RDF4JSparqlDAO implements KGSparqlDAO, AutoCloseable {
       con.prepareUpdate(query).execute();
       notificationScheduler.updated();
     } catch (RDF4JException e) {
-      throw new SPARQLExecutionException(e);
+      throw new KGSPARQLExecutionException(e);
     }
   }
 

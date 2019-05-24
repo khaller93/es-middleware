@@ -2,8 +2,8 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acq
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.Facet;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.FacetFilter;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.ExplorationFlowStepPayload;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -30,14 +30,14 @@ public final class FullTextSearchPayload implements ExplorationFlowStepPayload {
   private Integer offset;
   private Integer limit;
 
-  private List<Facet> facets;
+  private List<FacetFilter> facetFilters;
 
   @JsonCreator
   public FullTextSearchPayload(@JsonProperty(value = "keyword", required = true) String keyword,
       @JsonProperty(value = "classes") List<Resource> classes,
       @JsonProperty(value = "offset") Integer offset,
       @JsonProperty(value = "limit") Integer limit,
-      @JsonProperty(value = "facets") List<Facet> facets) {
+      @JsonProperty(value = "facetFilters") List<FacetFilter> facetFilters) {
     checkArgument(keyword != null && !keyword.isEmpty(), "The given keyword must not be empty.");
     checkArgument(offset == null || offset >= 0,
         "If an offset is given, it must be a positive number, but was %d.", offset);
@@ -47,7 +47,7 @@ public final class FullTextSearchPayload implements ExplorationFlowStepPayload {
     this.classes = classes != null ? classes : Collections.emptyList();
     this.offset = offset;
     this.limit = limit;
-    this.facets = facets;
+    this.facetFilters = facetFilters;
   }
 
   public FullTextSearchPayload(String keyword, List<Resource> classes) {
@@ -74,8 +74,8 @@ public final class FullTextSearchPayload implements ExplorationFlowStepPayload {
     return limit;
   }
 
-  public List<Facet> getFacets() {
-    return facets;
+  public List<FacetFilter> getFacetFilters() {
+    return facetFilters;
   }
 
   @Override
@@ -85,7 +85,7 @@ public final class FullTextSearchPayload implements ExplorationFlowStepPayload {
         ", classes=" + classes +
         ", offset=" + offset +
         ", limit=" + limit +
-        ", facets=" + facets +
+        ", facetFilters=" + facetFilters +
         '}';
   }
 }

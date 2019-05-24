@@ -1,10 +1,10 @@
 package at.ac.tuwien.ifs.es.middleware.controller;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.MalformedSPARQLQueryException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGMalformedSPARQLQueryException;
 import at.ac.tuwien.ifs.es.middleware.dto.exception.SPARQLExecutionException;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.SPARQLResultFormatException;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.SPARQLResultSerializationException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLResultFormatException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLResultSerializationException;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -72,7 +72,7 @@ public class SPARQLController {
    * Helper method for SPARQL query requests.
    */
   private ResponseEntity<byte[]> issueSPARQLQuery(String query, List<String> mimeTypes,
-      boolean inference) throws KnowledgeGraphSPARQLException, SPARQLResultFormatException {
+      boolean inference) throws KGSPARQLException, KGSPARQLResultFormatException {
     byte[] response = sparqlService.query(query, inference).transform(mimeTypes);
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.valueOf(mimeTypes.get(0)));
@@ -92,7 +92,7 @@ public class SPARQLController {
       @ApiParam(value = "Accepted MIME type for query response.", required = true) @RequestHeader(value = "Accept") String mimeTypes,
       @ApiParam("Whether inferred statements should be considered/returned, or not.")
       @RequestParam(name = "infer", defaultValue = "false", required = false) boolean inference)
-      throws KnowledgeGraphSPARQLException, SPARQLResultFormatException {
+      throws KGSPARQLException, KGSPARQLResultFormatException {
     logger.info("SPARQL Query request with query '{}'. Param: {Accept: {}, Inference: {}}", query,
         mimeTypes, inference);
     return issueSPARQLQuery(query, prepareMimeTypes(MediaType.parseMediaTypes(mimeTypes)),
@@ -112,7 +112,7 @@ public class SPARQLController {
       @ApiParam(value = "Accepted MIME type for query response.") @RequestHeader(value = "Accept") String mimeTypes,
       @ApiParam("Whether inferred statements should be considered/returned, or not.")
       @RequestParam(name = "infer", defaultValue = "false", required = false) boolean inference)
-      throws KnowledgeGraphSPARQLException, SPARQLResultFormatException {
+      throws KGSPARQLException, KGSPARQLResultFormatException {
     logger.info("SPARQL Query request with query '{}'. Param: {Accept: {}, Inference: {}}", query,
         mimeTypes, inference);
     return issueSPARQLQuery(query, prepareMimeTypes(MediaType.parseMediaTypes(mimeTypes)),
@@ -128,16 +128,16 @@ public class SPARQLController {
   })
   public void update(
       @ApiParam(value = "Update query that shall be executed.", required = true) @RequestParam(name = "update") String query)
-      throws KnowledgeGraphSPARQLException {
+      throws KGSPARQLException {
     logger.info("SPARQL Update request with query '{}'.", query);
     sparqlService.update(query);
   }
 
   /* Exception handler for SPARQL controller */
 
-  @ExceptionHandler(SPARQLResultSerializationException.class)
+  @ExceptionHandler(KGSPARQLResultSerializationException.class)
   public ResponseEntity<String> handleSerializationException(
-      SPARQLResultSerializationException ex, HttpServletRequest request) {
+      KGSPARQLResultSerializationException ex, HttpServletRequest request) {
     logger.error("Request '{}' accepting '{}' caused a serialization exception: {}.",
         request.getRequestURI(), request.getHeader("Accept"), ex.getMessage());
     return new ResponseEntity<>(
@@ -145,9 +145,9 @@ public class SPARQLController {
         HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
-  @ExceptionHandler(SPARQLResultFormatException.class)
+  @ExceptionHandler(KGSPARQLResultFormatException.class)
   public ResponseEntity<String> handleResultFormatException(
-      SPARQLResultFormatException ex, HttpServletRequest request) {
+      KGSPARQLResultFormatException ex, HttpServletRequest request) {
     logger.error("Request '{}' has specified unsupported mime types. {}", request.getRequestURI(),
         ex.getMessage());
     return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_ACCEPTABLE);
@@ -161,9 +161,9 @@ public class SPARQLController {
     return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
-  @ExceptionHandler(MalformedSPARQLQueryException.class)
+  @ExceptionHandler(KGMalformedSPARQLQueryException.class)
   public ResponseEntity<String> handleMalformedSPARQLQueryException(
-      MalformedSPARQLQueryException ex, HttpServletRequest request) {
+      KGMalformedSPARQLQueryException ex, HttpServletRequest request) {
     logger.error("Request '{}' has handed over malformed query. {}", request.getRequestURI(),
         ex.getMessage());
     return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);

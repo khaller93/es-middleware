@@ -1,10 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j.util;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exception.SPARQLResultFormatException;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.RowSortedTable;
-import com.google.common.collect.Table;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLResultFormatException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.SelectQueryResult;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
@@ -14,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.rdf.rdf4j.RDF4J;
-import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.Binding;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryResults;
@@ -74,14 +70,14 @@ public class RDF4JSelectQueryResult extends RDF4JQueryResult<QueryResultFormat> 
   }
 
   @Override
-  public byte[] performTransformation(QueryResultFormat format) throws SPARQLResultFormatException {
+  public byte[] performTransformation(QueryResultFormat format) throws KGSPARQLResultFormatException {
     try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
       QueryResults
           .report(new IteratingTupleQueryResult(bindingNames, bindingSets),
               QueryResultIO.createTupleWriter(format, out));
       return out.toByteArray();
     } catch (IOException e) {
-      throw new SPARQLResultFormatException(e);
+      throw new KGSPARQLResultFormatException(e);
     }
   }
 

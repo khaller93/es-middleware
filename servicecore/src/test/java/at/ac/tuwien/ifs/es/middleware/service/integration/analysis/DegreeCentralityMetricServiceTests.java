@@ -10,7 +10,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryG
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.degree.DegreeCentralityMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.degree.DegreeCentralityMetricWithGremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesWithSPARQLService;

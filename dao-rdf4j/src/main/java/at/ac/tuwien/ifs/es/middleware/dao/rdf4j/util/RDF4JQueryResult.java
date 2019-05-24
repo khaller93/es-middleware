@@ -1,8 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j.util;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exception.SPARQLResultFormatException;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.SPARQLResultSerializationException;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.QueryResult;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLResultFormatException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLResultSerializationException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.QueryResult;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -41,10 +41,10 @@ public abstract class RDF4JQueryResult<T extends FileFormat> implements QueryRes
   /**
    * A hook for specific implementations.
    */
-  public abstract byte[] performTransformation(T format) throws SPARQLResultFormatException;
+  public abstract byte[] performTransformation(T format) throws KGSPARQLResultFormatException;
 
   @Override
-  public byte[] transform(String mimeType) throws SPARQLResultFormatException {
+  public byte[] transform(String mimeType) throws KGSPARQLResultFormatException {
     Optional<T> formatOptional = FileFormat.matchMIMEType(mimeType, supportedFormats);
     return performTransformation(
         formatOptional.orElseThrow(getMimeTypeException(Collections.singletonList(mimeType))));
@@ -52,7 +52,7 @@ public abstract class RDF4JQueryResult<T extends FileFormat> implements QueryRes
 
   @Override
   public byte[] transform(List<String> mimeTypes)
-      throws SPARQLResultFormatException, SPARQLResultSerializationException {
+      throws KGSPARQLResultFormatException, KGSPARQLResultSerializationException {
     for (String mimeType : mimeTypes) {
       Optional<T> formatOptional = FileFormat.matchMIMEType(mimeType, supportedFormats);
       if (formatOptional.isPresent()) {
@@ -63,8 +63,8 @@ public abstract class RDF4JQueryResult<T extends FileFormat> implements QueryRes
   }
 
   @Override
-  public Supplier<SPARQLResultFormatException> getMimeTypeException(List<String> mimeTypes) {
-    return () -> new SPARQLResultFormatException(
+  public Supplier<KGSPARQLResultFormatException> getMimeTypeException(List<String> mimeTypes) {
+    return () -> new KGSPARQLResultFormatException(
         String.format("The given format '%s' is not part of the supported ones %s.", mimeTypes,
             readableFormatsString));
   }

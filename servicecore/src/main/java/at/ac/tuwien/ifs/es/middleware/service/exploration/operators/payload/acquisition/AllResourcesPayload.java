@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.Facet;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.FacetFilter;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.ExplorationFlowStepPayload;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -25,16 +25,16 @@ public final class AllResourcesPayload implements ExplorationFlowStepPayload {
 
   private List<Resource> include;
   private List<Resource> exclude;
-  private List<Facet> facets;
+  private List<FacetFilter> facetFilters;
 
   @JsonCreator
   public AllResourcesPayload(@JsonProperty("include") List<Resource> include,
       @JsonProperty("exclude") List<Resource> exclude,
       @JsonProperty("namespaces") List<Resource> namespaces,
-      @JsonProperty("facets") List<Facet> facets) {
+      @JsonProperty("facetFilters") List<FacetFilter> facetFilters) {
     this.include = include != null ? include : Collections.emptyList();
     this.exclude = exclude != null ? exclude : Collections.emptyList();
-    this.facets = facets != null ? facets : Collections.emptyList();
+    this.facetFilters = facetFilters != null ? facetFilters : Collections.emptyList();
   }
 
   public AllResourcesPayload() {
@@ -49,8 +49,8 @@ public final class AllResourcesPayload implements ExplorationFlowStepPayload {
     return exclude;
   }
 
-  public List<Facet> getFacets() {
-    return facets;
+  public List<FacetFilter> getFacetFilters() {
+    return facetFilters;
   }
 
   @Override
@@ -58,7 +58,7 @@ public final class AllResourcesPayload implements ExplorationFlowStepPayload {
     return "AllResourcesPayload{" +
         "include=" + include +
         ", exclude=" + exclude +
-        ", facets=" + facets +
+        ", facetFilters=" + facetFilters +
         '}';
   }
 }

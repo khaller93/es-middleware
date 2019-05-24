@@ -8,15 +8,15 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.GremlinDAOStateChangeEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.SparqlDAOStateChangeEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOReadyStatus;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus.CODE;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOUpdatingStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.util.result.RDFTermJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOFailedStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOInitStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOReadyStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOStatus.CODE;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOUpdatingStatus;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -335,7 +335,7 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
           } finally {
             AbstractClonedGremlinDAO.this.unlock();
           }
-        } catch (KnowledgeGraphSPARQLException e) {
+        } catch (KGSPARQLException e) {
           logger.error("An exception occurred while loading the graph. {}", e.getMessage());
           setStatus(new KGDAOFailedStatus("Updating the Gremlin graph failed.", e), eventId);
           successful = false;

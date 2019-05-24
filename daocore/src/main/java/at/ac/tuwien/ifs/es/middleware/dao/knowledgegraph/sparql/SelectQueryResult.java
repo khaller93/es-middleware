@@ -1,7 +1,6 @@
-package at.ac.tuwien.ifs.es.middleware.dto.sparql;
+package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql;
 
 import com.google.common.collect.Table;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.rdf.api.RDFTerm;

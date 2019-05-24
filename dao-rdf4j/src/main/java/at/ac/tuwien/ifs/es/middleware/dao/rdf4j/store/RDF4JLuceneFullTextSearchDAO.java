@@ -7,14 +7,14 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.FTSDAOStateChangeEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.LuceneIndexedRDF4JSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSetupException;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.Facet;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOReadyStatus;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLSetupException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.FacetFilter;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOFailedStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOInitStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOReadyStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOStatus;
 import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.FacetedSearchQueryBuilder;
 import java.time.Instant;
 import java.util.HashMap;
@@ -81,7 +81,7 @@ public class RDF4JLuceneFullTextSearchDAO implements KGFullTextSearchDAO {
       String message = String.format(
           "The given SPARQL DAO must be indexed with Lucene and implement the '%s' interface.",
           RDF4JLuceneFullTextSearchDAO.class.getName());
-      RuntimeException exception = new KnowledgeGraphSetupException(message);
+      RuntimeException exception = new KGSPARQLSetupException(message);
       setStatus(new KGDAOFailedStatus(message, exception));
       throw exception;
     } else {
@@ -114,7 +114,7 @@ public class RDF4JLuceneFullTextSearchDAO implements KGFullTextSearchDAO {
 
   @Override
   public List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
-      Integer offset, Integer limit, List<Facet> facets) throws KnowledgeGraphDAOException {
+      Integer offset, Integer limit, List<FacetFilter> facets) throws KGDAOException {
     logger
         .debug("FTS call for {} was triggered with parameters: offset={}, limit={}, and classes={}",
             keyword, offset, limit, classes);

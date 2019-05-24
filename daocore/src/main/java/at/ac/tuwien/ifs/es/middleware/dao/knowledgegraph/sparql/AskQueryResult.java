@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.dto.sparql;
+package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql;
 
 /**
  * This interface represent a {@link QueryResult} that maintains the response of a ASK SPARQL query.

@@ -2,9 +2,9 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceCollection;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceList;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.util.result.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.FullTextSearchPayload;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.fts.FullTextSearchService;
 import com.fasterxml.jackson.core.JsonPointer;
@@ -73,7 +73,7 @@ public class FullTextSearch implements
         .searchFullText(payload.getKeyword(),
             payload.getClasses() != null ? payload.getClasses().stream().map(Resource::value)
                 .collect(Collectors.toList()) : Collections.emptyList(),
-            payload.getOffset(), payload.getLimit(), payload.getFacets());
+            payload.getOffset(), payload.getLimit(), payload.getFacetFilters());
     LinkedList<BlankNodeOrIRI> resourceList = new LinkedList<>();
     LinkedHashMap<String, Double> scoreMap = new LinkedHashMap<>();
     for (Map<String, RDFTerm> row : fullTextResultTable) {

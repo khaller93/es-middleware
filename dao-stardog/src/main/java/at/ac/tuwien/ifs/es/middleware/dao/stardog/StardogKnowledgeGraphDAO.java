@@ -3,13 +3,13 @@ package at.ac.tuwien.ifs.es.middleware.dao.stardog;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.Facet;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOFailedStatus;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOInitStatus;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOReadyStatus;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOFailedStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOInitStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOReadyStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOStatus;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.FacetFilter;
 import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.FacetedSearchQueryBuilder;
 import java.util.HashMap;
 import java.util.List;
@@ -104,7 +104,7 @@ public class StardogKnowledgeGraphDAO extends RDF4JSparqlDAO implements
    */
   @Override
   public List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
-      Integer offset, Integer limit, List<Facet> facets) throws KnowledgeGraphDAOException {
+      Integer offset, Integer limit, List<FacetFilter> facets) throws KGDAOException {
     logger.debug("Searching for '{}' of classes {} with limit={}, offset={}.", keyword, classes,
         offset, limit);
     Map<String, String> queryValuesMap = new HashMap<>();

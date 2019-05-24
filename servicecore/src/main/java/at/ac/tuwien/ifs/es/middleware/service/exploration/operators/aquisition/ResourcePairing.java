@@ -4,8 +4,8 @@ import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IterableResourcesContext;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceCollection;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.pairs.ResourcePairList;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.pairs.ResourcePair;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.exploitation.ExploitationOperator;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.PairingPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;

@@ -2,14 +2,14 @@ package at.ac.tuwien.ifs.es.middleware.sparqlbuilder;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.Facet;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.OrFacet;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.FacetFilter;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.OneOfValuesFacetFilter;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.RDFTerm;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
-import org.apache.commons.rdf.api.RDFTerm;
 import org.eclipse.rdf4j.sparqlbuilder.core.SparqlBuilder;
 import org.eclipse.rdf4j.sparqlbuilder.core.Variable;
 import org.eclipse.rdf4j.sparqlbuilder.graphpattern.GraphPattern;
@@ -116,18 +116,18 @@ public final class FacetedSearchQueryBuilder {
   }
 
   /**
-   * Adds a {@link Facet} to the query.
+   * Adds a {@link FacetFilter} to the query.
    *
-   * @param facet {@link Facet} that shall be added to the query.
+   * @param facet {@link FacetFilter} that shall be added to the query.
    */
-  public void addPropertyFacet(Facet facet) {
-    if (facet instanceof OrFacet) {
-      GraphPattern orPattern = or(((OrFacet) facet).getProperty(),
-          new LinkedList<>(((OrFacet) facet).getValues()));
+  public void addPropertyFacet(FacetFilter facetFilter) {
+    if (facetFilter instanceof OneOfValuesFacetFilter) {
+      GraphPattern orPattern = or(((OneOfValuesFacetFilter) facetFilter).getProperty(),
+          new LinkedList<RDFTerm>(((OneOfValuesFacetFilter) facetFilter).getValues()));
       graphPattern = graphPattern != null ? graphPattern.and(orPattern) : orPattern;
     } else {
       throw new IllegalArgumentException(
-          String.format("The given facet type '%s' is unknown.", facet));
+          String.format("The given facet type '%s' is unknown.", facetFilter));
     }
   }
 

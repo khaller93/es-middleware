@@ -1,8 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.SparqlDAOStateChangeEvent;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.QueryResult;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.QueryResult;
 
 /**
  * An instance of this interface represents a SPARQL interface to a certain knowledge graph. This
@@ -36,19 +36,19 @@ public interface KGSparqlDAO extends KGDAO {
    * @param includeInferred {@code true}, if entailed statements should be considered, otherwise
    * {@code false}.
    * @return {@link QueryResult} of the SPARQL query.
-   * @throws KnowledgeGraphSPARQLException if the given SPARQL query could not be executed
+   * @throws KGSPARQLException if the given SPARQL query could not be executed
    * successfully.
    */
   <T extends QueryResult> T query(String query, boolean includeInferred)
-      throws KnowledgeGraphSPARQLException;
+      throws KGSPARQLException;
 
   /**
    * Updates the knowledge graph using given SPARQL {@code query}.
    *
    * @param query which shall be executed (INSERT, DELETE).
-   * @throws KnowledgeGraphSPARQLException if the given SPARQL query could not be executed
+   * @throws KGSPARQLException if the given SPARQL query could not be executed
    * successfully.
    */
-  void update(String query) throws KnowledgeGraphSPARQLException;
+  void update(String query) throws KGSPARQLException;
 
 }

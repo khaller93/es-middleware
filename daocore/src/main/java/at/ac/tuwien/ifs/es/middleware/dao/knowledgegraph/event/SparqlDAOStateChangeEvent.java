@@ -2,7 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOStatus;
 import java.time.Instant;
 
 public class SparqlDAOStateChangeEvent extends DAOStateChangeEvent {

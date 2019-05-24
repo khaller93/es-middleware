@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.dto.sparql;
+package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql;
 
 
 import org.apache.commons.rdf.api.Graph;

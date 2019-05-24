@@ -7,7 +7,6 @@ import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.Expl
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonPointer;
-import java.io.Serializable;
 import java.util.List;
 
 /**

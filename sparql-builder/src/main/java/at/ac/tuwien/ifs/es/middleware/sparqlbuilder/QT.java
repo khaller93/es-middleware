@@ -2,13 +2,14 @@ package at.ac.tuwien.ifs.es.middleware.sparqlbuilder;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.RDFLiteral;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.RDFTerm;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import java.util.Optional;
 import org.apache.commons.rdf.api.BlankNode;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.Literal;
-import org.apache.commons.rdf.api.RDFTerm;
 import org.eclipse.rdf4j.sparqlbuilder.rdf.Rdf;
 import org.eclipse.rdf4j.sparqlbuilder.rdf.RdfLiteral;
 import org.eclipse.rdf4j.sparqlbuilder.rdf.RdfPredicate;
@@ -63,10 +64,10 @@ public final class QT {
   }
 
   public static RdfValue transformTerm(RDFTerm term) {
-    if (term instanceof BlankNodeOrIRI) {
-      return transform(new Resource((BlankNodeOrIRI) term));
-    } else if (term instanceof Literal) {
-      return transform((Literal) term);
+    if (term instanceof Resource) {
+      return transform((Resource) term);
+    } else if (term instanceof RDFLiteral) {
+      return transform(((RDFLiteral) term).value());
     } else {
       throw new IllegalArgumentException("The given RDF term is unknown.");
     }

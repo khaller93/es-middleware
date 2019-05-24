@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
 
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOStatus;
 
 /**
  *

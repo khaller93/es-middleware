@@ -6,7 +6,7 @@ import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.ClassEntropyService;
 import at.ac.tuwien.ifs.es.middleware.testutil.WineOntologyDatasetResource;
 import org.junit.Rule;

@@ -17,12 +17,12 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphSPARQLException;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.MalformedSPARQLQueryException;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.AskQueryResult;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.GraphQueryResult;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.QueryResult;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGMalformedSPARQLQueryException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.AskQueryResult;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.GraphQueryResult;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.QueryResult;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
@@ -36,7 +36,6 @@ import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.rdf.api.Triple;
 import org.apache.commons.rdf.simple.SimpleRDF;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -104,7 +103,7 @@ public class SimpleSPARQLServiceTest {
             "http://dbpedia.org/resource/Concertina"));
   }
 
-  @Test(expected = MalformedSPARQLQueryException.class)
+  @Test(expected = KGMalformedSPARQLQueryException.class)
   public void test_executeUpdateQueryOnQueryMethod_throwMalformedSPARQLQueryException()
       throws Exception {
     sparqlService.query(
@@ -190,7 +189,7 @@ public class SimpleSPARQLServiceTest {
             valueFactory.createLiteral("A test instance.")));
   }
 
-  @Test(expected = KnowledgeGraphSPARQLException.class)
+  @Test(expected = KGSPARQLException.class)
   public void test_updateInsertDataWithInvalidIRI_mustRespondWithFailure() throws Exception {
     sparqlService.update("INSERT DATA { <:a/\\path> a <http://purl.org/ontology/mo/Instrument>. }");
   }

@@ -2,9 +2,9 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceCollection;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceList;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.util.result.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.MultipleResourcesPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;

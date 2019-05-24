@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.service.systemstatus;
 
-import at.ac.tuwien.ifs.es.middleware.dto.status.KGDAOStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOStatus;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;

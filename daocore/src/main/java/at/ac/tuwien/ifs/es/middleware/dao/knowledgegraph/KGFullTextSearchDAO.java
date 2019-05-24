@@ -1,8 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.SparqlDAOStateChangeEvent;
-import at.ac.tuwien.ifs.es.middleware.dto.exception.KnowledgeGraphDAOException;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.Facet;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOException;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.FacetFilter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +40,7 @@ public interface KGFullTextSearchDAO extends KGDAO {
    *
    * @param keyword which shall be used to explore resources.
    * @return a ranked list of distinct resource IRIs and optionally corresponding scores.
-   * @throws KnowledgeGraphDAOException if fts could not be applied successfully.
+   * @throws KGDAOException if fts could not be applied successfully.
    */
   default List<Map<String, RDFTerm>> searchFullText(String keyword) {
     return searchFullText(keyword, Collections.emptyList());
@@ -58,7 +58,7 @@ public interface KGFullTextSearchDAO extends KGDAO {
    * @param classes IRI of classes of which the returned resources must be a member (at least of
    * one), must not be {@code null}, but can be empty.
    * @return a ranked list of distinct resource IRIs and optionally corresponding scores.
-   * @throws KnowledgeGraphDAOException if fts could not be applied successfully.
+   * @throws KGDAOException if fts could not be applied successfully.
    */
   default List<Map<String, RDFTerm>> searchFullText(String keyword,
       List<BlankNodeOrIRI> classes) {
@@ -77,10 +77,10 @@ public interface KGFullTextSearchDAO extends KGDAO {
    * @param classes IRI of classes of which the returned resources must be a member (at least of
    * one), must not be {@code null}, but can be empty.
    * @return a ranked list of distinct resource IRIs and optionally corresponding scores.
-   * @throws KnowledgeGraphDAOException if fts could not be applied successfully.
+   * @throws KGDAOException if fts could not be applied successfully.
    */
   List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
-      Integer offset, Integer limit) throws KnowledgeGraphDAOException;
+      Integer offset, Integer limit) throws KGDAOException;
 
   /**
    * Applies a full text search on the managed knowledge graph using the given {@code keyword} and
@@ -93,11 +93,11 @@ public interface KGFullTextSearchDAO extends KGDAO {
    * @param keyword which shall be used to explore resources.
    * @param classes IRI of classes of which the returned resources must be a member (at least of
    * one), must not be {@code null}, but can be empty.
-   * @param facets the {@link Facet}s that shall be applied.
+   * @param facets the {@link FacetFilter}s that shall be applied.
    * @return a ranked list of distinct resource IRIs and optionally corresponding scores.
-   * @throws KnowledgeGraphDAOException if fts could not be applied successfully.
+   * @throws KGDAOException if fts could not be applied successfully.
    */
   List<Map<String, RDFTerm>> searchFullText(String keyword, List<BlankNodeOrIRI> classes,
-      Integer offset, Integer limit, List<Facet> facets) throws KnowledgeGraphDAOException;
+      Integer offset, Integer limit, List<FacetFilter> facets) throws KGDAOException;
 
 }

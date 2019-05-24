@@ -2,8 +2,8 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.resnik;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.pairs.ResourcePair;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.ClassEntropyService;

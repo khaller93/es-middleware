@@ -2,9 +2,9 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.Resource;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.util.RDFTermJsonUtil;
-import at.ac.tuwien.ifs.es.middleware.dto.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.util.result.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import java.util.HashMap;
