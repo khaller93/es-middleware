@@ -1,6 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.controller;
 
+import at.ac.tuwien.ifs.es.middleware.controller.meta.EFExceptionDTO;
 import at.ac.tuwien.ifs.es.middleware.controller.meta.TimeMetadata;
+import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowServiceExecutionException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.request.DynamicExplorationFlowRequest;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
@@ -19,9 +21,14 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import javax.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,6 +49,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Api(value = "Exploratory Search Endpoint",
     description = "Operations to explore the managed knowledge graph.")
 public class ExploratorySearchController {
+
+  private static final Logger logger = LoggerFactory.getLogger(ExploratorySearchController.class);
 
   private CommonExplorationFlowFactory commonExplorationFlowFactory;
   private DynamicExplorationFlowFactory dynamicExplorationFlowFactory;
@@ -109,6 +118,31 @@ public class ExploratorySearchController {
         .getExplorationFlowOperatorInfo(uid);
     return operatorInfoOpt.map(ResponseEntity::ok)
         .orElseGet(() -> ResponseEntity.notFound().build());
+  }
+
+  /*
+   * --------- Exception Handling ----------
+   */
+
+  @ExceptionHandler(ExplorationFlowServiceExecutionException.class)
+  public ResponseEntity<EFExceptionDTO> handleExplorationFlowServiceExecutionException(
+      ExplorationFlowServiceExecutionException ex, HttpServletRequest request) {
+    logger.error("Request '{}' accepting '{}' caused an internal exploration flow exception: {}.",
+        request.getRequestURI(), request.getHeader("Accept"), ex.getMessage());
+    return new ResponseEntity<>(
+        new EFExceptionDTO("Could not service given exploration flow. " + ex.getMessage()),
+        HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  @ExceptionHandler(ExplorationFlowSpecificationException.class)
+  public ResponseEntity<EFExceptionDTO> handleExplorationFlowSpecificationException(
+      ExplorationFlowSpecificationException ex, HttpServletRequest request) {
+    logger.error(
+        "Request '{}' accepting '{}' caused an exploration flow specification exception: {}.",
+        request.getRequestURI(), request.getHeader("Accept"), ex.getMessage());
+    return new ResponseEntity<>(
+        new EFExceptionDTO("The specification of the exploration flow is invalid. " + ex.getMessage()),
+        HttpStatus.BAD_REQUEST);
   }
 
 }

@@ -1,6 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration;
 
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowServiceExecutionException;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition.AcquisitionSource;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.ExplorationFlowStepPayload;
@@ -74,9 +75,10 @@ public class ExplorationFlow {
       try {
         context = step.getValue0().apply(context, step.getValue1());
       } catch (ClassCastException c) {
-        c.printStackTrace();
         throw new ExplorationFlowSpecificationException(
             String.format("The payload for a flow step is invalid. %s", c.getMessage()));
+      } catch (Exception e){
+        throw new ExplorationFlowServiceExecutionException(e);
       }
     }
     return context;
