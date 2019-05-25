@@ -16,9 +16,14 @@
 
   <dependencies>
     <dependency>
-      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.dto</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-rdf-api</artifactId>
+      <version>${apache-commons-rdf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -29,6 +34,11 @@
       <groupId>org.eclipse.rdf4j</groupId>
       <artifactId>rdf4j-sparqlbuilder</artifactId>
       <version>${rdf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.facet</artifactId>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 

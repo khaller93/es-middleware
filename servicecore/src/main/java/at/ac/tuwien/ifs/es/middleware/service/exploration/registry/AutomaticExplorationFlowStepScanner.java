@@ -1,6 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.registry;
 
-import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.RegisterForExplorationFlow;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.ExplorationFlowStep;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Service;
 /**
  * This class implements a scanner for classes that are annotated with the {@link
  * RegisterForExplorationFlow} annotation and implemented the {@link
- * at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep} interface. All found
+ * ExplorationFlowStep} interface. All found
  * classes are registered at {@link ExplorationFlowRegistry}.
  *
  * @author Kevin Haller

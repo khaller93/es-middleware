@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j.util;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLResultFormatException;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.sparql.result.exception.KGSPARQLResultFormatException;
+import at.ac.tuwien.ifs.es.middleware.sparql.result.SelectQueryResult;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;

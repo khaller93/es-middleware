@@ -1,12 +1,13 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.status;
 
+import at.ac.tuwien.ifs.es.middleware.common.exploration.ExplorationFlowStep;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 /**
  * Instances of this service provides methods to gather information about supported {@link
- * at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep}.
+ * ExplorationFlowStep}.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -26,7 +27,7 @@ public interface OperatorStatusService {
    * Gets {@link OperatorInfo} for the operator with the given {@code uid}.
    *
    * @param uid the unique id {@code uid} of the operator for which information shall be returned.
-   * @return {@link OperatorInfo}, if a {@link at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep}
+   * @return {@link OperatorInfo}, if a {@link ExplorationFlowStep}
    * with the given uid is recognized, otherwise {@link Optional#empty()}.
    */
   Optional<OperatorInfo> getExplorationFlowOperatorInfo(String uid);

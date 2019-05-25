@@ -1,11 +1,11 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceCollection;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceList;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.resources.ResourceCollection;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.resources.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.VoidPayload;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceService;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.RegisterForExplorationFlow;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;

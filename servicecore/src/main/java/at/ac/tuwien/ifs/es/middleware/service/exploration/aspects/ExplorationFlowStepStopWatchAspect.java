@@ -2,8 +2,8 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.aspects;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.ExplorationFlowStep;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -61,7 +61,7 @@ public class ExplorationFlowStepStopWatchAspect {
     this.stopWatchLogging = stopWatchLogging;
   }
 
-  @Pointcut(value = "execution(* at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep.apply(..)) && args(context,payload) && this(flowStep)", argNames = "context,payload,flowStep")
+  @Pointcut(value = "execution(* at.ac.tuwien.ifs.es.middleware.common.exploration.ExplorationFlowStep.apply(..)) && args(context,payload) && this(flowStep)", argNames = "context,payload,flowStep")
   public void apply(ExplorationContext context, Object payload, ExplorationFlowStep flowStep) {
   }
 

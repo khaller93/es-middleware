@@ -2,7 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.fts;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOException;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.FacetFilter;
+import at.ac.tuwien.ifs.es.middleware.facet.FacetFilter;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;

@@ -2,11 +2,10 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.agg
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.ExplorationFlowStepPayload;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.ExplorationFlowStepPayload;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonPointer;
-import java.io.Serializable;
 
 /**
  * This class is a POJO for the parameters expected by an oder by operator. The order strategy is

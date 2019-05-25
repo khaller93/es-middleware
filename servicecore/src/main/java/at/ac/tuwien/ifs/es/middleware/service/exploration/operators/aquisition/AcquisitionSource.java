@@ -1,9 +1,9 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlow;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.ExplorationFlowStepPayload;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.ExplorationFlowStep;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.ExplorationFlowStepPayload;
 
 /**
  * Instances get this interface represent the initial resource exploration, which will potentially

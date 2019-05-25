@@ -9,9 +9,9 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.FTSDAOStateChange
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.SparqlDAOStateChangeEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOException;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.FacetFilter;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.util.result.RDFTermJsonUtil;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.result.RDFTermJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.facet.FacetFilter;
+import at.ac.tuwien.ifs.es.middleware.sparql.result.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOFailedStatus;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOInitStatus;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOReadyStatus;

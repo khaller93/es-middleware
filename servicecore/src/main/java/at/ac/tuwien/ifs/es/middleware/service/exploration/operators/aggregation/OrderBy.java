@@ -1,11 +1,11 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IdentifiableResult;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResultCollectionContext;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.IdentifiableResult;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.ResultCollectionContext;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.aggregation.OrderByPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.aggregation.OrderByPayload.ORDER_STRATEGY;
-import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowServiceException;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
+import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowServiceExecutionException;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.RegisterForExplorationFlow;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -64,7 +64,7 @@ public class OrderBy implements AggregationOperator<ResultCollectionContext, Res
           valuesMap.put(id, valueNode.asDouble());
         }
       } else {
-        throw new ExplorationFlowServiceException(
+        throw new ExplorationFlowServiceExecutionException(
             String.format("There is no value associated with '%s'.", payload.getPath()));
       }
     }

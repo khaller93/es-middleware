@@ -11,7 +11,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGMalf
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.util.RDF4JAskQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.util.RDF4JGraphQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.util.RDF4JSelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.QueryResult;
+import at.ac.tuwien.ifs.es.middleware.sparql.result.QueryResult;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOFailedStatus;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOInitStatus;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOReadyStatus;

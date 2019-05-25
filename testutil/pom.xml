@@ -23,6 +23,7 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
     </dependency>
+    <!-- ESS -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.daocore</artifactId>
@@ -30,7 +31,7 @@
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.dto</artifactId>
+      <artifactId>middleware.service-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <!-- RDF framework -->

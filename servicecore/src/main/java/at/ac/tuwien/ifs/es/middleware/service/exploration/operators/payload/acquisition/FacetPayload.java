@@ -1,9 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition;
 
-import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.ExplorationFlowStepPayload;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.ExplorationFlowStepPayload;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 import org.apache.commons.rdf.api.RDFTerm;
 
 public final class FacetPayload implements ExplorationFlowStepPayload {

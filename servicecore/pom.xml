@@ -21,7 +21,12 @@
     <!-- ESS Modules -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.dto</artifactId>
+      <artifactId>middleware.service-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.service-analysis</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -57,11 +62,6 @@
       <artifactId>middleware.dao-rdf4j</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mapdb</groupId>
-      <artifactId>mapdb</artifactId>
-      <version>3.0.7</version>
     </dependency>
   </dependencies>
 

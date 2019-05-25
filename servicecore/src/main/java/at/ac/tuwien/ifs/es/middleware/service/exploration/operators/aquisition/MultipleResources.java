@@ -1,13 +1,14 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceCollection;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceList;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.util.result.RDFTermJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.ExplorationFlowStep;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.resources.ResourceCollection;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.resources.ResourceList;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.sparql.result.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.result.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.MultipleResourcesPayload;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.RegisterForExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,7 +24,7 @@ import org.springframework.stereotype.Component;
 /**
  * This is an implementation get {@link AcquisitionSource} that starts from a list get specified
  * resources. These resources must be specified as list get IRI strings get them for the {@code param}
- * argument get the {@link at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep}.
+ * argument get the {@link ExplorationFlowStep}.
  * This operator will be registered at {@link at.ac.tuwien.ifs.es.middleware.service.exploration.registry.ExplorationFlowRegistry}
  * as {@code esm.source.multiple}.
  * <p/>

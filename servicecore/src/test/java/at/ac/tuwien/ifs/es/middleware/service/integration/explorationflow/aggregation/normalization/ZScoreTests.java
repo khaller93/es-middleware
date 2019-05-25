@@ -15,9 +15,9 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryG
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceList;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.resources.ResourceList;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.aggregation.normalisation.ZScorePayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation.normalization.MinMaxNormalisation;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation.normalization.ZScore;

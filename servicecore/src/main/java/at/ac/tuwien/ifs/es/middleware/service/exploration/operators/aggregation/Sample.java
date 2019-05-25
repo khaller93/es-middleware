@@ -1,9 +1,9 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IdentifiableResult;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ResultCollectionContext;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.IdentifiableResult;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.ResultCollectionContext;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.aggregation.SamplePayload;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.RegisterForExplorationFlow;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;

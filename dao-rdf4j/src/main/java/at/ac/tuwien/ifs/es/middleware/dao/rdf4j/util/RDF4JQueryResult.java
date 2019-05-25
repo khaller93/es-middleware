@@ -1,8 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j.util;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLResultFormatException;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLResultSerializationException;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.QueryResult;
+import at.ac.tuwien.ifs.es.middleware.sparql.result.exception.KGSPARQLResultFormatException;
+import at.ac.tuwien.ifs.es.middleware.sparql.result.exception.KGSPARQLResultSerializationException;
+import at.ac.tuwien.ifs.es.middleware.sparql.result.QueryResult;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;

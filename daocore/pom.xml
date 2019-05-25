@@ -34,10 +34,20 @@
       <artifactId>tinkergraph-gremlin</artifactId>
       <version>${tinkerpop.version}</version>
     </dependency>
-    <!-- ES Middleware dependencies -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
+    </dependency>
+    <!-- ESS -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.dto</artifactId>
+      <artifactId>middleware.sparql-query-result</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.facet</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

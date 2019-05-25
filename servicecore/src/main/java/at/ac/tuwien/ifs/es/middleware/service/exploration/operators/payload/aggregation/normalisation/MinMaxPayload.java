@@ -3,7 +3,8 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.agg
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.ExplorationFlowStepPayload;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.ExplorationFlowStepPayload;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.ExplorationContext;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonPointer;
@@ -11,7 +12,7 @@ import java.util.List;
 
 /**
  * This payload is intended for specifying the arguments for a min,max normalization get certain
- * fields in the value section get the {@link at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext}.
+ * fields in the value section get the {@link ExplorationContext}.
  *
  * @author Kevin Haller
  * @version 1.0

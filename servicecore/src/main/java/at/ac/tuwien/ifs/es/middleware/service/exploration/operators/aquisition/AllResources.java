@@ -2,14 +2,14 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceCollection;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceList;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.resources.ResourceCollection;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.resources.ResourceList;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.ClassResourceService;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.AllResourcesPayload;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
+import at.ac.tuwien.ifs.es.middleware.sparql.result.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.RegisterForExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.FacetedSearchQueryBuilder;
 import java.util.Collections;
@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.text.StringSubstitutor;
@@ -120,11 +121,13 @@ public class AllResources implements AcquisitionSource<ResourceCollection, AllRe
       FacetedSearchQueryBuilder queryBuilder = FacetedSearchQueryBuilder.forSubject("s");
       /* include classes pattern */
       queryBuilder.includeInstancesOfClassResources(
-          payload.getIncludedClasses() != null ? payload.getIncludedClasses()
+          payload.getIncludedClasses() != null ? payload.getIncludedClasses().stream()
+              .map(Resource::value).collect(Collectors.toList())
               : Collections.emptyList());
       /* exclude classes pattern */
       queryBuilder.excludeInstancesOfClassResources(
-          payload.getExcludedClasses() != null ? payload.getExcludedClasses()
+          payload.getExcludedClasses() != null ? payload.getExcludedClasses().stream()
+              .map(Resource::value).collect(Collectors.toList())
               : Collections.emptyList());
       /* property facets */
       if (payload.getFacetFilters() != null) {

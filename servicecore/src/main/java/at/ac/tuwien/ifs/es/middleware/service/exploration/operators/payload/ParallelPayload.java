@@ -1,5 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload;
 
+import at.ac.tuwien.ifs.es.middleware.common.exploration.ExplorationFlowStepPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.request.ExplorationFlowStepRequest;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

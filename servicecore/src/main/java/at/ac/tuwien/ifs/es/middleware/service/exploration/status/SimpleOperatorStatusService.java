@@ -2,7 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.status;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.ExplorationFlowStep;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation.AggregationOperator;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition.AcquisitionSource;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.exploitation.ExploitationOperator;

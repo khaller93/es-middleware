@@ -19,10 +19,12 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLucene
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLException;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGMalformedSPARQLQueryException;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.AskQueryResult;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.GraphQueryResult;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.QueryResult;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.exception.SPARQLServiceExecutionException;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.exception.SPARQLServiceIllegalArgumentException;
+import at.ac.tuwien.ifs.es.middleware.sparql.result.AskQueryResult;
+import at.ac.tuwien.ifs.es.middleware.sparql.result.GraphQueryResult;
+import at.ac.tuwien.ifs.es.middleware.sparql.result.QueryResult;
+import at.ac.tuwien.ifs.es.middleware.sparql.result.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
@@ -103,7 +105,7 @@ public class SimpleSPARQLServiceTest {
             "http://dbpedia.org/resource/Concertina"));
   }
 
-  @Test(expected = KGMalformedSPARQLQueryException.class)
+  @Test(expected = SPARQLServiceIllegalArgumentException.class)
   public void test_executeUpdateQueryOnQueryMethod_throwMalformedSPARQLQueryException()
       throws Exception {
     sparqlService.query(
@@ -189,7 +191,7 @@ public class SimpleSPARQLServiceTest {
             valueFactory.createLiteral("A test instance.")));
   }
 
-  @Test(expected = KGSPARQLException.class)
+  @Test(expected = SPARQLServiceExecutionException.class)
   public void test_updateInsertDataWithInvalidIRI_mustRespondWithFailure() throws Exception {
     sparqlService.update("INSERT DATA { <:a/\\path> a <http://purl.org/ontology/mo/Instrument>. }");
   }

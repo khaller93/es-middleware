@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j.util;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLResultFormatException;
+import at.ac.tuwien.ifs.es.middleware.sparql.result.exception.KGSPARQLResultFormatException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
@@ -25,7 +25,7 @@ import org.eclipse.rdf4j.rio.Rio;
  * @since 1.0
  */
 public class RDF4JGraphQueryResult extends RDF4JQueryResult<RDFFormat> implements
-    at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.GraphQueryResult {
+    at.ac.tuwien.ifs.es.middleware.sparql.result.GraphQueryResult {
 
   private static final List<RDFFormat> GRAPH_QUERY_RESULT_FORMATS = Arrays
       .asList(RDFFormat.JSONLD, RDFFormat.TURTLE, RDFFormat.RDFXML, RDFFormat.NTRIPLES,

@@ -1,9 +1,10 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.status;
 
+import at.ac.tuwien.ifs.es.middleware.common.exploration.ExplorationFlowStep;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * This dto maintains information about a {@link at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep}.
+ * This dto maintains information about a {@link ExplorationFlowStep}.
  *
  * @author Kevin Haller
  * @version 1.0

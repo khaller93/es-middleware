@@ -1,7 +1,10 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload;
 
+import at.ac.tuwien.ifs.es.middleware.common.exploration.ExplorationFlowStep;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.ExplorationFlowStepPayload;
+
 /**
- * This is a parameter payload for {@link at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep}
+ * This is a parameter payload for {@link ExplorationFlowStep}
  * that do not require a payload.
  *
  * @author Kevin Haller

@@ -1,15 +1,15 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.IterableResourcesContext;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.neighbourhood.Neighbourhood;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.RDFTerm;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.resources.ResourceCollection;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.util.result.RDFTermJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.IterableResourcesContext;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.neighbourhood.Neighbourhood;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.RDFTerm;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.resources.ResourceCollection;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.sparql.result.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.result.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.exploitation.ExploitationOperator;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.NeighbourhoodOpPayload;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.registry.RegisterForExplorationFlow;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.RegisterForExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
 import java.util.Collections;
 import java.util.HashMap;

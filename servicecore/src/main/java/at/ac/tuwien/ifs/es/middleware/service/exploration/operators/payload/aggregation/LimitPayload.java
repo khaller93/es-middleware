@@ -2,10 +2,9 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.agg
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.ExplorationFlowStepPayload;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.ExplorationFlowStepPayload;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 
 /**
  * A parameter payload for {@link at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation.Limit}

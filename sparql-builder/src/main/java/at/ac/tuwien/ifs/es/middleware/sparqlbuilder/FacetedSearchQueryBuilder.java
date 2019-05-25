@@ -2,14 +2,13 @@ package at.ac.tuwien.ifs.es.middleware.sparqlbuilder;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.FacetFilter;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.facet.OneOfValuesFacetFilter;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.RDFTerm;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.facet.FacetFilter;
+import at.ac.tuwien.ifs.es.middleware.facet.OneOfValuesFacetFilter;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
+import org.apache.commons.rdf.api.IRI;
+import org.apache.commons.rdf.api.RDFTerm;
 import org.eclipse.rdf4j.sparqlbuilder.core.SparqlBuilder;
 import org.eclipse.rdf4j.sparqlbuilder.core.Variable;
 import org.eclipse.rdf4j.sparqlbuilder.graphpattern.GraphPattern;
@@ -56,15 +55,15 @@ public final class FacetedSearchQueryBuilder {
    * the given classes. The given list must not be null, and if empty, no filter will be added to
    * the query.
    *
-   * @param classes a list of classes ({@link Resource}) of which all their instances shall be
+   * @param classes a list of classes ({@link BlankNodeOrIRI}) of which all their instances shall be
    * excluded.
    */
-  public void excludeInstancesOfClassResources(List<Resource> classes) {
+  public void excludeInstancesOfClassResources(List<BlankNodeOrIRI> classes) {
     checkArgument(classes != null, "The list of classes to exclude must not be null.");
     if (!classes.isEmpty()) {
       GraphPattern nonExistsFilterPattern = GraphPatterns.filterNotExists(GraphPatterns.union(
           classes.stream()
-              .map(c -> GraphPatterns.tp(subjectVariable, RdfPredicate.a, QT.transform(c)))
+              .map(c -> GraphPatterns.tp(subjectVariable, RdfPredicate.a, QT.value(c)))
               .toArray(TriplePattern[]::new)));
       this.graphPattern = graphPattern != null ? graphPattern.and(nonExistsFilterPattern) :
           nonExistsFilterPattern;
@@ -81,22 +80,21 @@ public final class FacetedSearchQueryBuilder {
    */
   public void excludeInstancesOfClasses(List<BlankNodeOrIRI> classes) {
     checkArgument(classes != null, "The list of classes to exclude must not be null.");
-    this.excludeInstancesOfClassResources(
-        classes.stream().map(Resource::new).collect(Collectors.toList()));
+    this.excludeInstancesOfClassResources(classes);
   }
 
   /**
    * Adds pattern to the query such that a resource can only be in the result set, if it is an
    * instance of at least one of the given classes.
    *
-   * @param classes a list of classes ({@link Resource}) of which all their instances shall
+   * @param classes a list of classes ({@link BlankNodeOrIRI}) of which all their instances shall
    * potentially included.
    */
-  public void includeInstancesOfClassResources(List<Resource> classes) {
+  public void includeInstancesOfClassResources(List<BlankNodeOrIRI> classes) {
     checkArgument(classes != null, "The list of classes to include must not be null.");
     if (!classes.isEmpty()) {
       GraphPattern pattern = GraphPatterns.union(classes.stream()
-          .map(c -> GraphPatterns.tp(subjectVariable, RdfPredicate.a, QT.transform(c)))
+          .map(c -> GraphPatterns.tp(subjectVariable, RdfPredicate.a, QT.value(c)))
           .toArray(TriplePattern[]::new));
       this.graphPattern = graphPattern != null ? GraphPatterns.and(pattern) : pattern;
     }
@@ -106,16 +104,15 @@ public final class FacetedSearchQueryBuilder {
    * Adds pattern to the query such that a resource can only be in the result set, if it is an
    * instance of at least one of the given classes.
    *
-   * @param classes a list of classes ({@link Resource}) of which all their instances shall
+   * @param classes a list of classes ({@link BlankNodeOrIRI}) of which all their instances shall
    * potentially included.
    */
   public void includeInstancesOfClasses(List<BlankNodeOrIRI> classes) {
     checkArgument(classes != null, "The list of classes to include must not be null.");
-    includeInstancesOfClassResources(
-        classes.stream().map(Resource::new).collect(Collectors.toList()));
+    includeInstancesOfClassResources(classes);
   }
 
-  /**
+  /*
    * Adds a {@link FacetFilter} to the query.
    *
    * @param facet {@link FacetFilter} that shall be added to the query.
@@ -131,10 +128,10 @@ public final class FacetedSearchQueryBuilder {
     }
   }
 
-  private GraphPattern or(Resource resource, List<RDFTerm> values) {
+  private GraphPattern or(IRI resource, List<RDFTerm> values) {
     RdfPredicate predicate = QT.predicate(resource);
     return GraphPatterns.union(
-        values.stream().map(v -> GraphPatterns.tp(subjectVariable, predicate, QT.transformTerm(v)))
+        values.stream().map(v -> GraphPatterns.tp(subjectVariable, predicate, QT.value(v)))
             .toArray(TriplePattern[]::new));
   }
 

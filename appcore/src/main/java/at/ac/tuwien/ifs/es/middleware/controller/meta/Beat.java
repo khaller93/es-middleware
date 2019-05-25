@@ -15,7 +15,7 @@ public class Beat {
   private String version;
   private Instant timestamp;
 
-  public Beat(String name, String version, Instant timestamp) {
+  private Beat(String name, String version, Instant timestamp) {
     this.name = name;
     this.version = version;
     this.timestamp = timestamp;

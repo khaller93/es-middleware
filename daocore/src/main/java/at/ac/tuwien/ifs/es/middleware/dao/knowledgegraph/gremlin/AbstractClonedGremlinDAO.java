@@ -9,8 +9,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.GremlinDAOStateCh
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.SparqlDAOStateChangeEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLException;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.util.result.RDFTermJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.sparql.result.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOFailedStatus;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOInitStatus;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOReadyStatus;
@@ -31,7 +30,9 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.apache.commons.rdf.api.BlankNode;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
+import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
@@ -269,7 +270,8 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
       if (cache.containsKey(resource)) {
         return cache.get(resource);
       }
-      String sIRI = RDFTermJsonUtil.stringValue(resource);
+      String sIRI = resource instanceof IRI ? ((IRI) resource).getIRIString()
+          : "_:" + ((BlankNode) resource).uniqueReference();
       Iterator<Vertex> vertexIt = graph.traversal().V()
           .has(schema.iri().identifierAsString(), sIRI);
       if (vertexIt.hasNext()) {
@@ -318,7 +320,8 @@ public abstract class AbstractClonedGremlinDAO implements SPARQLSyncingGremlinDA
               Vertex subjectVertex = prepareVertex((BlankNodeOrIRI) row.get("s"), vertexCacheMap);
               Vertex objectVertex = prepareVertex((BlankNodeOrIRI) row.get("o"), vertexCacheMap);
               subjectVertex
-                  .addEdge(RDFTermJsonUtil.stringValue(property), objectVertex, "version",
+                  .addEdge(property instanceof IRI ? ((IRI) property).getIRIString()
+                      : "_:" + ((BlankNode) property).uniqueReference(), objectVertex, "version",
                       toTimeStampInNs(issuedTimestamp));
             }
             logger

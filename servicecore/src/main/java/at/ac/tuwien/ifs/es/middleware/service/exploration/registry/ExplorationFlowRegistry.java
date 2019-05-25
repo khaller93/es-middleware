@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.exploration.registry;
 
 import at.ac.tuwien.ifs.es.middleware.service.exploration.factory.DynamicExplorationFlowFactory;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.ExplorationFlowStep;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;

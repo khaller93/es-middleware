@@ -88,6 +88,7 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
           <layout>ZIP</layout>
+          <mainClass>at.ac.tuwien.ifs.es.middleware.ExploratorySearchApplication</mainClass>
         </configuration>
       </plugin>
     </plugins>

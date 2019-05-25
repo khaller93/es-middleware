@@ -46,8 +46,8 @@
   <modules>
     <module>appcore</module>
     <module>servicecore</module>
+    <module>service-common</module>
     <module>daocore</module>
-    <module>dto</module>
     <module>dao-rdf4j</module>
     <module>dao-graphdb</module>
     <module>dao-blazegraph</module>
@@ -56,6 +56,9 @@
     <module>sparql-builder</module>
     <module>testutil</module>
     <module>dockerutil</module>
+    <module>service-analysis</module>
+    <module>sparql-query-result</module>
+    <module>facet</module>
   </modules>
 
   <dependencies>
