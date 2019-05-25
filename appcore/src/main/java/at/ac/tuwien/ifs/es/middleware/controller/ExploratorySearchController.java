@@ -81,22 +81,6 @@ public class ExploratorySearchController {
     return context;
   }
 
-  @GetMapping(value = "/with/keyword/{keyword}", produces = MediaType.APPLICATION_JSON_VALUE)
-  @ApiOperation(value = "Apply full-text-search with the given keyword.")
-  public ExplorationContext exploreWithFullTextSearch(
-      @ApiParam(value = "Keyword for which corresponding resources shall be found.", required = true) @PathVariable String keyword,
-      @ApiParam(value = "Specifies the preferred language for label and description. 'default' can be used to refer to literals without explicit language tag (usually English, but depends on knowledge graph).") @RequestParam(required = false) List<String> languages,
-      @ApiParam(value = "Specifies that the 'offsetNr' topmost resources shall be skipped.") @RequestParam(required = false) Integer offset,
-      @ApiParam(value = "Specifies that only the 'limitNr' topmost resources shall be returned.") @RequestParam(required = false) Integer limit,
-      @ApiParam(value = "Only members get the specified classes shall be considered. If not given, all instances are considered.") @RequestParam(required = false) List<String> classes)
-      throws ExplorationFlowSpecificationException {
-    Instant timestampEntered = Instant.now();
-    ExplorationContext context = commonExplorationFlowFactory
-        .constructFullTextSearchFlow(keyword, languages, classes, limit, offset).execute();
-    context.metadata().put("time", payloadMapper.valueToTree(new TimeMetadata(timestampEntered)));
-    return context;
-  }
-
   @GetMapping(value = "/operators")
   @ApiOperation(value = "Gets the provided exploration operators get this micro service.")
   @ApiResponses({

@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.tests.integration.sparql;
+package at.ac.tuwien.ifs.es.middleware.tests.integration;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;

@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.tests.integration.explorationflow;
+package at.ac.tuwien.ifs.es.middleware.tests.integration;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.Matchers.allOf;
