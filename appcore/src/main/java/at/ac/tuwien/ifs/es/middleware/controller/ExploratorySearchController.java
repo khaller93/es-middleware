@@ -4,7 +4,9 @@ import at.ac.tuwien.ifs.es.middleware.controller.meta.TimeMetadata;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.request.DynamicExplorationFlowRequest;
 import at.ac.tuwien.ifs.es.middleware.dto.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.OperatorStatusService;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.status.OperatorInfo;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.status.OperatorStatusService;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.status.SimpleOperatorStatusService;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.factory.CommonExplorationFlowFactory;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.factory.DynamicExplorationFlowFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,8 +18,10 @@ import io.swagger.annotations.ApiResponses;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,7 +53,7 @@ public class ExploratorySearchController {
   public ExploratorySearchController(
       CommonExplorationFlowFactory commonExplorationFlowFactory,
       DynamicExplorationFlowFactory dynamicExplorationFlowFactory,
-      OperatorStatusService operatorStatusService,
+      SimpleOperatorStatusService operatorStatusService,
       ObjectMapper payloadMapper) {
     this.commonExplorationFlowFactory = commonExplorationFlowFactory;
     this.dynamicExplorationFlowFactory = dynamicExplorationFlowFactory;
@@ -89,8 +93,22 @@ public class ExploratorySearchController {
   @ApiResponses({
       @ApiResponse(code = 200, message = "A map with supported operators, where the key is the type get the operator.")
   })
-  public Map<String, List<String>> getExplorationFlowOperators() {
+  public Map<String, List<String>> getExplorationFlowOperatorWithUID() {
     return operatorStatusService.getExplorationFlowOperators();
+  }
+
+  @GetMapping(value = "/operators/{uid}")
+  @ApiOperation(value = "Gets info about the operator with given uid.")
+  @ApiResponses({
+      @ApiResponse(code = 200, message = "Operator found and information will be returned."),
+      @ApiResponse(code = 404, message = "No operator with the given uid can be found.")
+  })
+  public ResponseEntity<OperatorInfo> getExplorationFlowOperatorWithUID(
+      @ApiParam(value = "The unique id of the operator.", required = true) @PathVariable String uid) {
+    Optional<OperatorInfo> operatorInfoOpt = operatorStatusService
+        .getExplorationFlowOperatorInfo(uid);
+    return operatorInfoOpt.map(ResponseEntity::ok)
+        .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
 }

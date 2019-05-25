@@ -1,5 +1,8 @@
-package at.ac.tuwien.ifs.es.middleware.service.exploration;
+package at.ac.tuwien.ifs.es.middleware.service.exploration.status;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
+import at.ac.tuwien.ifs.es.middleware.service.exploration.ExplorationFlowStep;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation.AggregationOperator;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition.AcquisitionSource;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.exploitation.ExploitationOperator;
@@ -9,23 +12,28 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 /**
- * This service allows the client to analyze the provided operators.
+ * This is a simple implementation of {@link OperatorStatusService}.
  *
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
  */
 @Service
-public class OperatorStatusService {
+public class SimpleOperatorStatusService implements OperatorStatusService {
 
-  private ExplorationFlowRegistry explorationFlowRegistry;
+  private final ApplicationContext context;
+  private final ExplorationFlowRegistry explorationFlowRegistry;
 
   @Autowired
-  public OperatorStatusService(ExplorationFlowRegistry explorationFlowRegistry) {
+  public SimpleOperatorStatusService(ApplicationContext context,
+      ExplorationFlowRegistry explorationFlowRegistry) {
+    this.context = context;
     this.explorationFlowRegistry = explorationFlowRegistry;
   }
 
@@ -39,6 +47,7 @@ public class OperatorStatusService {
    *
    * @return the map get registered operators, where the key is the type.
    */
+  @Override
   public Map<String, List<String>> getExplorationFlowOperators() {
     Map<String, List<String>> returnMap = new HashMap<>();
     Map<String, Class<? extends ExplorationFlowStep>> allRegisteredSteps = explorationFlowRegistry
@@ -60,4 +69,20 @@ public class OperatorStatusService {
     }
     return returnMap;
   }
+
+  @Override
+  public Optional<OperatorInfo> getExplorationFlowOperatorInfo(String uid) {
+    checkArgument(uid != null, "The uid of the operation flow must not be null or empty.");
+    Optional<Class<? extends ExplorationFlowStep>> aOperatorClass = explorationFlowRegistry
+        .get(uid);
+    if (aOperatorClass.isPresent()) {
+      ExplorationFlowStep operator = context.getBean(aOperatorClass.get());
+      //TODO: add parameter information.
+      return Optional.of(new OperatorInfo(operator.getUID(),
+          operator.getExplorationContextInputClass().getSimpleName(),
+          operator.getExplorationContextOutputClass().getSimpleName(), null));
+    }
+    return Optional.empty();
+  }
+
 }
