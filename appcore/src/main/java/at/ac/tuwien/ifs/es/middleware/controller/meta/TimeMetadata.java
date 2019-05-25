@@ -1,5 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.controller.meta;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
@@ -20,16 +22,19 @@ public class TimeMetadata {
   private Long processingTimeInMs;
 
   public TimeMetadata(Instant ingestion) {
-    this.ingestion = ingestion;
-    this.release = Instant.now();
-    this.processingTimeInMs = ingestion.until(release, ChronoUnit.MILLIS);
+    this(ingestion, Instant.now());
   }
 
   @JsonCreator
   public TimeMetadata(@JsonProperty(value = "ingestion", required = true) Instant ingestion,
       @JsonProperty(value = "release", required = true) Instant release) {
+    checkArgument(ingestion != null, "The ingestion timestamp must not be null.");
+    checkArgument(release != null, "The release timestamp must not be null.");
+    checkArgument(!ingestion.isAfter(release),
+        "The ingestion timestamp must be before the release timestamp.");
     this.ingestion = ingestion;
     this.release = release;
+    this.processingTimeInMs = ingestion.until(release, ChronoUnit.MILLIS);
   }
 
   public Instant getIngestion() {
