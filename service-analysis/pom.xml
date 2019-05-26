@@ -25,7 +25,7 @@
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.daocore</artifactId>
+      <artifactId>middleware.dao-core</artifactId>
       <version>${project.version}</version>
     </dependency>
     <!-- Map DB -->

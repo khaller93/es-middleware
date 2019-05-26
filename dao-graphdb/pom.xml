@@ -11,7 +11,7 @@
 
   <artifactId>middleware.dao-graphdb</artifactId>
 
-  <name>GraphDB DAO</name>
+  <name>DAO GraphDB</name>
   <description>Implementation of the DAOs using GraphDB.</description>
 
   <properties>

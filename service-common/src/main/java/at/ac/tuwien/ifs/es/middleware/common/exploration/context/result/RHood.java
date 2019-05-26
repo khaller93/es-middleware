@@ -3,9 +3,13 @@ package at.ac.tuwien.ifs.es.middleware.common.exploration.context.result;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.IdentifiableResult;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.result.ResourceAsMapKeyDeserializer;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.result.ResourceAsMapKeySerializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +50,8 @@ public class RHood implements IdentifiableResult {
   }
 
   private String id;
+  @JsonSerialize(keyUsing = ResourceAsMapKeySerializer.class)
+  @JsonDeserialize(keyUsing = ResourceAsMapKeyDeserializer.class)
   private Map<Resource, List<RDFTerm>> properties;
 
   @JsonCreator

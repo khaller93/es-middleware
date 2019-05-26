@@ -20,8 +20,8 @@ import at.ac.tuwien.ifs.es.middleware.common.exploration.context.resources.Resou
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.FullTextSearchPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition.FullTextSearch;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.fts.SimpleFullTextSearchService;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleFullTextSearchService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import java.util.Collections;
 import java.util.List;

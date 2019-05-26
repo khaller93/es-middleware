@@ -2,8 +2,8 @@ package at.ac.tuwien.ifs.es.middleware.dao.janusgraph;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.AbstractClonedGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.LiteralGraphSchema;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
+import at.ac.tuwien.ifs.es.middleware.gremlin.util.schema.LiteralGraphSchema;
+import at.ac.tuwien.ifs.es.middleware.gremlin.util.schema.PGS;
 import java.io.File;
 import java.util.concurrent.ExecutionException;
 import org.apache.tinkerpop.gremlin.structure.Graph;

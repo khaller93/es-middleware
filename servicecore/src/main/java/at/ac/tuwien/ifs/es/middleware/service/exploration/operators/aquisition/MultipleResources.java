@@ -9,7 +9,7 @@ import at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.result.RDF
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.MultipleResourcesPayload;
 import at.ac.tuwien.ifs.es.middleware.common.exploration.RegisterForExplorationFlow;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
+import at.ac.tuwien.ifs.es.middleware.common.knowledgegraph.SPARQLService;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;

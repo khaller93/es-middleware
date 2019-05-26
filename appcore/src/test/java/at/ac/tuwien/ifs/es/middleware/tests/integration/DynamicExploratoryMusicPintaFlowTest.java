@@ -36,6 +36,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.rdf.api.IRI;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,6 +65,7 @@ import org.springframework.test.context.junit4.SpringRunner;
     "esm.db.fts.choice=RDF4JLucene",
     "esm.db.gremlin.choice=ClonedInMemoryGremlin"
 })
+@Ignore
 public class DynamicExploratoryMusicPintaFlowTest {
 
   @Rule

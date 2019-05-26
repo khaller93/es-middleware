@@ -23,8 +23,8 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsR
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.integration.MapDBDummy;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.SimpleGremlinService;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleGremlinService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.WineOntologyDatasetResource;
 import at.ac.tuwien.ifs.es.middleware.testutil.util.TestUtil;
 import java.util.Arrays;

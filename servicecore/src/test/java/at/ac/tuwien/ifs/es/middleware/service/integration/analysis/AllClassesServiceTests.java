@@ -19,7 +19,7 @@ import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.AllClassesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.AllClassesWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.integration.MapDBDummy;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.WineOntologyDatasetResource;
 import at.ac.tuwien.ifs.es.middleware.testutil.util.TestUtil;
 import java.util.Arrays;

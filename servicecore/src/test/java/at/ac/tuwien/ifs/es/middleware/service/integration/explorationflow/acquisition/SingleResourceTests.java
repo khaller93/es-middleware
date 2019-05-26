@@ -18,7 +18,7 @@ import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.SingleResourcePayload;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition.SingleResource;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import org.junit.Before;
 import org.junit.Rule;

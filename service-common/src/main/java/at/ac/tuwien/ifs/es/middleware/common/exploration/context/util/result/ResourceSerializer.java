@@ -19,4 +19,5 @@ public class ResourceSerializer extends JsonSerializer<Resource> {
       RDFTermJsonComponent.writeResource(value, gen);
     }
   }
+
 }

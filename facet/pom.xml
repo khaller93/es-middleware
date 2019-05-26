@@ -11,16 +11,18 @@
 
   <artifactId>middleware.facet</artifactId>
 
+  <name>Facet</name>
+
   <dependencies>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-rdf-api</artifactId>
-      <version>${apache-commons-rdf.version}</version>
+      <version>${apache.commons.rdf.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-rdf-simple</artifactId>
-      <version>${apache-commons-rdf.version}</version>
+      <version>${apache.commons.rdf.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>

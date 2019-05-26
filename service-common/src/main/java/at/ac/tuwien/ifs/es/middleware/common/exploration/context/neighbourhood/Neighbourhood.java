@@ -12,8 +12,12 @@ import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.RHood;
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.box.ValueBox;
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.box.ValueBoxFactory;
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.result.ResourceAsMapKeyDeserializer;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.result.ResourceAsMapKeySerializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,6 +42,8 @@ public class Neighbourhood implements IterableResourcesContext<NHood>,
     IterableObjectsContext<NHood> {
 
   @JsonProperty("neighbourhood")
+  @JsonSerialize(keyUsing = ResourceAsMapKeySerializer.class)
+  @JsonDeserialize(keyUsing = ResourceAsMapKeyDeserializer.class)
   private Map<Resource, RHood> resourceNeighbourhood;
 
   private ValueBox values;

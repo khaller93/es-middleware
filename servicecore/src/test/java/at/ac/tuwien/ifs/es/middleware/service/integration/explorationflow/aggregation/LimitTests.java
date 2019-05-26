@@ -17,7 +17,7 @@ import at.ac.tuwien.ifs.es.middleware.common.exploration.context.resources.Resou
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.aggregation.LimitPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation.Limit;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleSPARQLService;
 import java.util.List;
 import org.assertj.core.util.Lists;
 import org.junit.Before;

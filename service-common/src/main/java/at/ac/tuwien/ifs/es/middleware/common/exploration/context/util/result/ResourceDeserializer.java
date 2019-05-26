@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.KeyDeserializer;
 import java.io.IOException;
 import org.springframework.boot.jackson.JsonComponent;
 
@@ -27,4 +28,5 @@ public class ResourceDeserializer extends JsonDeserializer<Resource> {
       }
     }
   }
+
 }

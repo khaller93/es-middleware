@@ -24,7 +24,7 @@ import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation.Distinct;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation.Limit;
 import at.ac.tuwien.ifs.es.middleware.service.integration.MapDBDummy;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import java.util.List;
 import java.util.stream.Collectors;

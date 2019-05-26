@@ -21,23 +21,6 @@ public class RDFTermJsonUtil {
 
   private static RDF valueFactory = new SimpleRDF();
 
-  public static class Deserializer extends JsonDeserializer<BlankNodeOrIRI> {
-
-    @Override
-    public BlankNodeOrIRI deserialize(JsonParser p, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException {
-      return valueOf(p.readValueAs(String.class));
-    }
-  }
-
-  public static class Serializer extends JsonSerializer<BlankNodeOrIRI> {
-
-    @Override
-    public void serialize(BlankNodeOrIRI value, JsonGenerator gen, SerializerProvider serializers)
-        throws IOException, JsonProcessingException {
-      gen.writeString(stringValue(value));
-    }
-  }
 
   /**
    * Parses the given value and returns the corresponding {@link BlankNodeOrIRI}.

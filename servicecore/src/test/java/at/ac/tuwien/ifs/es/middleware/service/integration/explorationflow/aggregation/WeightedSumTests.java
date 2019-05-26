@@ -16,7 +16,7 @@ import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.aggregation.WeightedSumPayload;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation.WeightedSum;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleSPARQLService;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;

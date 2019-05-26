@@ -20,7 +20,7 @@ import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.aggr
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.aggregation.OrderByPayload.ORDER_STRATEGY;
 import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowServiceExecutionException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation.OrderBy;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleSPARQLService;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import java.util.HashMap;

@@ -8,7 +8,6 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchD
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.AllClassesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.AllClassesWithSPARQLService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.ClassEntropyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.ClassEntropyWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.ClassHierarchyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.ClassHierarchyWithSPARQLService;
@@ -22,7 +21,7 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsR
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.resnik.ResnikSimilarityOnTheFlyService;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.integration.MapDBDummy;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.WineOntologyDatasetResource;
 import org.junit.Before;
 import org.junit.runner.RunWith;

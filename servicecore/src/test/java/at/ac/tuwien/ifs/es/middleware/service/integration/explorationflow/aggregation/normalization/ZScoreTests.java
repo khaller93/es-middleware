@@ -21,7 +21,7 @@ import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.aggregation.normalisation.ZScorePayload;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation.normalization.MinMaxNormalisation;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aggregation.normalization.ZScore;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleSPARQLService;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;

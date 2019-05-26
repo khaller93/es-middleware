@@ -18,12 +18,11 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.Resourc
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.ResourceClassWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceWithSPARQLService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.icpr.LCAPRMetricImpl;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.icpr.LCAPRMetricOnTheFlyService;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.integration.MapDBDummy;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.SimpleGremlinService;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleGremlinService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.WineOntologyDatasetResource;
 import org.junit.Before;
 import org.junit.runner.RunWith;

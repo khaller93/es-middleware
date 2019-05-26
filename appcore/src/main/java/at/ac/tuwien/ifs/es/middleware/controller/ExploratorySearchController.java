@@ -9,7 +9,6 @@ import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecifica
 import at.ac.tuwien.ifs.es.middleware.service.exploration.status.OperatorInfo;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.status.OperatorStatusService;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.status.SimpleOperatorStatusService;
-import at.ac.tuwien.ifs.es.middleware.service.exploration.factory.CommonExplorationFlowFactory;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.factory.DynamicExplorationFlowFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
@@ -34,7 +33,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -52,7 +50,6 @@ public class ExploratorySearchController {
 
   private static final Logger logger = LoggerFactory.getLogger(ExploratorySearchController.class);
 
-  private CommonExplorationFlowFactory commonExplorationFlowFactory;
   private DynamicExplorationFlowFactory dynamicExplorationFlowFactory;
   private OperatorStatusService operatorStatusService;
 
@@ -60,11 +57,9 @@ public class ExploratorySearchController {
 
   @Autowired
   public ExploratorySearchController(
-      CommonExplorationFlowFactory commonExplorationFlowFactory,
       DynamicExplorationFlowFactory dynamicExplorationFlowFactory,
       SimpleOperatorStatusService operatorStatusService,
       ObjectMapper payloadMapper) {
-    this.commonExplorationFlowFactory = commonExplorationFlowFactory;
     this.dynamicExplorationFlowFactory = dynamicExplorationFlowFactory;
     this.operatorStatusService = operatorStatusService;
     this.payloadMapper = payloadMapper;

@@ -15,12 +15,13 @@
   <description>RDF4J framework used to implement the DAO Core.</description>
 
   <dependencies>
-    <!-- RDF framework -->
+    <!-- RDF Core -->
     <dependency>
       <groupId>org.eclipse.rdf4j</groupId>
       <artifactId>rdf4j-model</artifactId>
       <version>${rdf4j.version}</version>
     </dependency>
+    <!-- RDF Sails and Repositories -->
     <dependency>
       <groupId>org.eclipse.rdf4j</groupId>
       <artifactId>rdf4j-repository-sail</artifactId>
@@ -112,22 +113,22 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-rdf-api</artifactId>
-      <version>${apache-commons-rdf.version}</version>
+      <version>${apache.commons.rdf.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-rdf-rdf4j</artifactId>
-      <version>${apache-commons-rdf.version}</version>
+      <version>${apache.commons.rdf.version}</version>
     </dependency>
-    <!-- ES Middleware dependencies -->
+    <!-- ESS -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.daocore</artifactId>
+      <artifactId>middleware.dao-core</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.sparql-builder</artifactId>
+      <artifactId>middleware.sparql-util</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

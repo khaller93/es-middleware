@@ -6,7 +6,7 @@ import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.result.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.FullTextSearchPayload;
 import at.ac.tuwien.ifs.es.middleware.common.exploration.RegisterForExplorationFlow;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.fts.FullTextSearchService;
+import at.ac.tuwien.ifs.es.middleware.common.knowledgegraph.FullTextSearchService;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import java.util.Collections;

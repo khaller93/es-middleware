@@ -15,7 +15,7 @@
 
   <name>Exploratory Search Microservice (multi-module)</name>
   <description>
-    This micro service enables methods for exploratory search in a certain knowledge graph.
+    This micro service enables methods for exploratory search on knowledge graphs.
   </description>
 
   <organization>
@@ -36,29 +36,36 @@
     <java.version>1.8</java.version>
     <rdf4j.version>2.5.0</rdf4j.version>
     <tinkerpop.version>3.4.0</tinkerpop.version>
-    <apache-commons-rdf.version>0.5.0</apache-commons-rdf.version>
-    <apache-commons-text.version>1.6</apache-commons-text.version>
+    <apache.commons.rdf.version>0.5.0</apache.commons.rdf.version>
+    <apache.commons.text.version>1.6</apache.commons.text.version>
+    <apache.commons.io.version>2.6</apache.commons.io.version>
     <guava.version>27.0.1-jre</guava.version>
     <docker.spotify.plugin.version>1.4.9</docker.spotify.plugin.version>
     <docker.image.prefix>ess</docker.image.prefix>
   </properties>
 
   <modules>
+    <!-- REST API -->
     <module>appcore</module>
+    <!--Service Layer -->
     <module>servicecore</module>
+    <module>service-analysis</module>
     <module>service-common</module>
-    <module>daocore</module>
+    <!-- DAO Layer -->
+    <module>dao-core</module>
     <module>dao-rdf4j</module>
     <module>dao-graphdb</module>
     <module>dao-blazegraph</module>
     <module>dao-stardog</module>
     <module>dao-janusgraph</module>
-    <module>sparql-builder</module>
-    <module>testutil</module>
-    <module>dockerutil</module>
-    <module>service-analysis</module>
-    <module>sparql-query-result</module>
+    <!-- DTO -->
     <module>facet</module>
+    <module>sparql-query-result</module>
+    <!-- Utils -->
+    <module>sparql-util</module>
+    <module>gremlin-util</module>
+    <module>testutil</module>
+    <module>docker-util</module>
   </modules>
 
   <dependencies>

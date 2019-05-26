@@ -11,6 +11,8 @@
 
   <artifactId>middleware.dao-janusgraph</artifactId>
 
+  <name>DAO Janusgraph</name>
+
   <properties>
     <janusgraph.version>0.3.1</janusgraph.version>
   </properties>
@@ -25,7 +27,16 @@
           <groupId>org.apache.commons</groupId>
           <artifactId>commons-text</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-io</artifactId>
+        </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>${apache.commons.io.version}</version>
     </dependency>
     <dependency>
       <groupId>org.janusgraph</groupId>
@@ -35,7 +46,12 @@
     <!-- DAO Core of ESS middleware -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.daocore</artifactId>
+      <artifactId>middleware.dao-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.gremlin-util</artifactId>
       <version>${project.version}</version>
     </dependency>
     <!-- Test dependencies -->

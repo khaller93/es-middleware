@@ -10,7 +10,7 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.ClassRe
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.AllResourcesPayload;
 import at.ac.tuwien.ifs.es.middleware.sparql.result.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.common.exploration.RegisterForExplorationFlow;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
+import at.ac.tuwien.ifs.es.middleware.common.knowledgegraph.SPARQLService;
 import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.FacetedSearchQueryBuilder;
 import java.util.Collections;
 import java.util.HashMap;

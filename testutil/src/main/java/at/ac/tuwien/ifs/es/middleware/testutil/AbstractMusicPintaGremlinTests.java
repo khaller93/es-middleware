@@ -9,7 +9,7 @@ import static org.hamcrest.Matchers.is;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.schema.PGS;
+import at.ac.tuwien.ifs.es.middleware.gremlin.util.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.sparql.result.SelectQueryResult;
 import java.util.List;
 import java.util.stream.Collectors;

@@ -31,12 +31,12 @@
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.daocore</artifactId>
+      <artifactId>middleware.dao-core</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.sparql-builder</artifactId>
+      <artifactId>middleware.sparql-util</artifactId>
       <version>${project.version}</version>
     </dependency>
     <!-- Utils -->

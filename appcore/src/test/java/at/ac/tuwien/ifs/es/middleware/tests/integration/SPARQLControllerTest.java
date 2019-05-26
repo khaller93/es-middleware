@@ -32,6 +32,8 @@ import org.eclipse.rdf4j.query.resultio.QueryResultIO;
 import org.eclipse.rdf4j.query.resultio.TupleQueryResultFormat;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,15 +63,22 @@ import org.springframework.util.MultiValueMap;
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
     "esm.db.fts.choice=RDF4JLucene",
-    "esm.db.gremlin.choice=ClonedInMemoryGremlin"
+    "esm.db.gremlin.choice=ClonedInMemoryGremlin",
+    "esm.analysis.computeOnStart=false",
+    "esm.db.gremlin.syncOnStart=false",
 })
 public class SPARQLControllerTest {
 
   @Autowired
   private TestRestTemplate restTemplate;
-  @Rule
   @Autowired
   public MusicPintaInstrumentsResource musicPintaResource;
+
+  @Before
+  public void setUp() throws Throwable {
+    musicPintaResource.cleanSetup();
+    musicPintaResource.waitForAllDAOsBeingReady();
+  }
 
   @Test
   public void test_countQuery_ok_mustReturnValue() throws Exception {

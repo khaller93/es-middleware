@@ -11,7 +11,7 @@
 
   <artifactId>middleware.dao-blazegraph</artifactId>
 
-  <name>Blazegraph DAO</name>
+  <name>DAO Blazegraph</name>
   <description>Implementation of the DAOs using Blazegraph.</description>
 
   <dependencies>
@@ -22,7 +22,7 @@
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.sparql-builder</artifactId>
+      <artifactId>middleware.sparql-util</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

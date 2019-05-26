@@ -10,7 +10,7 @@ import at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.result.RDF
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.exploitation.ExploitationOperator;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acquisition.NeighbourhoodOpPayload;
 import at.ac.tuwien.ifs.es.middleware.common.exploration.RegisterForExplorationFlow;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SPARQLService;
+import at.ac.tuwien.ifs.es.middleware.common.knowledgegraph.SPARQLService;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;

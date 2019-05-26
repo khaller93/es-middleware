@@ -12,7 +12,6 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.AllClasse
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.ClassHierarchyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.ClassHierarchyWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.lca.LCAOnTheFlyService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.lca.LowestCommonAncestorService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesWithSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.ResourceClassService;
@@ -22,8 +21,8 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsR
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.icpr.LCAPRMetricImpl;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.integration.MapDBDummy;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.gremlin.SimpleGremlinService;
-import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.sparql.SimpleSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleGremlinService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.WineOntologyDatasetResource;
 import org.junit.Before;
 import org.junit.runner.RunWith;
