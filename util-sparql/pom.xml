@@ -9,12 +9,19 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>middleware.sparql-util</artifactId>
+  <artifactId>middleware.util-sparql</artifactId>
 
   <name>SPARQL Util</name>
   <description>Utils that should simplify the dynamic construction of SPARQL queries</description>
 
   <dependencies>
+    <!-- RDF4J SPARQL Builder / Uses independent RDF model -->
+    <dependency>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-sparqlbuilder</artifactId>
+      <version>${rdf4j.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-rdf-api</artifactId>
@@ -25,16 +32,7 @@
       <artifactId>guava</artifactId>
       <version>${guava.version}</version>
     </dependency>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.rdf4j</groupId>
-      <artifactId>rdf4j-sparqlbuilder</artifactId>
-      <version>${rdf4j.version}</version>
-    </dependency>
+
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.facet</artifactId>

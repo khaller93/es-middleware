@@ -48,7 +48,7 @@
     <!-- REST API -->
     <module>appcore</module>
     <!--Service Layer -->
-    <module>servicecore</module>
+    <module>service-core</module>
     <module>service-analysis</module>
     <module>service-common</module>
     <!-- DAO Layer -->
@@ -62,10 +62,10 @@
     <module>facet</module>
     <module>sparql-query-result</module>
     <!-- Utils -->
-    <module>sparql-util</module>
-    <module>gremlin-util</module>
-    <module>testutil</module>
-    <module>docker-util</module>
+    <module>util-sparql</module>
+    <module>util-gremlin</module>
+    <module>util-testing</module>
+    <module>util-docker</module>
   </modules>
 
   <dependencies>

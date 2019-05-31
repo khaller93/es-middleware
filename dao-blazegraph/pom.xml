@@ -22,7 +22,7 @@
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.sparql-util</artifactId>
+      <artifactId>middleware.util-sparql</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

@@ -53,7 +53,7 @@
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.testutil</artifactId>
+      <artifactId>middleware.util-tetsing</artifactId>
       <version>${project.version}</version>
     </dependency>
     <!-- Embedded GraphDB -->

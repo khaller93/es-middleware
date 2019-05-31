@@ -40,7 +40,7 @@
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.servicecore</artifactId>
+      <artifactId>middleware.service-core</artifactId>
       <version>${project.version}</version>
     </dependency>
     <!-- External ES modules -->
@@ -67,7 +67,7 @@
     <!-- Testing for DAO -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.testutil</artifactId>
+      <artifactId>middleware.util-tetsing</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

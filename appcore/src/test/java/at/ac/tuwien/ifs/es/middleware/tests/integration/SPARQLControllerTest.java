@@ -11,6 +11,7 @@ import static org.junit.Assert.assertTrue;
 
 import at.ac.tuwien.ifs.es.middleware.ExploratorySearchApplication;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
+import at.ac.tuwien.ifs.es.middleware.testutil.WineOntologyDatasetResource;
 import java.io.ByteArrayInputStream;
 import java.util.Collections;
 import java.util.List;
@@ -66,23 +67,23 @@ public class SPARQLControllerTest {
   @Autowired
   private TestRestTemplate restTemplate;
   @Autowired
-  public MusicPintaInstrumentsResource musicPintaResource;
+  public WineOntologyDatasetResource wineOntologyDatasetResource;
 
   @Before
   public void setUp() throws Throwable {
-    musicPintaResource.cleanSetup();
-    musicPintaResource.waitForAllDAOsBeingReady();
+    wineOntologyDatasetResource.cleanSetup();
+    wineOntologyDatasetResource.waitForAllDAOsBeingReady();
   }
 
   @Test
-  public void test_countQuery_ok_mustReturnValue() throws Exception {
+  public void test_countWinesQuery_ok_mustReturnValue() throws Exception {
     HttpHeaders headers = new HttpHeaders();
     headers
         .setAccept(Collections.singletonList(MediaType.valueOf("application/sparql-results+json")));
     // request SPARQL count query.
     ResponseEntity<String> countQueryResponse = restTemplate
         .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(headers), String.class,
-            "SELECT (COUNT(DISTINCT ?s) as ?cnt) WHERE { ?s ?p ?o }");
+            "SELECT (COUNT(DISTINCT ?s) as ?cnt) WHERE { ?s a  <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Winery> .}");
     assertThat("The request must be successful.",
         countQueryResponse.getStatusCode().value(), is(200));
 
@@ -93,9 +94,9 @@ public class SPARQLControllerTest {
           .parseTuple(resultIn, TupleQueryResultFormat.JSON);
       // check response
       assertTrue("Must return one result.", tupleQueryResult.hasNext());
-      assertThat("The count get distinct resources must be 19575",
+      assertThat("The count of distinct wines must be 43.",
           Integer.parseInt(tupleQueryResult.next().getBinding("cnt").getValue().stringValue()),
-          is(19575));
+          is(43));
     }
   }
 
@@ -117,7 +118,7 @@ public class SPARQLControllerTest {
         .setAccept(Collections.singletonList(MediaType.valueOf("application/sparql-results+json")));
     ResponseEntity<String> selectQueryResponse = restTemplate
         .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(headers), String.class,
-            "SELECT DISTINCT ?s WHERE { ?s a <http://purl.org/ontology/mo/Instrument> }");
+            "SELECT DISTINCT ?s WHERE { ?s a <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Wine> }");
     assertThat("The request must signal to have failed.",
         selectQueryResponse.getStatusCode().value(), is(200));
 
@@ -129,11 +130,12 @@ public class SPARQLControllerTest {
           .map(bs -> bs.getValue("s").stringValue())
           .collect(Collectors.toList());
       // check response
-      assertThat("Must return exactly 877 results.", instruments, hasSize(877));
+      assertThat("Must return exactly 4 results.", instruments, hasSize(4));
       assertThat("Must have the given instrument resource IRIs in the result set", instruments,
-          hasItems("http://dbpedia.org/resource/Huluhu", "http://dbpedia.org/resource/Kus",
-              "http://dbpedia.org/resource/Daf", "http://dbpedia.org/resource/Clavinet",
-              "http://dbpedia.org/resource/Concertina"));
+          hasItems("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#ChateauDYchemSauterne",
+              "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#SchlossRothermelTrochenbierenausleseRiesling",
+              "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#SchlossVolradTrochenbierenausleseRiesling",
+              "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#WhitehallLanePrimavera"));
     }
   }
 

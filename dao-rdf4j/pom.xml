@@ -128,12 +128,12 @@
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.sparql-util</artifactId>
+      <artifactId>middleware.util-sparql</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.testutil</artifactId>
+      <artifactId>middleware.util-tetsing</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

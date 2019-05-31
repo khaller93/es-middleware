@@ -18,6 +18,7 @@
   </properties>
 
   <dependencies>
+    <!-- Janusgraph -->
     <dependency>
       <groupId>org.janusgraph</groupId>
       <artifactId>janusgraph-core</artifactId>
@@ -34,16 +35,17 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>${apache.commons.io.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.janusgraph</groupId>
       <artifactId>janusgraph-berkeleyje</artifactId>
       <version>${janusgraph.version}</version>
     </dependency>
-    <!-- DAO Core of ESS middleware -->
+    <!-- Utils -->
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>${apache.commons.io.version}</version>
+    </dependency>
+    <!-- ESS -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.dao-core</artifactId>
@@ -63,7 +65,7 @@
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.testutil</artifactId>
+      <artifactId>middleware.util-tetsing</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

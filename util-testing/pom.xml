@@ -9,7 +9,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>middleware.testutil</artifactId>
+  <artifactId>middleware.util-tetsing</artifactId>
 
   <name>Test Utils</name>
   <description>Utils for testing this microservice.</description>

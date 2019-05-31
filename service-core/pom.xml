@@ -8,7 +8,7 @@
     <artifactId>middleware</artifactId>
     <version>1.0-SNAPSHOT</version>
   </parent>
-  <artifactId>middleware.servicecore</artifactId>
+  <artifactId>middleware.service-core</artifactId>
   <packaging>jar</packaging>
 
   <name>Service Core</name>
@@ -36,14 +36,14 @@
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.sparql-util</artifactId>
+      <artifactId>middleware.util-sparql</artifactId>
       <version>${project.version}</version>
     </dependency>
     <!-- Utils -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-text</artifactId>
-      <version>1.3</version>
+      <version>${apache.commons.text.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -53,7 +53,7 @@
     <!-- Test Utils -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.testutil</artifactId>
+      <artifactId>middleware.util-tetsing</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
