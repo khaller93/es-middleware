@@ -118,7 +118,7 @@ public class SPARQLControllerTest {
         .setAccept(Collections.singletonList(MediaType.valueOf("application/sparql-results+json")));
     ResponseEntity<String> selectQueryResponse = restTemplate
         .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(headers), String.class,
-            "SELECT DISTINCT ?s WHERE { ?s a <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Wine> }");
+            "SELECT DISTINCT ?s WHERE { ?s a/rdfs:subClassOf* <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Wine> }");
     assertThat("The request must signal to have failed.",
         selectQueryResponse.getStatusCode().value(), is(200));
 
@@ -140,52 +140,12 @@ public class SPARQLControllerTest {
   }
 
   @Test
-  public void test_describeQuery_ok() throws Exception {
-    HttpHeaders headers = new HttpHeaders();
-    headers.setAccept(Collections.singletonList(MediaType.valueOf("text/turtle")));
-    ResponseEntity<String> selectQueryResponse = restTemplate
-        .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(headers), String.class,
-            "DESCRIBE <http://dbpedia.org/resource/Huluhu>");
-    assertThat("The request must signal to have failed.",
-        selectQueryResponse.getStatusCode().value(), is(200));
-
-    try (ByteArrayInputStream resultIn = new ByteArrayInputStream(
-        selectQueryResponse.getBody().getBytes())) {
-      Model resultModel = Rio.parse(resultIn, "test:", RDFFormat.TURTLE);
-      ValueFactory valueFactory = SimpleValueFactory.getInstance();
-      List<String> labels = resultModel
-          .filter(valueFactory.createIRI("http://dbpedia.org/resource/Huluhu"), RDFS.LABEL, null)
-          .objects().stream().map(Value::stringValue).collect(Collectors.toList());
-      assertThat("There is only one label for 'Huluhu' in the test data", labels, hasSize(1));
-      assertThat("The label must be 'Huluhu'.", labels, hasItem("Huluhu"));
-      List<String> descriptions = resultModel
-          .filter(valueFactory.createIRI("http://dbpedia.org/resource/Huluhu"), RDFS.COMMENT, null)
-          .objects().stream().map(Value::stringValue).collect(
-              Collectors.toList());
-      assertThat("There is only one description for 'Huluhu' in the test data", descriptions,
-          hasSize(1));
-      assertThat(descriptions.get(0), containsString(
-          "The huluhu is a Chinese bowed string instrument in the huqin family of instruments."));
-      List<String> subjects = resultModel
-          .filter(valueFactory.createIRI("http://dbpedia.org/resource/Huluhu"), DCTERMS.SUBJECT,
-              null)
-          .objects().stream().map(Value::stringValue).collect(
-              Collectors.toList());
-      assertThat("'Huluhu' has four subjects according to the test data.", subjects,
-          containsInAnyOrder("http://dbpedia.org/resource/Category:Necked_bowl_lutes",
-              "http://dbpedia.org/resource/Category:Huqin_family_instruments",
-              "http://dbpedia.org/resource/Category:Chinese_musical_instruments",
-              "http://dbpedia.org/resource/Category:Bowed_instruments"));
-    }
-  }
-
-  @Test
   public void test_askForUnknownInstrument_mustReturnFalse() throws Exception {
     HttpHeaders headers = new HttpHeaders();
     headers.setAccept(Collections.singletonList(MediaType.valueOf("text/boolean")));
     ResponseEntity<String> selectQueryResponse = restTemplate
         .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(headers), String.class,
-            "ASK WHERE { ?s a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"Jaguar\"@en .}");
+            "ASK WHERE { ?s a <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Winery> ; rdfs:label \"Wine ABC\"@en .}");
     assertThat("The request must signal to have failed.",
         selectQueryResponse.getStatusCode().value(), is(200));
     assertThat("The response must be false, because there is no instrument for 'Jaguar'.",
@@ -199,10 +159,10 @@ public class SPARQLControllerTest {
     ResponseEntity<String> selectQueryResponse = restTemplate
         .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(headers),
             String.class,
-            "ASK WHERE { ?s a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"Harp\"@en .}");
+            "ASK WHERE { ?wine <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#hasSugar> <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sweet> .}");
     assertThat("The request must signal to have failed.",
         selectQueryResponse.getStatusCode().value(), is(200));
-    assertThat("The response must be true, because there is a harp resource in the test data.",
+    assertThat("The response must be true, because there is a sweet wine in the test data.",
         selectQueryResponse.getBody(), is("true"));
   }
 
@@ -212,7 +172,7 @@ public class SPARQLControllerTest {
     headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
     MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
     map.add("update",
-        "INSERT DATA { <test:a> a <http://purl.org/ontology/mo/Instrument> ; rdfs:label \"A\" ; rdfs:comment \"A test instance.\" . }");
+        "INSERT DATA { <test:a> a <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Wine> ; rdfs:label \"A\" ; rdfs:comment \"A test instance.\" . }");
     HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(map, headers);
 
     ValueFactory valueFactory = SimpleValueFactory.getInstance();
@@ -234,7 +194,7 @@ public class SPARQLControllerTest {
       Model testModel = Rio.parse(resultIn, "test:", RDFFormat.TURTLE);
       IRI testIRI = valueFactory.createIRI("test:a");
       assertTrue(testModel.contains(testIRI, RDF.TYPE,
-          valueFactory.createIRI("http://purl.org/ontology/mo/Instrument")));
+          valueFactory.createIRI("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Wine")));
       assertTrue(testModel.contains(testIRI, RDFS.LABEL, valueFactory.createLiteral("A")));
       assertTrue(testModel
           .contains(testIRI, RDFS.COMMENT, valueFactory.createLiteral("A test instance.")));
@@ -246,7 +206,7 @@ public class SPARQLControllerTest {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
     MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-    map.add("update", "INSERT DATA { <:a/\\path> a <http://purl.org/ontology/mo/Instrument>. }");
+    map.add("update", "INSERT DATA { <:a/\\path> a <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#SchlossVolradTrochenbierenausleseRiesling>. }");
     HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(map, headers);
 
     ResponseEntity<Void> updateDataResponse = restTemplate
@@ -257,10 +217,22 @@ public class SPARQLControllerTest {
 
   @Test
   public void test_updateDeleteData_mustBeSuccessful() throws Exception {
+
+    // Check if wine instance exists
     HttpHeaders headers = new HttpHeaders();
+    headers.setAccept(Collections.singletonList(MediaType.valueOf("text/boolean")));
+    ResponseEntity<String> askQueryResponse = restTemplate
+        .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(headers), String.class,
+            "ASK WHERE { <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#SchlossVolradTrochenbierenausleseRiesling> ?p ?o }");
+    assertThat("Wine 'SchlossVolradTrochenbierenausleseRiesling' must be in the dataset.",
+        askQueryResponse.getBody(), is("true"));
+
+    // Delete the wine instance
+    headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
     MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-    map.add("update", "DELETE WHERE { <http://dbpedia.org/resource/Huluhu> ?p1 ?o .}");
+    map.add("update",
+        "DELETE WHERE { <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#SchlossVolradTrochenbierenausleseRiesling> <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#hasWineDescriptor> ?o .}");
     HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(map, headers);
 
     ResponseEntity<Void> updateDataResponse = restTemplate
@@ -268,13 +240,14 @@ public class SPARQLControllerTest {
     assertThat("Delete-Update must be successful.",
         updateDataResponse.getStatusCode().value(), is(200));
 
-    //Check if update was persisted.
-    HttpHeaders askHeaders = new HttpHeaders();
-    askHeaders.setAccept(Collections.singletonList(MediaType.valueOf("text/boolean")));
+    // Check if update was persisted.
+    headers = new HttpHeaders();
+    headers.setAccept(Collections.singletonList(MediaType.valueOf("text/boolean")));
     ResponseEntity<String> askResponse = restTemplate
-        .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(askHeaders),
-            String.class, "ASK WHERE { <http://dbpedia.org/resource/Huluhu> ?p ?o }");
-    assertThat("The 'Huluhu' resource must be removed.", askResponse.getBody(), is("false"));
+        .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(headers),
+            String.class,
+            "ASK WHERE { <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#SchlossVolradTrochenbierenausleseRiesling> <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#hasWineDescriptor> ?o .}");
+    assertThat("The 'SchlossVolradTrochenbierenausleseRiesling' resource must be removed.", askResponse.getBody(), is("false"));
   }
 
   @Test
@@ -284,7 +257,7 @@ public class SPARQLControllerTest {
     ResponseEntity<String> selectQueryResponse = restTemplate
         .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(headers),
             String.class,
-            "DELETE WHERE { <http://dbpedia.org/resource/Huluhu> ?p1 ?o .}");
+            "DELETE WHERE { <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Winery> ?p1 ?o .}");
     assertThat("The request must signal to have failed with 400 (Bad Request).",
         selectQueryResponse.getStatusCode().value(), is(400));
   }
