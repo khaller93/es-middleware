@@ -8,11 +8,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.rdf.api.Literal;
 
 /**
- * This is an implementation of {@link RDFTerm} that represents RDF literals.
+ * This is an implementation of {@link RDFValueTerm} that represents RDF literals.
  *
  * @author Kevin Haller
  */
-public class RDFLiteral extends RDFTerm {
+public class RDFLiteral extends RDFValueTerm {
 
   @JsonIgnore
   private static final AtomicLong idCounter1 = new AtomicLong(1L);

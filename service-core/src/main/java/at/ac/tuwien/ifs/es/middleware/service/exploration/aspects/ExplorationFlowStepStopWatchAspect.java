@@ -94,7 +94,7 @@ public class ExplorationFlowStepStopWatchAspect {
       return returnedContext;
     } catch (Throwable throwable) {
       if (loggingExecution) {
-        logger.debug("Operator '{}' successfully failed with '{}'.", flowStep.getUID(), throwable);
+        logger.debug("Operator '{}' failed with '{}'.", flowStep.getUID(), throwable);
       }
       throw throwable;
     }

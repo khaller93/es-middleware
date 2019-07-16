@@ -14,7 +14,7 @@ import org.apache.commons.rdf.api.BlankNodeOrIRI;
  * @version 1.0
  * @since 1.0
  */
-public final class Resource extends RDFTerm {
+public final class Resource extends RDFValueTerm {
 
   private BlankNodeOrIRI resource;
 

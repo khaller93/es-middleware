@@ -37,7 +37,7 @@ public class RHood implements IdentifiableResult {
    * @param propertyMap a map of properties and its objects.
    * @return a new empty neighbourhood for the given {@link Resource}.
    */
-  public static RHood of(Map<Resource, List<RDFTerm>> propertyMap) {
+  public static RHood of(Map<Resource, List<RDFValueTerm>> propertyMap) {
     String id = "H#" + idCounter1.get() + "." + idCounter2.getAndUpdate(l -> {
       if (l == Long.MAX_VALUE) {
         idCounter1.incrementAndGet();
@@ -52,11 +52,11 @@ public class RHood implements IdentifiableResult {
   private String id;
   @JsonSerialize(keyUsing = ResourceAsMapKeySerializer.class)
   @JsonDeserialize(keyUsing = ResourceAsMapKeyDeserializer.class)
-  private Map<Resource, List<RDFTerm>> properties;
+  private Map<Resource, List<RDFValueTerm>> properties;
 
   @JsonCreator
   public RHood(@JsonProperty(value = "id", required = true) String id,
-      @JsonProperty(value = "properties") Map<Resource, List<RDFTerm>> properties) {
+      @JsonProperty(value = "properties") Map<Resource, List<RDFValueTerm>> properties) {
     checkArgument(id != null && !id.isEmpty(),
         "An id must be specified for the neighbourhood of a resource.");
     this.id = id;
@@ -68,7 +68,7 @@ public class RHood implements IdentifiableResult {
     return id;
   }
 
-  public Map<Resource, List<RDFTerm>> getProperties() {
+  public Map<Resource, List<RDFValueTerm>> getProperties() {
     return properties;
   }
 

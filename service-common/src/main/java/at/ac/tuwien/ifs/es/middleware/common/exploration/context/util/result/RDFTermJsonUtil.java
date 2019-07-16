@@ -1,16 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.result;
 
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.RDFLiteral;
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.RDFTerm;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.RDFValueTerm;
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import java.io.IOException;
 import org.apache.commons.rdf.api.BlankNode;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.IRI;
@@ -75,7 +67,7 @@ public class RDFTermJsonUtil {
     return literal.value().ntriplesString();
   }
 
-  public static String stringForSPARQLRDFTermOf(RDFTerm term) {
+  public static String stringForSPARQLRDFTermOf(RDFValueTerm term) {
     if (term instanceof Resource) {
       return stringForSPARQLResourceOf((Resource) term);
     } else if (term instanceof RDFLiteral) {

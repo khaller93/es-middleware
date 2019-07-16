@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.common.exploration.context;
 
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.RDFTerm;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.RDFValueTerm;
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Iterator;
@@ -22,20 +22,20 @@ public interface IterableObjectsContext<T extends IdentifiableResult> extends Ex
    * @return an iterator with which it is possible to iterate over all predicates in the context.
    */
   @JsonIgnore
-  Iterator<RDFTerm> getObjectIterator();
+  Iterator<RDFValueTerm> getObjectIterator();
 
   /**
    * Gets the predicates contained in the context as a {@link List} potentially with duplicates.
    *
    * @return a list of predicates (see {@link Resource}), which potentially has duplicates.
    */
-  List<RDFTerm> asObjectList();
+  List<RDFValueTerm> asObjectList();
 
   /**
    * Gets the predicates contained in the context as a {@link Set} without duplicates.
    *
    * @return a set of predicates (see {@link Resource}) without duplicates.
    */
-  Set<RDFTerm> asObjectSet();
+  Set<RDFValueTerm> asObjectSet();
 
 }

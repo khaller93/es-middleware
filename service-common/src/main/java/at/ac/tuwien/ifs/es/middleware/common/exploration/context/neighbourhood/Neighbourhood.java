@@ -7,7 +7,7 @@ import at.ac.tuwien.ifs.es.middleware.common.exploration.context.IterableObjects
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.IterablePredicatesContext;
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.IterableResourcesContext;
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.NHood;
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.RDFTerm;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.RDFValueTerm;
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.RHood;
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.box.ValueBox;
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.box.ValueBoxFactory;
@@ -55,9 +55,9 @@ public class Neighbourhood implements IterableResourcesContext<NHood>,
    * @param neighbourhoodMap a map of subjects and their property maps.
    * @return a {@link Neighbourhood} that represents the given map.
    */
-  public static Neighbourhood of(Map<Resource, Map<Resource, List<RDFTerm>>> neighbourhoodMap) {
+  public static Neighbourhood of(Map<Resource, Map<Resource, List<RDFValueTerm>>> neighbourhoodMap) {
     Map<Resource, RHood> resourceNeighbourhood = new HashMap<>();
-    for (Entry<Resource, Map<Resource, List<RDFTerm>>> entry : neighbourhoodMap.entrySet()) {
+    for (Entry<Resource, Map<Resource, List<RDFValueTerm>>> entry : neighbourhoodMap.entrySet()) {
       resourceNeighbourhood.put(entry.getKey(), RHood.of(entry.getValue()));
     }
     return new Neighbourhood(resourceNeighbourhood);
@@ -126,7 +126,7 @@ public class Neighbourhood implements IterableResourcesContext<NHood>,
     for (Entry<Resource, RHood> resourceNeighbourhoodEntry : resourceNeighbourhood
         .entrySet()) {
       resourceCollection.add(resourceNeighbourhoodEntry.getKey());
-      Map<Resource, List<RDFTerm>> propertyMap = resourceNeighbourhoodEntry.getValue()
+      Map<Resource, List<RDFValueTerm>> propertyMap = resourceNeighbourhoodEntry.getValue()
           .getProperties();
       for (Resource property : propertyMap.keySet()) {
         resourceCollection.add(property);
@@ -151,10 +151,10 @@ public class Neighbourhood implements IterableResourcesContext<NHood>,
     return resourceNeighbourhood.keySet();
   }
 
-  private List<RDFTerm> traverseObjects() {
-    List<RDFTerm> objects = new LinkedList<>();
+  private List<RDFValueTerm> traverseObjects() {
+    List<RDFValueTerm> objects = new LinkedList<>();
     for (RHood neighbourhood : resourceNeighbourhood.values()) {
-       for(List<RDFTerm> neighObjects : neighbourhood.getProperties().values()){
+       for(List<RDFValueTerm> neighObjects : neighbourhood.getProperties().values()){
          objects.addAll(neighObjects);
        }
     }
@@ -162,17 +162,17 @@ public class Neighbourhood implements IterableResourcesContext<NHood>,
   }
 
   @Override
-  public Iterator<RDFTerm> getObjectIterator() {
+  public Iterator<RDFValueTerm> getObjectIterator() {
     return traverseObjects().iterator();
   }
 
   @Override
-  public List<RDFTerm> asObjectList() {
+  public List<RDFValueTerm> asObjectList() {
     return traverseObjects();
   }
 
   @Override
-  public Set<RDFTerm> asObjectSet() {
+  public Set<RDFValueTerm> asObjectSet() {
     return new HashSet<>(traverseObjects());
   }
 

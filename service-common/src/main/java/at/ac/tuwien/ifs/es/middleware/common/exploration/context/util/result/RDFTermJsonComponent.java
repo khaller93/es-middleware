@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.result;
 
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.RDFLiteral;
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.RDFTerm;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.RDFValueTerm;
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -14,7 +14,7 @@ import org.apache.commons.rdf.api.RDF;
 import org.apache.commons.rdf.simple.SimpleRDF;
 
 /**
- * This class provides {@link JsonSerializer} and {@link JsonDeserializer} for {@link RDFTerm}.
+ * This class provides {@link JsonSerializer} and {@link JsonDeserializer} for {@link RDFValueTerm}.
  *
  * @author Kevin Haller
  * @version 1.0

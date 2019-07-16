@@ -15,12 +15,12 @@ import org.apache.commons.rdf.api.Literal;
  * @since 1.0
  */
 @JsonTypeInfo(use = Id.NONE)
-public abstract class RDFTerm implements IdentifiableResult {
+public abstract class RDFValueTerm implements IdentifiableResult {
 
   /**
-   * @return {@link RDFTerm}
+   * @return {@link RDFValueTerm}
    */
-  public static RDFTerm of(org.apache.commons.rdf.api.RDFTerm value) {
+  public static RDFValueTerm of(org.apache.commons.rdf.api.RDFTerm value) {
     checkArgument(value != null, "The value must not be null.");
     if (value instanceof BlankNodeOrIRI) {
       return new Resource((BlankNodeOrIRI) value);

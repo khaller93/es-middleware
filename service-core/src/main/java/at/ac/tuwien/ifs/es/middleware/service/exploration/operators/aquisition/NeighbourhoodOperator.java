@@ -2,7 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.service.exploration.operators.aquisition;
 
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.IterableResourcesContext;
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.neighbourhood.Neighbourhood;
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.RDFTerm;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.RDFValueTerm;
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.resources.ResourceCollection;
 import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
 import at.ac.tuwien.ifs.es.middleware.sparql.result.SelectQueryResult;
@@ -117,18 +117,18 @@ public class NeighbourhoodOperator implements
     List<Map<String, org.apache.commons.rdf.api.RDFTerm>> valueSet = sparqlService.<SelectQueryResult>query(
         new StringSubstitutor(valueMap).replace(QUERY), true)
         .value();
-    Map<Resource, Map<Resource, List<RDFTerm>>> nMap = new HashMap<>();
+    Map<Resource, Map<Resource, List<RDFValueTerm>>> nMap = new HashMap<>();
     for (Map<String, org.apache.commons.rdf.api.RDFTerm> row : valueSet) {
       Resource subject = new Resource((BlankNodeOrIRI) row.get("s"));
       Resource property = new Resource((BlankNodeOrIRI) row.get("p"));
-      RDFTerm object = RDFTerm.of(row.get("o"));
+      RDFValueTerm object = RDFValueTerm.of(row.get("o"));
       nMap.compute(subject,
           (resource, resourceListMap) -> {
-            Map<Resource, List<RDFTerm>> propMap =
+            Map<Resource, List<RDFValueTerm>> propMap =
                 resourceListMap != null ? resourceListMap : new HashMap<>();
             propMap.compute(property,
                 (resource1, list) -> {
-                  List<RDFTerm> objectList = list != null ? list : new LinkedList<>();
+                  List<RDFValueTerm> objectList = list != null ? list : new LinkedList<>();
                   objectList.add(object);
                   return objectList;
                 });

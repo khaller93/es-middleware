@@ -80,7 +80,7 @@ public class ResourceList implements ResourceCollection {
    */
   /*public static ResourceList of(SelectQueryResult selectQueryResult, String bindingName) {
     List<Resource> list = new LinkedList<>();
-    for (Map<String, RDFTerm> row : selectQueryResult.value()) {
+    for (Map<String, RDFValueTerm> row : selectQueryResult.value()) {
       if (row.containsKey(bindingName)) {
         list.add(new Resource((BlankNodeOrIRI) row.get(bindingName)));
       }

@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.result;
 
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.RDFTerm;
+import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.RDFValueTerm;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -9,14 +9,14 @@ import java.io.IOException;
 import org.springframework.boot.jackson.JsonComponent;
 
 /**
- * This class is a custom {@link JsonDeserializer} for {@link RDFTerm} superclass. It delegates
+ * This class is a custom {@link JsonDeserializer} for {@link RDFValueTerm} superclass. It delegates
  * the control to the corresponding deserializer (IRI, BNODE, LITERAL).
  */
 @JsonComponent
-public class RDFTermDeserializer extends JsonDeserializer<RDFTerm> {
+public class RDFTermDeserializer extends JsonDeserializer<RDFValueTerm> {
 
   @Override
-  public RDFTerm deserialize(JsonParser p, DeserializationContext ctxt)
+  public RDFValueTerm deserialize(JsonParser p, DeserializationContext ctxt)
       throws IOException {
     JsonNode node = p.getCodec().readTree(p);
     if (node == null) {
