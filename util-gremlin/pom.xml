@@ -9,7 +9,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>middleware.gremlin-util</artifactId>
+  <artifactId>middleware.util-gremlin</artifactId>
 
   <name>Gremlin Util</name>
 
@@ -17,7 +17,6 @@
     <dependency>
       <groupId>org.apache.tinkerpop</groupId>
       <artifactId>gremlin-core</artifactId>
-      <version>${tinkerpop.version}</version>
     </dependency>
   </dependencies>
 
