@@ -11,20 +11,24 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.DAODependencyGraphService;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.DAOScheduler;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.ThreadPoolConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryGremlinDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.config.PrimaryKGDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JDAOConfig;
-import at.ac.tuwien.ifs.es.middleware.common.knowledgegraph.exception.SPARQLServiceExecutionException;
-import at.ac.tuwien.ifs.es.middleware.common.knowledgegraph.exception.SPARQLServiceIllegalArgumentException;
-import at.ac.tuwien.ifs.es.middleware.sparql.result.AskQueryResult;
-import at.ac.tuwien.ifs.es.middleware.sparql.result.GraphQueryResult;
-import at.ac.tuwien.ifs.es.middleware.sparql.result.QueryResult;
-import at.ac.tuwien.ifs.es.middleware.sparql.result.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.common.knowledgegraph.SPARQLService;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.AskQueryResult;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.GraphQueryResult;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.QueryResult;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.scheduler.SchedulerPipeline;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.exception.SPARQLServiceExecutionException;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.exception.SPARQLServiceIllegalArgumentException;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SPARQLService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.testutil.MapDBDummy;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import java.util.List;
 import java.util.Map;
@@ -52,8 +56,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {SimpleSPARQLService.class,
     RDF4JMemoryStoreWithLuceneSparqlDAO.class,
-    ClonedInMemoryGremlinDAO.class, KGDAOConfig.class, RDF4JDAOConfig.class,
+    ClonedInMemoryGremlinDAO.class, PrimaryKGDAOConfig.class, RDF4JDAOConfig.class,
     RDF4JLuceneFullTextSearchDAO.class, ThreadPoolConfig.class,
+    DAOScheduler.class, SchedulerPipeline.class, MapDBDummy.class, DAODependencyGraphService.class,
     MusicPintaInstrumentsResource.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",

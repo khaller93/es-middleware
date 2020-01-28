@@ -17,22 +17,20 @@
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
     </dependency>
     <!-- ESS -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.dao-core</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.service-common</artifactId>
-      <version>${project.version}</version>
+      <artifactId>middleware.kg-abstraction</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.scheduler-core</artifactId>
     </dependency>
     <!-- RDF framework -->
     <dependency>

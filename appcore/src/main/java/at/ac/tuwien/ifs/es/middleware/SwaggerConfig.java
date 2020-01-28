@@ -2,7 +2,6 @@ package at.ac.tuwien.ifs.es.middleware;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.service.ApiInfo;

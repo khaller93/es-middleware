@@ -1,10 +1,10 @@
 package at.ac.tuwien.ifs.es.middleware.controller;
 
-import at.ac.tuwien.ifs.es.middleware.common.knowledgegraph.exception.SPARQLServiceIllegalArgumentException;
-import at.ac.tuwien.ifs.es.middleware.sparql.result.exception.KGSPARQLResultFormatException;
-import at.ac.tuwien.ifs.es.middleware.sparql.result.exception.KGSPARQLResultSerializationException;
-import at.ac.tuwien.ifs.es.middleware.common.knowledgegraph.SPARQLService;
-import at.ac.tuwien.ifs.es.middleware.common.knowledgegraph.exception.SPARQLServiceExecutionException;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.exception.SPARQLServiceIllegalArgumentException;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.exception.KGSPARQLResultFormatException;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.exception.KGSPARQLResultSerializationException;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.exception.SPARQLServiceExecutionException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;

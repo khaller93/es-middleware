@@ -1,27 +1,16 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOStatusChangeListener;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.event.FTSDAOStateChangeEvent;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.LuceneIndexedRDF4JSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOException;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLSetupException;
-import at.ac.tuwien.ifs.es.middleware.facet.FacetFilter;
-import at.ac.tuwien.ifs.es.middleware.sparql.result.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOFailedStatus;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOInitStatus;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOReadyStatus;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOSetupException;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.facet.FacetFilter;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.FacetedSearchQueryBuilder;
-import java.time.Instant;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.PostConstruct;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.text.StringSubstitutor;
@@ -30,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -62,48 +50,25 @@ public class RDF4JLuceneFullTextSearchDAO implements KGFullTextSearchDAO {
           + "${limit}\n";
 
   private KGSparqlDAO sparqlDAO;
-  private ApplicationContext context;
-
-  private KGDAOStatus status;
-  private List<KGDAOStatusChangeListener> statusChangeListenerList = new LinkedList<>();
 
   @Autowired
-  public RDF4JLuceneFullTextSearchDAO(@Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO,
-      ApplicationContext context) {
+  public RDF4JLuceneFullTextSearchDAO(@Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO) {
     this.sparqlDAO = sparqlDAO;
-    this.context = context;
-    this.status = new KGDAOInitStatus();
   }
 
-  @PostConstruct
-  public void setUp() {
+  @Override
+  public void setup() throws KGDAOException {
     if (!(sparqlDAO instanceof LuceneIndexedRDF4JSparqlDAO)) {
       String message = String.format(
           "The given SPARQL DAO must be indexed with Lucene and implement the '%s' interface.",
           RDF4JLuceneFullTextSearchDAO.class.getName());
-      RuntimeException exception = new KGSPARQLSetupException(message);
-      setStatus(new KGDAOFailedStatus(message, exception));
-      throw exception;
-    } else {
-      setStatus(new KGDAOReadyStatus());
+      throw new KGDAOSetupException(message);
     }
   }
 
   @Override
-  public void addStatusChangeListener(KGDAOStatusChangeListener changeListener) {
-    checkArgument(changeListener != null, "The given change listener must not be null.");
-    statusChangeListenerList.add(changeListener);
-  }
-
-  protected synchronized void setStatus(KGDAOStatus status) {
-    checkArgument(status != null, "The specified status must not be null.");
-    if (!this.status.getCode().equals(status.getCode())) {
-      KGDAOStatus prevStatus = this.status;
-      this.status = status;
-      context.publishEvent(new FTSDAOStateChangeEvent(this, status, prevStatus,
-          Instant.now()));
-      statusChangeListenerList.forEach(changeListener -> changeListener.onStatusChange(status));
-    }
+  public void update(long timestamp) throws KGDAOException {
+    //nothing to do
   }
 
   @Override
@@ -134,8 +99,4 @@ public class RDF4JLuceneFullTextSearchDAO implements KGFullTextSearchDAO {
     return sparqlDAO.<SelectQueryResult>query(filledFtsQuery, true).value();
   }
 
-  @Override
-  public KGDAOStatus getStatus() {
-    return status;
-  }
 }

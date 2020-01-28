@@ -2,12 +2,12 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.resnik;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.ResourcePair;
-import at.ac.tuwien.ifs.es.middleware.common.analysis.RegisterForAnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.ResourcePair;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.ClassEntropyService;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.lca.LowestCommonAncestorService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.hierarchy.classes.lca.LowestCommonAncestorService;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;

@@ -2,9 +2,9 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.degree;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import at.ac.tuwien.ifs.es.middleware.common.knowledgegraph.GremlinService;
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.common.analysis.RegisterForAnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.GremlinService;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.gremlin.util.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import java.util.HashMap;

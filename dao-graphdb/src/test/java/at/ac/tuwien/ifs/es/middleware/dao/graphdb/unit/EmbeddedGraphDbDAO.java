@@ -1,9 +1,9 @@
 package at.ac.tuwien.ifs.es.middleware.dao.graphdb.unit;
 
 import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOException;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLSetupException;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOFailedStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOSetupException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -58,8 +58,7 @@ public class EmbeddedGraphDbDAO extends RDF4JSparqlDAO implements GraphDbSparqlD
   public EmbeddedGraphDbDAO(ApplicationContext context,
       @Value("${graphdb.embedded.location}") String location,
       @Value("${graphdb.embedded.config.path}") String repositoryConfig)
-      throws KGSPARQLSetupException {
-    super(context);
+      throws KGDAOSetupException {
     File locationFile = new File(location);
     if (!locationFile.exists()) {
       boolean createdDirs = locationFile.mkdirs();
@@ -79,8 +78,7 @@ public class EmbeddedGraphDbDAO extends RDF4JSparqlDAO implements GraphDbSparqlD
       this.repositoryManager.initialize();
       this.init(prepareRepository(repositoryManager, repositoryConfig));
     } catch (RepositoryException re) {
-      setStatus(new KGDAOFailedStatus("Triplestore could not be setup", re));
-      throw new KGSPARQLSetupException(re);
+      throw new KGDAOSetupException(re);
     }
   }
 
@@ -94,7 +92,7 @@ public class EmbeddedGraphDbDAO extends RDF4JSparqlDAO implements GraphDbSparqlD
   private static Repository prepareRepository(RepositoryManager repositoryManager,
       String repositoryConfig) {
     if (repositoryConfig == null || repositoryConfig.isEmpty()) {
-      throw new KGSPARQLSetupException(
+      throw new KGDAOSetupException(
           "A 'graphdb.embedded.config.path' property must be given and point to the conf file of the repository that should be built in an embedded GraphDB instance.");
     }
     File repoConfigurationFile = new File(repositoryConfig);
@@ -103,24 +101,24 @@ public class EmbeddedGraphDbDAO extends RDF4JSparqlDAO implements GraphDbSparqlD
         Model configModel = Rio.parse(configIn, RepositoryConfigSchema.NAMESPACE, RDFFormat.TURTLE);
         Resource repositoryNode = Models
             .subject(configModel.filter(null, RDF.TYPE, RepositoryConfigSchema.REPOSITORY))
-            .orElseThrow(() -> new KGSPARQLSetupException(
+            .orElseThrow(() -> new KGDAOSetupException(
                 String.format("The given conf '%s' is invalid.", repositoryConfig)));
         Literal repoId = Models.objectLiteral(
             configModel.filter(repositoryNode, RepositoryConfigSchema.REPOSITORYID, null))
-            .orElseThrow(() -> new KGSPARQLSetupException(
+            .orElseThrow(() -> new KGDAOSetupException(
                 String.format(
                     "The repository id (%s) is missing in the conf '%s' is invalid.",
                     RepositoryConfigSchema.REPOSITORYID, repositoryConfig)));
         repositoryManager.addRepositoryConfig(RepositoryConfig.create(configModel, repositoryNode));
         return repositoryManager.getRepository(repoId.getLabel());
       } catch (IOException | RDFParseException | UnsupportedRDFormatException e) {
-        throw new KGSPARQLSetupException(
+        throw new KGDAOSetupException(
             String
                 .format("The given conf file '%s' could not be read in: %s",
                     repositoryConfig, e.getMessage()));
       }
     } else {
-      throw new KGSPARQLSetupException(
+      throw new KGDAOSetupException(
           String.format(
               "The 'graphdb.embedded.config.path' property '%s' must point to the conf file of the repository.",
               repositoryConfig));
@@ -132,5 +130,10 @@ public class EmbeddedGraphDbDAO extends RDF4JSparqlDAO implements GraphDbSparqlD
     if (repositoryManager != null) {
       repositoryManager.shutDown();
     }
+  }
+
+  @Override
+  public void setup() throws KGDAOException {
+
   }
 }

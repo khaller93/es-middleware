@@ -14,49 +14,50 @@
   <name>DAO Core</name>
 
   <dependencies>
+    <!-- ESM -->
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.scheduler-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.util-gremlin</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.kg-abstraction</artifactId>
+    </dependency>
     <!-- RDF framework -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-rdf-api</artifactId>
-      <version>${apache.commons.rdf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-rdf-simple</artifactId>
     </dependency>
     <!-- Utils -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-text</artifactId>
-      <version>${apache.commons.text.version}</version>
     </dependency>
     <!-- Tinkerpop/Gremlin -->
     <dependency>
       <groupId>org.apache.tinkerpop</groupId>
       <artifactId>gremlin-core</artifactId>
-      <version>${tinkerpop.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.tinkerpop</groupId>
       <artifactId>tinkergraph-gremlin</artifactId>
-      <version>${tinkerpop.version}</version>
     </dependency>
-    <!-- ESS -->
+    <!-- Map DB -->
     <dependency>
-      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.sparql-query-result</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.gremlin-util</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.facet</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.mapdb</groupId>
+      <artifactId>mapdb</artifactId>
     </dependency>
   </dependencies>
 

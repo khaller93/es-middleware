@@ -34,47 +34,42 @@
     </dependency>
     <!-- Exploratory Search Service Dependencies -->
     <dependency>
+    <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+    <artifactId>middleware.dao-rdf4j</artifactId>
+  </dependency>
+    <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.dao-rdf4j</artifactId>
-      <version>${project.version}</version>
+      <artifactId>middleware.service-exploration</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.service-analysis</artifactId>
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.service-core</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <!-- External ES modules -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.dao-blazegraph</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.dao-stardog</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.dao-graphdb</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.dao-janusgraph</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <!-- Testing for DAO -->
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.util-tetsing</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>${apache.commons.io.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -85,7 +80,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
-          <layout>ZIP</layout>
+          <finalName>esm</finalName>
           <mainClass>at.ac.tuwien.ifs.es.middleware.ExploratorySearchApplication</mainClass>
         </configuration>
       </plugin>

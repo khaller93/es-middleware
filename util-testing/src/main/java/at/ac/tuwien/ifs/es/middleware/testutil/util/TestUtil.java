@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.testutil.util;
 
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
 import java.util.List;
 
 public final class TestUtil {

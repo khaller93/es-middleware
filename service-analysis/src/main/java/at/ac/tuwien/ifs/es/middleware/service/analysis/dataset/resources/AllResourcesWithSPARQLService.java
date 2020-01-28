@@ -2,11 +2,12 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.common.knowledgegraph.SPARQLService;
-import at.ac.tuwien.ifs.es.middleware.sparql.result.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.result.RDFTermJsonUtil;
-import at.ac.tuwien.ifs.es.middleware.common.analysis.RegisterForAnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.serializer.RDFTermJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SPARQLService;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.MapDB;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -27,7 +28,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * This class provide a concrete implmentation {@link AllResourcesService} that uses {@link
- * SPARQLService} for fetching all the resources and {@link at.ac.tuwien.ifs.es.middleware.service.analysis.MapDB}
+ * SPARQLService} for fetching all the resources and {@link MapDB}
  * to store all the resources for fast access.
  *
  * @author Kevin Haller

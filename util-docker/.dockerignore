@@ -1,0 +1,5 @@
+target/docker
+target/maven-archive
+target/test-classes
+target/*.docker-util-docker-info.jar
+pom.xml

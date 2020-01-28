@@ -8,6 +8,7 @@
     <artifactId>spring-boot-starter-parent</artifactId>
     <version>2.1.1.RELEASE</version>
   </parent>
+
   <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
   <artifactId>middleware</artifactId>
   <version>1.0-SNAPSHOT</version>
@@ -40,8 +41,7 @@
     <apache.commons.text.version>1.6</apache.commons.text.version>
     <apache.commons.io.version>2.6</apache.commons.io.version>
     <guava.version>27.0.1-jre</guava.version>
-    <docker.spotify.plugin.version>1.4.9</docker.spotify.plugin.version>
-    <docker.image.prefix>ess</docker.image.prefix>
+    <org.mapdb.version>3.0.7</org.mapdb.version>
   </properties>
 
   <modules>
@@ -50,7 +50,8 @@
     <!--Service Layer -->
     <module>service-core</module>
     <module>service-analysis</module>
-    <module>service-common</module>
+    <module>service-exploration</module>
+    <module>scheduler-core</module>
     <!-- DAO Layer -->
     <module>dao-core</module>
     <module>dao-rdf4j</module>
@@ -59,8 +60,7 @@
     <module>dao-stardog</module>
     <module>dao-janusgraph</module>
     <!-- DTO -->
-    <module>facet</module>
-    <module>sparql-query-result</module>
+    <module>kg-abstraction</module>
     <!-- Utils -->
     <module>util-sparql</module>
     <module>util-gremlin</module>
@@ -69,12 +69,15 @@
   </modules>
 
   <dependencies>
-    <!-- Spring boot -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
-    <!-- Testing -->
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+      <version>2.3.0</version>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
@@ -82,23 +85,141 @@
     </dependency>
   </dependencies>
 
-  <build>
-    <finalName>${project.artifactId}</finalName>
-    <plugins>
-      <plugin>
-        <groupId>com.spotify</groupId>
-        <artifactId>dockerfile-maven-plugin</artifactId>
-        <version>${docker.spotify.plugin.version}</version>
-        <configuration>
-          <repository>${docker.image.prefix}/exploratory-search-service</repository>
-          <tag>${project.version}</tag>
-          <skip>true</skip>
-          <buildArgs>
-            <JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
-          </buildArgs>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+        <artifactId>middleware.appcore</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+        <artifactId>middleware.kg-abstraction</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <!-- ESM DAO modules -->
+      <dependency>
+        <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+        <artifactId>middleware.dao-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+        <artifactId>middleware.dao-rdf4j</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+        <artifactId>middleware.dao-blazegraph</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+        <artifactId>middleware.dao-graphdb</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+        <artifactId>middleware.dao-stardog</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+        <artifactId>middleware.dao-janusgraph</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <!-- ESM Service -->
+      <dependency>
+        <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+        <artifactId>middleware.service-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+        <artifactId>middleware.service-analysis</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+        <artifactId>middleware.service-exploration</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+        <artifactId>middleware.scheduler-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <!-- ESM UTILS -->
+      <dependency>
+        <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+        <artifactId>middleware.util-testing</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+        <artifactId>middleware.util-sparql</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+        <artifactId>middleware.util-gremlin</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+        <artifactId>middleware.util-docker</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+        <artifactId>middleware.util-tetsing</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <!-- RDF Framework -->
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-rdf-api</artifactId>
+        <version>${apache.commons.rdf.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-rdf-simple</artifactId>
+        <version>${apache.commons.rdf.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-rdf-rdf4j</artifactId>
+        <version>${apache.commons.rdf.version}</version>
+      </dependency>
+      <!-- MAP DB -->
+      <dependency>
+        <groupId>org.mapdb</groupId>
+        <artifactId>mapdb</artifactId>
+        <version>${org.mapdb.version}</version>
+      </dependency>
+      <!-- Tinkerpop -->
+      <dependency>
+        <groupId>org.apache.tinkerpop</groupId>
+        <artifactId>gremlin-core</artifactId>
+        <version>${tinkerpop.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tinkerpop</groupId>
+        <artifactId>tinkergraph-gremlin</artifactId>
+        <version>${tinkerpop.version}</version>
+      </dependency>
+      <!-- Programming Utils -->
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>${guava.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-text</artifactId>
+        <version>${apache.commons.text.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
 </project>

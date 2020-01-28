@@ -1,8 +1,10 @@
 package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.DependsOn;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.config.KnowledgeGraphDAOConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOException;
 import at.ac.tuwien.ifs.es.middleware.gremlin.util.schema.LiteralGraphSchema;
 import at.ac.tuwien.ifs.es.middleware.gremlin.util.schema.PGS;
 import org.apache.tinkerpop.gremlin.structure.T;
@@ -43,5 +45,10 @@ public class ClonedInMemoryGremlinDAO extends AbstractClonedGremlinDAO {
   @Override
   protected boolean areTransactionSupported() {
     return false;
+  }
+
+  @Override
+  public void update(long timestamp) throws KGDAOException {
+    //nothing to do
   }
 }

@@ -1,10 +1,11 @@
 package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOStatus;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOConnectionException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOSetupException;
 
 /**
- * Instances of this interface represent a DAO to the knowledge graph. It is expected from a DAO
- * that it is reporting its status.
+ * Instances of this interface represent a DAO to the knowledge graph.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -13,17 +14,21 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOStatus;
 public interface KGDAO {
 
   /**
-   * Registers the given {@link KGDAOStatusChangeListener} for this DAO.
+   * Setups this DAO to the knowledge graph.
    *
-   * @param changeListener {@link KGDAOStatusChangeListener} that shall be registered.
+   * @throws KGDAOConnectionException if connection fails.
+   * @throws KGDAOSetupException if the setup generally fails.
    */
-  void addStatusChangeListener(KGDAOStatusChangeListener changeListener);
+  void setup() throws KGDAOSetupException, KGDAOConnectionException;
 
   /**
-   * Gets the current {@link KGDAOStatus} of this DAO.
+   * Updates this DAO to the knowledge graph. This method  shall be called, if it is suspected
+   * that the managed knowledge graph has been changed.
    *
-   * @return current {@link KGDAOStatus} of this DAO.
+   * @param timestamp of the update.
+   * @throws KGDAOConnectionException if connection fails.
+   * @throws KGDAOException if the update generally fails.
    */
-  KGDAOStatus getStatus();
+  void update(long timestamp) throws KGDAOException;
 
 }

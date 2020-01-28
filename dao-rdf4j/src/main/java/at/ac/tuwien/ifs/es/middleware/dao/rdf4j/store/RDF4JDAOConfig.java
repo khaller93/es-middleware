@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGeneralDAOConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.config.KGGeneralDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;

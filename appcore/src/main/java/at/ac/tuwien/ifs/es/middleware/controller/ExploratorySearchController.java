@@ -2,10 +2,10 @@ package at.ac.tuwien.ifs.es.middleware.controller;
 
 import at.ac.tuwien.ifs.es.middleware.controller.meta.EFExceptionDTO;
 import at.ac.tuwien.ifs.es.middleware.controller.meta.TimeMetadata;
-import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowServiceExecutionException;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.exception.ExplorationFlowServiceExecutionException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.request.DynamicExplorationFlowRequest;
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.ExplorationContext;
-import at.ac.tuwien.ifs.es.middleware.service.exception.ExplorationFlowSpecificationException;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.context.ExplorationContext;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.exception.ExplorationFlowSpecificationException;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.status.OperatorInfo;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.status.OperatorStatusService;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.status.SimpleOperatorStatusService;

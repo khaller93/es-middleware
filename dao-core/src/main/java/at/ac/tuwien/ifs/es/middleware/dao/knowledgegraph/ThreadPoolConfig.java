@@ -3,6 +3,7 @@ package at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -22,6 +23,7 @@ public class ThreadPoolConfig {
   private int maxPoolSize;
 
   @Bean
+  @Primary
   public TaskExecutor threadPool() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(corePoolSize);

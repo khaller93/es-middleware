@@ -1,27 +1,27 @@
 package at.ac.tuwien.ifs.es.middleware.tests.integration;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertTrue;
 
 import at.ac.tuwien.ifs.es.middleware.ExploratorySearchApplication;
-import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.testutil.ExternalKGResource.UpdatedFuture;
 import at.ac.tuwien.ifs.es.middleware.testutil.WineOntologyDatasetResource;
 import java.io.ByteArrayInputStream;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.assertj.core.util.Lists;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
-import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.query.QueryResults;
@@ -31,6 +31,7 @@ import org.eclipse.rdf4j.query.resultio.TupleQueryResultFormat;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,14 +67,9 @@ public class SPARQLControllerTest {
 
   @Autowired
   private TestRestTemplate restTemplate;
+  @Rule
   @Autowired
   public WineOntologyDatasetResource wineOntologyDatasetResource;
-
-  @Before
-  public void setUp() throws Throwable {
-    wineOntologyDatasetResource.cleanSetup();
-    wineOntologyDatasetResource.waitForAllDAOsBeingReady();
-  }
 
   @Test
   public void test_countWinesQuery_ok_mustReturnValue() throws Exception {
@@ -206,7 +202,8 @@ public class SPARQLControllerTest {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
     MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-    map.add("update", "INSERT DATA { <:a/\\path> a <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#SchlossVolradTrochenbierenausleseRiesling>. }");
+    map.add("update",
+        "INSERT DATA { <:a/\\path> a <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#SchlossVolradTrochenbierenausleseRiesling>. }");
     HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(map, headers);
 
     ResponseEntity<Void> updateDataResponse = restTemplate
@@ -247,7 +244,8 @@ public class SPARQLControllerTest {
         .exchange("/sparql?query={query}", HttpMethod.GET, new HttpEntity<>(headers),
             String.class,
             "ASK WHERE { <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#SchlossVolradTrochenbierenausleseRiesling> <http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#hasWineDescriptor> ?o .}");
-    assertThat("The 'SchlossVolradTrochenbierenausleseRiesling' resource must be removed.", askResponse.getBody(), is("false"));
+    assertThat("The 'SchlossVolradTrochenbierenausleseRiesling' resource must be removed.",
+        askResponse.getBody(), is("false"));
   }
 
   @Test

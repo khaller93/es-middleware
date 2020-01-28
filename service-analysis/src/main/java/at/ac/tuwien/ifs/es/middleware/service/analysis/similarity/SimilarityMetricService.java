@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity;
 
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.ResourcePair;
-import at.ac.tuwien.ifs.es.middleware.common.analysis.AnalysisService;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.ResourcePair;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisService;
 
 /**
  * Instances get this interface represent a similarity metric that can be computed for the given

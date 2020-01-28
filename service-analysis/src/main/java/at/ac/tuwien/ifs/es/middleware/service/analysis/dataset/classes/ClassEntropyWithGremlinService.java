@@ -1,10 +1,10 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes;
 
-import at.ac.tuwien.ifs.es.middleware.common.knowledgegraph.GremlinService;
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.common.analysis.RegisterForAnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.GremlinService;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.gremlin.util.schema.PGS;
-import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.hierarchy.ClassHierarchyService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.hierarchy.classes.ClassHierarchyService;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RegisterForAnalyticalProcessing(name = ClassEntropyWithGremlinService.UID,
     requiresGremlin = true, prerequisites = {AllClassesService.class,
-    ClassHierarchyService.class}, disabled = true)
+    ClassHierarchyService.class})
 public class ClassEntropyWithGremlinService implements ClassEntropyService {
 
   private static final Logger logger = LoggerFactory.getLogger(ClassEntropyService.class);

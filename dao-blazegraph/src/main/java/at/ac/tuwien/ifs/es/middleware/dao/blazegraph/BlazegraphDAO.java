@@ -3,8 +3,8 @@ package at.ac.tuwien.ifs.es.middleware.dao.blazegraph;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOException;
-import at.ac.tuwien.ifs.es.middleware.facet.FacetFilter;
-import at.ac.tuwien.ifs.es.middleware.sparql.result.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.facet.FacetFilter;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.FacetedSearchQueryBuilder;
 import java.util.HashMap;
 import java.util.List;
@@ -56,7 +56,6 @@ public class BlazegraphDAO extends RDF4JSparqlDAO implements KGFullTextSearchDAO
   @Autowired
   public BlazegraphDAO(ApplicationContext context,
       @Value("${blazegraph.address}") String queryEndpointURL) {
-    super(context);
     this.queryEndpointURL = queryEndpointURL;
   }
 
@@ -93,5 +92,10 @@ public class BlazegraphDAO extends RDF4JSparqlDAO implements KGFullTextSearchDAO
         .trace("Searching with '{}' for '{}' of classes {} with limit={}, offset={}.", searchQuery,
             keyword, classes, offset, limit);
     return this.<SelectQueryResult>query(searchQuery, true).value();
+  }
+
+  @Override
+  public void setup() throws KGDAOException {
+
   }
 }

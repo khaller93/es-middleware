@@ -1,5 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOException;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.LuceneIndexedRDF4JSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
 import org.eclipse.rdf4j.sail.lucene.LuceneSail;
@@ -32,21 +33,19 @@ public class RDF4JMemoryStoreWithLuceneSparqlDAO extends RDF4JSparqlDAO implemen
   private final static Logger logger = LoggerFactory
       .getLogger(RDF4JMemoryStoreWithLuceneSparqlDAO.class);
 
-  /**
-   * Creates a new {@link RDF4JMemoryStoreWithLuceneSparqlDAO} in memory, where the text is indexed
-   * with Lucene.
-   *
-   * @param context that shall be used to fetch the beans.
-   */
-  @Autowired
-  public RDF4JMemoryStoreWithLuceneSparqlDAO(ApplicationContext context) {
-    super(context);
+
+  public RDF4JMemoryStoreWithLuceneSparqlDAO() {
     logger.debug("Initiating the RDF4J memory storage, where text is indexed with Lucene.");
     LuceneSail luceneSail = new LuceneSail();
     luceneSail.setParameter(LuceneSail.LUCENE_RAMDIR_KEY, "true");
     luceneSail.setBaseSail(new MemoryStore());
     this.init(luceneSail);
     logger.debug("RDF4J memory storage, where text is indexed with Lucene, is ready.");
+  }
+
+  @Override
+  public void setup() throws KGDAOException {
+
   }
 
 }

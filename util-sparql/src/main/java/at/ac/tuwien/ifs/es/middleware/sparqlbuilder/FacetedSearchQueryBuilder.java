@@ -2,8 +2,8 @@ package at.ac.tuwien.ifs.es.middleware.sparqlbuilder;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import at.ac.tuwien.ifs.es.middleware.facet.FacetFilter;
-import at.ac.tuwien.ifs.es.middleware.facet.OneOfValuesFacetFilter;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.facet.FacetFilter;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.facet.OneOfValuesFacetFilter;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;

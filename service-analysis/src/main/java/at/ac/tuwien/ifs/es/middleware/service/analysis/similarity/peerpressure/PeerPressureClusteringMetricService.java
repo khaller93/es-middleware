@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.peerpressure;
 
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.ResourcePair;
-import at.ac.tuwien.ifs.es.middleware.common.analysis.AnalysisService;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.ResourcePair;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisService;
 
 /**
  * This is a {@link AnalysisService} for computing a peer pressure algorithm on the knowledge graph.

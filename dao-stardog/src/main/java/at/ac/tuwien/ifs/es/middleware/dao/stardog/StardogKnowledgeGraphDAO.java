@@ -1,11 +1,11 @@
 package at.ac.tuwien.ifs.es.middleware.dao.stardog;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.config.KnowledgeGraphDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOException;
-import at.ac.tuwien.ifs.es.middleware.facet.FacetFilter;
-import at.ac.tuwien.ifs.es.middleware.sparql.result.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.facet.FacetFilter;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOFailedStatus;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOInitStatus;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOReadyStatus;
@@ -67,7 +67,6 @@ public class StardogKnowledgeGraphDAO extends RDF4JSparqlDAO implements
   @Autowired
   public StardogKnowledgeGraphDAO(StardogConfig stardogConfig,
       ApplicationContext context) {
-    super(context);
     this.stardogConfig = stardogConfig;
     this.ftsStatus = new KGDAOInitStatus();
   }
@@ -87,8 +86,8 @@ public class StardogKnowledgeGraphDAO extends RDF4JSparqlDAO implements
   }
 
   @Override
-  public KGDAOStatus getStatus() {
-    return ftsStatus;
+  public void setup() throws KGDAOException {
+
   }
 
   @Override

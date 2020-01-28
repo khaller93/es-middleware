@@ -15,8 +15,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
 import at.ac.tuwien.ifs.es.middleware.ExploratorySearchApplication;
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.resources.ResourceList;
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.context.resources.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -34,7 +34,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.rdf.api.IRI;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -96,11 +95,6 @@ public class DynamicExploratoryMusicPintaFlowTest {
         jsonTestMap.put(e.getKey(), IOUtils.toString(in, "utf-8"));
       }
     }
-  }
-
-  @Before
-  public void setUp() throws Exception {
-    musicPintaResource.waitForAllDAOsBeingReady();
   }
 
   @Test

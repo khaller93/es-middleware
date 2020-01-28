@@ -6,11 +6,15 @@ import static org.hamcrest.Matchers.instanceOf;
 import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbLucene;
 import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbLuceneConfig;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.DAODependencyGraphService;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.DAOScheduler;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.config.PrimaryKGDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.ThreadPoolConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.scheduler.SchedulerPipeline;
 import at.ac.tuwien.ifs.es.middleware.testutil.AbstractMusicPintaSPARQLTests;
+import at.ac.tuwien.ifs.es.middleware.testutil.MapDBDummy;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import java.io.File;
 import java.io.IOException;
@@ -39,7 +43,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {EmbeddedGraphDbDAO.class, ClonedInMemoryGremlinDAO.class,
-    GraphDbLucene.class, KGDAOConfig.class, GraphDbConfig.class, GraphDbLuceneConfig.class,
+    GraphDbLucene.class, PrimaryKGDAOConfig.class, GraphDbConfig.class, GraphDbLuceneConfig.class,
+    DAOScheduler.class, SchedulerPipeline.class, MapDBDummy.class, DAODependencyGraphService.class,
     ThreadPoolConfig.class, MusicPintaInstrumentsResource.class})
 @TestPropertySource(properties = {
     "esm.db.choice=GraphDB",

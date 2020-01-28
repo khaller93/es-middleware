@@ -1,10 +1,10 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes;
 
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.common.knowledgegraph.SPARQLService;
-import at.ac.tuwien.ifs.es.middleware.sparql.result.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.result.RDFTermJsonUtil;
-import at.ac.tuwien.ifs.es.middleware.common.analysis.RegisterForAnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.serializer.RDFTermJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SPARQLService;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;

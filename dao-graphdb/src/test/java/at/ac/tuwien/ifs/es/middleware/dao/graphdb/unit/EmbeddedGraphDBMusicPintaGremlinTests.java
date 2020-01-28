@@ -6,7 +6,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbLucene;
 import at.ac.tuwien.ifs.es.middleware.dao.graphdb.GraphDbLuceneConfig;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.config.PrimaryKGDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.ThreadPoolConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.ClonedInMemoryGremlinDAO;
@@ -39,7 +39,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {EmbeddedGraphDbDAO.class, ClonedInMemoryGremlinDAO.class,
-    GraphDbLucene.class, KGDAOConfig.class, GraphDbConfig.class, GraphDbLuceneConfig.class,
+    GraphDbLucene.class, PrimaryKGDAOConfig.class, GraphDbConfig.class, GraphDbLuceneConfig.class,
     ThreadPoolConfig.class, MusicPintaInstrumentsResource.class})
 @TestPropertySource(properties = {
     "esm.db.choice=GraphDB",

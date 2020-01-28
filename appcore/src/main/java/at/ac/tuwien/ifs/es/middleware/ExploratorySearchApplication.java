@@ -4,7 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Executable main class for this middleware.
+ * Executable main class for this service.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -13,7 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class ExploratorySearchApplication {
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     SpringApplication.run(ExploratorySearchApplication.class, args);
   }
 

@@ -1,6 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.dao.janusgraph;
 
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.DependsOn;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOException;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.gremlin.AbstractClonedGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.gremlin.util.schema.LiteralGraphSchema;
 import at.ac.tuwien.ifs.es.middleware.gremlin.util.schema.PGS;
@@ -42,6 +44,7 @@ import org.springframework.stereotype.Component;
 @Lazy
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 @Component("LocalSyncingJanusGraph")
+@DependsOn(sparql = true)
 public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
 
   private static final Logger logger = LoggerFactory.getLogger(ClonedLocalJanusGraph.class);
@@ -95,6 +98,11 @@ public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
     }
     logger.info("Finished initializing the setup of Janusgraph.");
     return graph;
+  }
+
+  @Override
+  public void update(long timestamp) throws KGDAOException {
+
   }
 
   @Override

@@ -1,9 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.testutil;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.config.KnowledgeGraphDAOConfig;
+import at.ac.tuwien.ifs.es.middleware.scheduler.SchedulerPipeline;
 import java.io.IOException;
 import java.io.InputStream;
 import org.eclipse.rdf4j.model.Model;
@@ -40,14 +39,8 @@ public class MusicPintaInstrumentsResource extends ExternalKGResource {
 
   @Autowired
   public MusicPintaInstrumentsResource(@Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO,
-      @Qualifier("getGremlinDAO") KGGremlinDAO gremlinDAO,
-      @Qualifier("getFullTextSearchDAO") KGFullTextSearchDAO fullTextSearchDAO) {
-    super(sparqlDAO, gremlinDAO, fullTextSearchDAO);
-  }
-
-  @Override
-  public Model getKnowledgeGraphModel() {
-    return testModel;
+      SchedulerPipeline pipeline) throws IOException {
+    super(sparqlDAO, pipeline, testModel);
   }
 
 }

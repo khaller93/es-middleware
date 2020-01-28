@@ -1,6 +1,5 @@
 package at.ac.tuwien.ifs.es.middleware.service.knowledgegraph;
 
-import at.ac.tuwien.ifs.es.middleware.common.knowledgegraph.GremlinService;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.gremlin.util.schema.PGS;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;

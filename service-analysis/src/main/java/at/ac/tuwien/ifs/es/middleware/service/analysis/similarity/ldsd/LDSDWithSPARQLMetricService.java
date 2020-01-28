@@ -2,12 +2,12 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.ldsd;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.ResourcePair;
-import at.ac.tuwien.ifs.es.middleware.common.knowledgegraph.SPARQLService;
-import at.ac.tuwien.ifs.es.middleware.sparql.result.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.util.result.RDFTermJsonUtil;
-import at.ac.tuwien.ifs.es.middleware.common.analysis.RegisterForAnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.ResourcePair;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.serializer.RDFTermJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SPARQLService;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import java.util.List;
 import java.util.Map;

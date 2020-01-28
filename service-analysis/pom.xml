@@ -10,29 +10,48 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>middleware.service-analysis</artifactId>
+  <packaging>jar</packaging>
 
   <name>Service Analysis</name>
-
-  <properties>
-    <org.mapdb.version>3.0.7</org.mapdb.version>
-  </properties>
+  <description>
+    Module providing services for analysing a given knowledge graph.
+  </description>
 
   <dependencies>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.service-common</artifactId>
-      <version>${project.version}</version>
+      <artifactId>middleware.dao-core</artifactId>
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.dao-core</artifactId>
-      <version>${project.version}</version>
+      <artifactId>middleware.scheduler-core</artifactId>
     </dependency>
-    <!-- Map DB -->
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.service-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.kg-abstraction</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.util-gremlin</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.mapdb</groupId>
       <artifactId>mapdb</artifactId>
-      <version>${org.mapdb.version}</version>
+    </dependency>
+    <!-- Testing -->
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.util-tetsing</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.dao-rdf4j</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

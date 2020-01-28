@@ -10,15 +10,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
  * This class is an implementation of {@link RDF4JSparqlDAO}. It uses the native storage of RDF4J,
- * which can handle data in the range of 100 million triples. A Lucene index is applied to the storage
- * text, whereby the index is persisted to the disk.
+ * which can handle data in the range of 100 million triples. A Lucene index is applied to the
+ * storage text, whereby the index is persisted to the disk.
  *
  * @author Kevin Haller
  * @version 1.0
@@ -34,13 +33,7 @@ public class RDF4JNativeStoreWithLuceneSparqlDAO extends RDF4JSparqlDAO implemen
       .getLogger(RDF4JNativeStoreWithLuceneSparqlDAO.class);
 
   @Autowired
-  public RDF4JNativeStoreWithLuceneSparqlDAO(ApplicationContext applicationContext,
-      @Value("${rdf4j.dir}") String dataDir) {
-    super(applicationContext);
-    setUp(dataDir);
-  }
-
-  public void setUp(String dataDir) {
+  public RDF4JNativeStoreWithLuceneSparqlDAO(@Value("${rdf4j.dir}") String dataDir) {
     logger.debug("Initiating the RDF4J memory storage, where text is indexed with Lucene.");
     File dir = new File(dataDir);
     File nativeStoreDir = new File(dir, "storage");
@@ -49,7 +42,8 @@ public class RDF4JNativeStoreWithLuceneSparqlDAO extends RDF4JSparqlDAO implemen
       boolean createdDirs = nativeStoreDir.mkdirs();
       if (createdDirs) {
         logger
-            .trace("Directories for native storage '{}' created.", nativeStoreDir.getAbsolutePath());
+            .trace("Directories for native storage '{}' created.",
+                nativeStoreDir.getAbsolutePath());
       } else {
         logger.trace("Could not create native storage for path '{}'.",
             nativeStoreDir.getAbsolutePath());

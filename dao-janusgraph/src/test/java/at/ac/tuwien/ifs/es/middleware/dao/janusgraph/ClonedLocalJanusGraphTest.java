@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.dao.janusgraph;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGDAOConfig;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.config.PrimaryKGDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.ThreadPoolConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
@@ -28,7 +28,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {
-    RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedLocalJanusGraph.class, KGDAOConfig.class,
+    RDF4JMemoryStoreWithLuceneSparqlDAO.class, ClonedLocalJanusGraph.class, PrimaryKGDAOConfig.class,
     RDF4JDAOConfig.class, RDF4JLuceneFullTextSearchDAO.class, ThreadPoolConfig.class,
     MusicPintaInstrumentsResource.class
 })

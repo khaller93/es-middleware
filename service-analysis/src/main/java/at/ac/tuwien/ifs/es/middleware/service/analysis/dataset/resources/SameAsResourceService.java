@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources;
 
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.common.analysis.AnalysisService;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisService;
 import java.util.Set;
 
 /**

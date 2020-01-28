@@ -3,18 +3,26 @@ package at.ac.tuwien.ifs.es.middleware.testutil;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KnowledgeGraphDAOConfig;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOFailedStatus;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOStatus;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOStatus.CODE;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.config.KnowledgeGraphDAOConfig;
+import at.ac.tuwien.ifs.es.middleware.scheduler.SchedulerPipeline;
+import at.ac.tuwien.ifs.es.middleware.scheduler.TaskStatus.VALUE;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import org.assertj.core.util.Lists;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
+import org.jetbrains.annotations.NotNull;
 import org.junit.rules.ExternalResource;
 
 /**
@@ -27,120 +35,129 @@ import org.junit.rules.ExternalResource;
  */
 public abstract class ExternalKGResource extends ExternalResource {
 
-  private KGSparqlDAO sparqlDAO;
-  private KGGremlinDAO gremlinDAO;
-  private KGFullTextSearchDAO fullTextSearchDAO;
+  private final KGSparqlDAO sparqlDAO;
+  private final SchedulerPipeline pipeline;
+  private final String insertSPARQLQuery;
 
-  private LinkedBlockingQueue<KGDAOStatus> sparqlReadyQueue = new LinkedBlockingQueue<>();
-  private LinkedBlockingQueue<KGDAOStatus> gremlinReadyQueue = new LinkedBlockingQueue<>();
-  private LinkedBlockingQueue<KGDAOStatus> fulltextsearchQueue = new LinkedBlockingQueue<>();
-
-  public ExternalKGResource(KGSparqlDAO sparqlDAO, KGGremlinDAO gremlinDAO,
-      KGFullTextSearchDAO fullTextSearchDAO) {
+  public ExternalKGResource(KGSparqlDAO sparqlDAO, SchedulerPipeline pipeline, Model testData)
+      throws IOException {
     this.sparqlDAO = sparqlDAO;
-    this.sparqlDAO.addStatusChangeListener(newStatus -> {
-      if (newStatus.getCode().equals(CODE.READY)) {
-        sparqlReadyQueue.add(newStatus);
-      }
-    });
-    this.gremlinDAO = gremlinDAO;
-    this.gremlinDAO.addStatusChangeListener(newStatus -> {
-      if (newStatus.getCode().equals(CODE.READY)) {
-        gremlinReadyQueue.add(newStatus);
-      }
-    });
-    this.fullTextSearchDAO = fullTextSearchDAO;
-    this.fullTextSearchDAO.addStatusChangeListener(newStatus -> {
-      if (newStatus.getCode().equals(CODE.READY)) {
-        fulltextsearchQueue.add(newStatus);
-      }
-    });
+    this.pipeline = pipeline;
+    this.insertSPARQLQuery = getInsertSparqlQuery(testData);
   }
 
-  public abstract Model getKnowledgeGraphModel();
-
-  public void cleanSetup() throws Throwable {
-    sparqlReadyQueue.clear();
-    gremlinReadyQueue.clear();
-    fulltextsearchQueue.clear();
-    /*  */
-    gremlinDAO.lock();
-    try {
-      gremlinDAO.traversal().V().drop().iterate();
-      gremlinDAO.traversal().E().drop().iterate();
-      gremlinDAO.commit();
-    } catch (Exception e) {
-      gremlinDAO.rollback();
-      throw e;
-    } finally {
-      gremlinDAO.unlock();
-    }
-    sparqlDAO.update("DELETE {?s ?p ?o} WHERE {?s ?p ?o}");
-    /*  */
-    Iterator<Statement> statementIterator = getKnowledgeGraphModel().iterator();
-    while (statementIterator.hasNext()) {
+  private String getInsertSparqlQuery(Model testData) throws IOException {
+    Iterator<Statement> statementIterator = testData.iterator();
+    if (statementIterator.hasNext()) {
       try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
         while (statementIterator.hasNext()) {
           Rio.write(statementIterator.next(), out, RDFFormat.NTRIPLES);
         }
-        sparqlDAO.update(String.format("INSERT DATA {%s}", new String(out.toByteArray())));
+        return String.format("INSERT DATA {%s}", new String(out.toByteArray()));
       }
     }
+    return null;
   }
 
   @Override
   protected void before() throws Throwable {
-    this.cleanSetup();
-    this.waitForAllDAOsBeingReady();
+    before(Lists.newArrayList(KGSparqlDAO.class.getName(),
+        KGGremlinDAO.class.getName(), KGFullTextSearchDAO.class.getName()));
   }
 
-  public void waitForSPARQLDAOBeingReady() throws InterruptedException {
-    if (!this.sparqlDAO.getStatus().getCode().equals(CODE.READY)) {
-      KGDAOStatus status;
-      do {
-        status = this.sparqlReadyQueue.poll(1, TimeUnit.MINUTES);
-      } while (status != null && !status.getCode().equals(CODE.READY) && !status.getCode()
-          .equals(CODE.FAILED));
-      if (status.getCode().equals(CODE.FAILED)) {
-        throw new IllegalStateException(String
-            .format("Ingesting data failed. %s", ((KGDAOFailedStatus) status).getErrorMessage()));
-      }
+  public void before(List<String> taskIds) throws IOException {
+    /* clean */
+    UpdatedFuture updatedFuture = new UpdatedFuture(Lists.newArrayList(KGSparqlDAO.class.getName(),
+        KGGremlinDAO.class.getName(), KGFullTextSearchDAO.class.getName()),
+        Instant.now().toEpochMilli());
+    sparqlDAO.update("DELETE {?s ?p ?o} WHERE {?s ?p ?o}");
+    updatedFuture.get();
+    /* insert data */
+    if (insertSPARQLQuery != null) {
+      updatedFuture = new UpdatedFuture(taskIds, Instant.now().toEpochMilli());
+      sparqlDAO.update(insertSPARQLQuery);
+      updatedFuture.get();
     }
   }
 
-  public void waitForGremlinDAOBeingReady() throws InterruptedException {
-    if (!this.gremlinDAO.getStatus().getCode().equals(CODE.READY)) {
-      KGDAOStatus status;
-      do {
-        status = this.gremlinReadyQueue.poll(1, TimeUnit.MINUTES);
-      } while (status != null && !status.getCode().equals(CODE.READY) && !status.getCode()
-          .equals(CODE.FAILED));
-      if (status.getCode().equals(CODE.FAILED)) {
-        throw new IllegalStateException(String
-            .format("Ingesting data failed. %s", ((KGDAOFailedStatus) status).getErrorMessage()));
+  /**
+   * Future for waiting that some tasks are computed successfully.
+   */
+  public class UpdatedFuture implements Future<Boolean> {
+
+    private final List<String> waitingForIds;
+    private final Lock lock;
+    private boolean canceled;
+
+    public UpdatedFuture(Collection<String> waitingForIds, long timestamp) {
+      this.waitingForIds = new LinkedList<>(waitingForIds);
+      this.lock = new ReentrantLock(true);
+      this.canceled = false;
+      this.waitingForIds.forEach(id -> {
+        pipeline.registerChangeListener(id, (cid, status) -> {
+          if (status.getTimestamp() >= timestamp && VALUE.OK.equals(status.getStatus())) {
+            lock.lock();
+            try {
+              UpdatedFuture.this.waitingForIds.remove(cid);
+            } finally {
+              lock.unlock();
+            }
+          }
+        });
+      });
+    }
+
+    @Override
+    public boolean cancel(boolean b) {
+      canceled = true;
+      return true;
+    }
+
+    @Override
+    public boolean isCancelled() {
+      return canceled;
+    }
+
+    @Override
+    public boolean isDone() {
+      lock.lock();
+      try {
+        return waitingForIds.isEmpty() || canceled;
+      } finally {
+        lock.unlock();
       }
     }
-  }
 
-  public void waitForFTSDAOBeingReady() throws InterruptedException {
-    if (!this.fullTextSearchDAO.getStatus().getCode().equals(CODE.READY)) {
-      KGDAOStatus status;
+    @Override
+    public Boolean get() {
+      boolean empty = false;
       do {
-        status = this.fulltextsearchQueue.poll(1, TimeUnit.MINUTES);
-      } while (status != null && !status.getCode().equals(CODE.READY) && !status.getCode()
-          .equals(CODE.FAILED));
-      if (status.getCode().equals(CODE.FAILED)) {
-        throw new IllegalStateException(String
-            .format("Ingesting data failed. %s", ((KGDAOFailedStatus) status).getErrorMessage()));
-      }
-    }
-  }
+        lock.lock();
+        try {
+          empty = waitingForIds.isEmpty();
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
 
-  public void waitForAllDAOsBeingReady() throws InterruptedException {
-    Thread.sleep(1000);
-    waitForSPARQLDAOBeingReady();
-    waitForGremlinDAOBeingReady();
-    waitForFTSDAOBeingReady();
+        } finally {
+          lock.unlock();
+        }
+      } while (!empty && !canceled);
+      return empty;
+    }
+
+    @Override
+    public Boolean get(long l, @NotNull TimeUnit timeUnit) {
+      lock.lock();
+      try {
+        timeUnit.sleep(l);
+        return waitingForIds.isEmpty();
+      } catch (InterruptedException e) {
+
+      } finally {
+        lock.unlock();
+      }
+      return false;
+    }
   }
 
 }

@@ -1,7 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.centrality;
 
-import at.ac.tuwien.ifs.es.middleware.common.exploration.context.result.Resource;
-import at.ac.tuwien.ifs.es.middleware.common.analysis.AnalysisService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisService;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
 
 /**
  * Instances get this interface represent a centrality metric that can be computed for the given

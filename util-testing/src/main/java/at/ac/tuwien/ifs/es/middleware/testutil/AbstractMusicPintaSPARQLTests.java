@@ -14,12 +14,17 @@ import static org.junit.Assert.assertTrue;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLException;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGMalformedSPARQLQueryException;
-import at.ac.tuwien.ifs.es.middleware.sparql.result.AskQueryResult;
-import at.ac.tuwien.ifs.es.middleware.sparql.result.GraphQueryResult;
-import at.ac.tuwien.ifs.es.middleware.sparql.result.QueryResult;
-import at.ac.tuwien.ifs.es.middleware.sparql.result.SelectQueryResult;
+
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.AskQueryResult;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.GraphQueryResult;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.QueryResult;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.SelectQueryResult;
+import at.ac.tuwien.ifs.es.middleware.testutil.ExternalKGResource.UpdatedFuture;
+import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.Graph;
 import org.apache.commons.rdf.api.IRI;
@@ -29,6 +34,7 @@ import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.rdf.api.Triple;
 import org.apache.commons.rdf.simple.SimpleRDF;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -47,14 +53,9 @@ public abstract class AbstractMusicPintaSPARQLTests {
   @Autowired
   private KGSparqlDAO sparqlDAO;
 
+  @Rule
   @Autowired
-  private MusicPintaInstrumentsResource musicPintaInstrumentsResource;
-
-  @Before
-  public void setUp() throws Throwable {
-    this.musicPintaInstrumentsResource.cleanSetup();
-    this.musicPintaInstrumentsResource.waitForSPARQLDAOBeingReady();
-  }
+  public MusicPintaInstrumentsResource musicPintaInstrumentsResource;
 
   @Test
   public void test_countQuery_ok_mustReturnValue() throws Exception {

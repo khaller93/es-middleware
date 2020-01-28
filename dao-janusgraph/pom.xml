@@ -53,7 +53,7 @@
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-      <artifactId>middleware.gremlin-util</artifactId>
+      <artifactId>middleware.util-gremlin</artifactId>
       <version>${project.version}</version>
     </dependency>
     <!-- Test dependencies -->

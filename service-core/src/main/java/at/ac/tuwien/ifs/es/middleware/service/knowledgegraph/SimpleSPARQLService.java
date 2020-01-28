@@ -1,12 +1,11 @@
 package at.ac.tuwien.ifs.es.middleware.service.knowledgegraph;
 
-import at.ac.tuwien.ifs.es.middleware.common.knowledgegraph.SPARQLService;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGMalformedSPARQLQueryException;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLException;
-import at.ac.tuwien.ifs.es.middleware.sparql.result.QueryResult;
-import at.ac.tuwien.ifs.es.middleware.common.knowledgegraph.exception.SPARQLServiceExecutionException;
-import at.ac.tuwien.ifs.es.middleware.common.knowledgegraph.exception.SPARQLServiceIllegalArgumentException;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.QueryResult;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.exception.SPARQLServiceExecutionException;
+import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.exception.SPARQLServiceIllegalArgumentException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;

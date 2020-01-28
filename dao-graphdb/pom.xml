@@ -15,7 +15,7 @@
   <description>Implementation of the DAOs using GraphDB.</description>
 
   <properties>
-    <graphDb.version>8.8.1</graphDb.version>
+    <graphDb.version>8.11.0</graphDb.version>
   </properties>
 
   <dependencies>
