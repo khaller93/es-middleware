@@ -1,9 +1,10 @@
-package at.ac.tuwien.ifs.es.middleware.sparqlbuilder;
+package at.ac.tuwien.ifs.es.middleware.sparqlbuilder.facet;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.facet.FacetFilter;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.facet.OneOfValuesFacetFilter;
+import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.QT;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
@@ -15,8 +16,6 @@ import org.eclipse.rdf4j.sparqlbuilder.graphpattern.GraphPattern;
 import org.eclipse.rdf4j.sparqlbuilder.graphpattern.GraphPatterns;
 import org.eclipse.rdf4j.sparqlbuilder.graphpattern.TriplePattern;
 import org.eclipse.rdf4j.sparqlbuilder.rdf.RdfPredicate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This class helps to build a SPARQL query for faceted search.
@@ -27,10 +26,10 @@ import org.slf4j.LoggerFactory;
  */
 public final class FacetedSearchQueryBuilder {
 
-  private static final Logger logger = LoggerFactory.getLogger(FacetedSearchQueryBuilder.class);
-
   private final Variable subjectVariable;
-  private GraphPattern graphPattern;
+
+  private final List<GraphPattern> existsPatterns = new LinkedList<>();
+  private final List<GraphPattern> notExistsPatterns = new LinkedList<>();
 
   private FacetedSearchQueryBuilder(String subjectVariable) {
     checkArgument(subjectVariable != null && !subjectVariable.isEmpty(),
@@ -61,26 +60,11 @@ public final class FacetedSearchQueryBuilder {
   public void excludeInstancesOfClassResources(List<BlankNodeOrIRI> classes) {
     checkArgument(classes != null, "The list of classes to exclude must not be null.");
     if (!classes.isEmpty()) {
-      GraphPattern nonExistsFilterPattern = GraphPatterns.filterNotExists(GraphPatterns.union(
+      notExistsPatterns.add(GraphPatterns.union(
           classes.stream()
               .map(c -> GraphPatterns.tp(subjectVariable, RdfPredicate.a, QT.value(c)))
               .toArray(TriplePattern[]::new)));
-      this.graphPattern = graphPattern != null ? graphPattern.and(nonExistsFilterPattern) :
-          nonExistsFilterPattern;
     }
-  }
-
-  /**
-   * Adds a filter to the query such that no resource will be returned that is an instance of one of
-   * the given classes. The given list must not be null, and if empty, no filter will be added to
-   * the query.
-   *
-   * @param classes a list of classes ({@link BlankNodeOrIRI}) of which all their instances shall be
-   * excluded.
-   */
-  public void excludeInstancesOfClasses(List<BlankNodeOrIRI> classes) {
-    checkArgument(classes != null, "The list of classes to exclude must not be null.");
-    this.excludeInstancesOfClassResources(classes);
   }
 
   /**
@@ -93,10 +77,9 @@ public final class FacetedSearchQueryBuilder {
   public void includeInstancesOfClassResources(List<BlankNodeOrIRI> classes) {
     checkArgument(classes != null, "The list of classes to include must not be null.");
     if (!classes.isEmpty()) {
-      GraphPattern pattern = GraphPatterns.union(classes.stream()
+      existsPatterns.add(GraphPatterns.union(classes.stream()
           .map(c -> GraphPatterns.tp(subjectVariable, RdfPredicate.a, QT.value(c)))
-          .toArray(TriplePattern[]::new));
-      this.graphPattern = graphPattern != null ? GraphPatterns.and(pattern) : pattern;
+          .toArray(TriplePattern[]::new)));
     }
   }
 
@@ -119,9 +102,8 @@ public final class FacetedSearchQueryBuilder {
    */
   public void addPropertyFacet(FacetFilter facetFilter) {
     if (facetFilter instanceof OneOfValuesFacetFilter) {
-      GraphPattern orPattern = or(((OneOfValuesFacetFilter) facetFilter).getProperty(),
-          new LinkedList<RDFTerm>(((OneOfValuesFacetFilter) facetFilter).getValues()));
-      graphPattern = graphPattern != null ? graphPattern.and(orPattern) : orPattern;
+      existsPatterns.add(or(((OneOfValuesFacetFilter) facetFilter).getProperty(),
+          new LinkedList<>(((OneOfValuesFacetFilter) facetFilter).getValues())));
     } else {
       throw new IllegalArgumentException(
           String.format("The given facet type '%s' is unknown.", facetFilter));
@@ -136,12 +118,40 @@ public final class FacetedSearchQueryBuilder {
   }
 
   /**
+   * Builds the {@link GraphPattern} that can then be added to a SPARQL query.
+   *
+   * @return the constructed graph pattern.
+   */
+  public GraphPattern build() {
+    GraphPattern filterExists = null;
+    GraphPattern filterNotExists = null;
+    if (!existsPatterns.isEmpty()) {
+      filterExists = GraphPatterns
+          .filterExists(existsPatterns.toArray(new GraphPattern[0]));
+    }
+    if (!notExistsPatterns.isEmpty()) {
+      filterNotExists = GraphPatterns
+          .filterNotExists(notExistsPatterns.toArray(new GraphPattern[0]));
+    }
+    if (filterExists == null && filterNotExists == null) {
+      return null;
+    } else if (filterExists != null && filterNotExists != null) {
+      return GraphPatterns.and(filterExists, filterNotExists);
+    } else if (filterExists != null) {
+      return filterExists;
+    } else {
+      return filterNotExists;
+    }
+  }
+
+  /**
    * Get the constructed query body as a string.
    *
    * @return the constructed query body as a string.
    */
   public String getQueryBody() {
-    return graphPattern != null ? graphPattern.getQueryString() : "";
+    GraphPattern pattern = build();
+    return pattern != null ? pattern.getQueryString() : "";
   }
 
 }

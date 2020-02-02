@@ -10,7 +10,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOFailedStatu
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOInitStatus;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOReadyStatus;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOStatus;
-import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.FacetedSearchQueryBuilder;
+import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.facet.FacetedSearchQueryBuilder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +19,7 @@ import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.apache.commons.text.StringSubstitutor;
 import org.eclipse.rdf4j.repository.sparql.SPARQLRepository;
+import org.eclipse.rdf4j.sparqlbuilder.rdf.Rdf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,17 +108,23 @@ public class StardogKnowledgeGraphDAO extends RDF4JSparqlDAO implements
     logger.debug("Searching for '{}' of classes {} with limit={}, offset={}.", keyword, classes,
         offset, limit);
     Map<String, String> queryValuesMap = new HashMap<>();
-    queryValuesMap.put("keyword", keyword);
+    queryValuesMap.put("keyword",  Rdf.literalOf(keyword).getQueryString());
     /* windowing */
     queryValuesMap.put("offset", offset != null ? String.format("OFFSET %d", offset) : "");
     queryValuesMap.put("limit", limit != null ? String.format("LIMIT %d", limit) : "");
     /* build facets */
-    FacetedSearchQueryBuilder queryBuilder = FacetedSearchQueryBuilder.forSubject("resource");
-    queryBuilder.includeInstancesOfClasses(classes);
-    if (facets != null) {
-      facets.forEach(queryBuilder::addPropertyFacet);
+    if ((classes != null && classes.size() > 0) || (facets != null && facets.size() > 0)) {
+      FacetedSearchQueryBuilder queryBuilder = FacetedSearchQueryBuilder.forSubject("resource");
+      if (classes != null && classes.size() > 0) {
+        queryBuilder.includeInstancesOfClasses(classes);
+      }
+      if (facets != null && facets.size() > 0) {
+        facets.forEach(queryBuilder::addPropertyFacet);
+      }
+      queryValuesMap.put("body", queryBuilder.getQueryBody());
+    } else {
+      queryValuesMap.put("body", "");
     }
-    queryValuesMap.put("body", queryBuilder.getQueryBody());
     String searchQuery = new StringSubstitutor(queryValuesMap).replace(SEARCH_QUERY);
     logger
         .trace("Searching with '{}' for '{}' of classes {} with limit={}, offset={}.", searchQuery,

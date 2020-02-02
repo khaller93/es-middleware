@@ -9,7 +9,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>middleware.docker-util</artifactId>
+  <artifactId>middleware.util-docker</artifactId>
 
   <packaging>pom</packaging>
 
@@ -95,12 +95,12 @@
         </executions>
         <configuration>
           <repository>${docker.image.prefix}/esm</repository>
-          <tag>${project.version}-rc1</tag>
+          <tag>${project.version}</tag>
           <contextDirectory>${project.basedir}</contextDirectory>
           <noCache>true</noCache>
           <buildArgs>
             <JAR_FILE>target/esm.jar</JAR_FILE>
-            <ESM_VERSION>${project.parent.version}-rc1</ESM_VERSION>
+            <ESM_VERSION>${project.parent.version}</ESM_VERSION>
           </buildArgs>
         </configuration>
       </plugin>

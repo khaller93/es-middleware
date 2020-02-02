@@ -11,7 +11,7 @@ import at.ac.tuwien.ifs.es.middleware.service.exploration.operators.payload.acqu
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.RegisterForExplorationFlow;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SPARQLService;
-import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.FacetedSearchQueryBuilder;
+import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.facet.FacetedSearchQueryBuilder;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
