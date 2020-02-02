@@ -58,6 +58,7 @@
     <module>dao-graphdb</module>
     <module>dao-blazegraph</module>
     <module>dao-stardog</module>
+    <module>dao-virtuoso</module>
     <module>dao-janusgraph</module>
     <!-- DTO -->
     <module>kg-abstraction</module>
@@ -121,6 +122,11 @@
       <dependency>
         <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
         <artifactId>middleware.dao-stardog</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+        <artifactId>middleware.dao-virtuoso</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

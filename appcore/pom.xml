@@ -34,9 +34,9 @@
     </dependency>
     <!-- Exploratory Search Service Dependencies -->
     <dependency>
-    <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
-    <artifactId>middleware.dao-rdf4j</artifactId>
-  </dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.dao-rdf4j</artifactId>
+    </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.service-exploration</artifactId>
@@ -61,6 +61,10 @@
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.dao-graphdb</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
+      <artifactId>middleware.dao-virtuoso</artifactId>
     </dependency>
     <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
