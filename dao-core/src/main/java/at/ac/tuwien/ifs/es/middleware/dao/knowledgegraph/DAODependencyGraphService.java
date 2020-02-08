@@ -11,11 +11,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
- *
- *
  * @author Kevin Haller
  * @version 1.0
  * @since 1.0
@@ -33,9 +32,9 @@ public class DAODependencyGraphService {
 
   @Autowired
   public DAODependencyGraphService(
-      KGSparqlDAO sparqlDAO,
-      KGGremlinDAO gremlinDAO,
-      KGFullTextSearchDAO fullTextSearchDAO) {
+      @Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO,
+      @Qualifier("getGremlinDAO") KGGremlinDAO gremlinDAO,
+      @Qualifier("getFullTextSearchDAO") KGFullTextSearchDAO fullTextSearchDAO) {
     this.sparqlDAO = sparqlDAO;
     this.gremlinDAO = gremlinDAO;
     this.fullTextSearchDAO = fullTextSearchDAO;

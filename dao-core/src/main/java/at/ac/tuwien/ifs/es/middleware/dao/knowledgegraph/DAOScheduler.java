@@ -8,6 +8,7 @@ import com.google.common.collect.Lists;
 import java.time.Instant;
 import java.util.Collections;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -44,9 +45,9 @@ public class DAOScheduler {
 
   @Autowired
   public DAOScheduler(SchedulerPipeline schedulerPipeline,
-      KGSparqlDAO sparqlDAO,
-      KGGremlinDAO gremlinDAO,
-      KGFullTextSearchDAO fullTextSearchDAO,
+      @Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO,
+      @Qualifier("getGremlinDAO") KGGremlinDAO gremlinDAO,
+      @Qualifier("getFullTextSearchDAO") KGFullTextSearchDAO fullTextSearchDAO,
       DAODependencyGraphService daoDependencyGraphService,
       TaskExecutor threadPool) {
     this.schedulerPipeline = schedulerPipeline;
