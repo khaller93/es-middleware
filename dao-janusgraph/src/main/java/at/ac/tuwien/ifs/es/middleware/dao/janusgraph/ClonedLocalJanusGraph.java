@@ -66,7 +66,7 @@ public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
     logger.info("Started to initialize the Janusgraph.");
     File dataDirFile = new File(dataDir, "janusgraph");
     if (!dataDirFile.exists()) {
-      dataDirFile.mkdirs();
+      boolean success = dataDirFile.mkdirs();
     } else if (!dataDirFile.isDirectory()) {
       throw new IllegalArgumentException(
           "The path for storing the analysis results must not refer to a non-directory.");
@@ -74,28 +74,7 @@ public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
     graph = JanusGraphFactory.build().set("storage.backend", "berkeleyje")
         .set("storage.transactions", true)
         .set("storage.directory", dataDirFile.getAbsolutePath()).open();
-    /* build and maintain IRI index */
-    JanusGraphManagement mgmt = graph.openManagement();
-    PropertyKey iriProperty = mgmt.getPropertyKey("iri");
-    if (iriProperty == null) {
-      iriProperty = mgmt.makePropertyKey("iri").dataType(String.class)
-          .cardinality(Cardinality.SINGLE)
-          .make();
-    }
-    if (mgmt.getGraphIndex("byIRI") == null) {
-      mgmt.buildIndex("byIRI", Vertex.class).addKey(iriProperty)
-          .unique().buildCompositeIndex();
-    }
-    mgmt.commit();
-    /* wait for index to be ready */
-    try {
-      GraphIndexStatusWatcher byIRIWatcher = ManagementSystem.awaitGraphIndexStatus(graph, "byIRI")
-          .status(SchemaStatus.ENABLED);
-      byIRIWatcher.call();
-    } catch (InterruptedException e) {
-      logger.error("Waiting for the availability of the IRI/version index failed. {}",
-          e.getMessage());
-    }
+    IndexUtils.index(graph);
     logger.info("Finished initializing the setup of Janusgraph.");
     return graph;
   }
@@ -112,21 +91,6 @@ public class ClonedLocalJanusGraph extends AbstractClonedGremlinDAO {
 
   @Override
   protected void onBulkLoadCompleted() {
-    logger.info("Starting the reindexing of the IRI/version index.");
-    JanusGraphManagement mgmt = graph.openManagement();
-    try {
-      mgmt.updateIndex(mgmt.getGraphIndex("byIRI"), SchemaAction.REINDEX).get();
-    } catch (ExecutionException | InterruptedException e) {
-      logger.error("Building the IRI index failed. {}", e);
-    }
-    mgmt.commit();
-    try {
-      GraphIndexStatusWatcher byIRIWatcher = ManagementSystem.awaitGraphIndexStatus(graph, "byIRI")
-          .status(SchemaStatus.ENABLED);
-      byIRIWatcher.call();
-      logger.info("Reindexing of the IRI/version was successful.");
-    } catch (InterruptedException e) {
-      logger.error("Waiting for the availability of the version index failed. {}", e.getMessage());
-    }
+    IndexUtils.updateIndex(graph);
   }
 }

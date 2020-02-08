@@ -14,7 +14,7 @@
   <name>DAO Janusgraph</name>
 
   <properties>
-    <janusgraph.version>0.3.1</janusgraph.version>
+    <janusgraph.version>0.4.0</janusgraph.version>
   </properties>
 
   <dependencies>
@@ -37,6 +37,26 @@
     <dependency>
       <groupId>org.janusgraph</groupId>
       <artifactId>janusgraph-berkeleyje</artifactId>
+      <version>${janusgraph.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.janusgraph</groupId>
+      <artifactId>janusgraph-hbase</artifactId>
+      <version>${janusgraph.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-transport-native-epoll</artifactId>
+      <version>4.0.40.Final</version>
+    </dependency>
+    <dependency>
+      <groupId>org.janusgraph</groupId>
+      <artifactId>janusgraph-cassandra</artifactId>
+      <version>${janusgraph.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.janusgraph</groupId>
+      <artifactId>janusgraph-cql</artifactId>
       <version>${janusgraph.version}</version>
     </dependency>
     <!-- Utils -->
