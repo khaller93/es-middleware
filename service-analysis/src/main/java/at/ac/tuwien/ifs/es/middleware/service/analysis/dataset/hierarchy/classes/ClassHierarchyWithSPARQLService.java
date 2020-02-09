@@ -75,7 +75,7 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
   public ClassHierarchyWithSPARQLService(
       SPARQLService sparqlService,
       AllClassesService allClassesService,
-      SameAsResourceService sameAsResourceService, @Qualifier("persistent-mapdb") DB mapDB) {
+      SameAsResourceService sameAsResourceService, DB mapDB) {
     this.sparqlService = sparqlService;
     this.allClassesService = allClassesService;
     this.sameAsResourceService = sameAsResourceService;

@@ -52,8 +52,7 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
   @Autowired
   public ClassEntropyWithGremlinService(GremlinService gremlinService,
       AllClassesService allClassesService,
-      ClassHierarchyService classHierarchyService,
-      @Qualifier("persistent-mapdb") DB mapDB) {
+      ClassHierarchyService classHierarchyService, DB mapDB) {
     this.gremlinService = gremlinService;
     this.allClassesService = allClassesService;
     this.classHierarchyService = classHierarchyService;

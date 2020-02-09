@@ -31,7 +31,7 @@ public class MapDBDummy {
    *
    * @return {@link DB} that can be used to create a persistent key-value store.
    */
-  @Bean(name = "persistent-mapdb")
+  @Bean(name = "esm.db.map.memory")
   public DB db() {
     return db;
   }

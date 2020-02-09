@@ -56,8 +56,7 @@ public class ClassResourceWithGremlinService implements ClassResourceService {
       GremlinService gremlinService,
       AllResourcesService allResourcesService,
       AllClassesService allClassesService,
-      ClassHierarchyService classHierarchyService,
-      @Qualifier("persistent-mapdb") DB mapDB) {
+      ClassHierarchyService classHierarchyService, DB mapDB) {
     this.gremlinService = gremlinService;
     this.schema = gremlinService.getPropertyGraphSchema();
     this.allResourcesService = allResourcesService;

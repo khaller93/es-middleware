@@ -54,8 +54,7 @@ public class PageRankCentralityMetricWithGremlinService implements PageRankCentr
 
   @Autowired
   public PageRankCentralityMetricWithGremlinService(GremlinService gremlinService,
-      AllResourcesService allResourcesService,
-      @Qualifier("persistent-mapdb") DB mapDB) {
+      AllResourcesService allResourcesService, DB mapDB) {
     this.gremlinService = gremlinService;
     this.allResourcesService = allResourcesService;
     this.mapDB = mapDB;

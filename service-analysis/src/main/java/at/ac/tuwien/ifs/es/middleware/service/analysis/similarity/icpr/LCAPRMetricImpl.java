@@ -48,8 +48,7 @@ public class LCAPRMetricImpl implements LCAPRMetricService {
   public LCAPRMetricImpl(
       AllResourcesService allResourcesService,
       LowestCommonAncestorService lowestCommonAncestorService,
-      PageRankCentralityMetricService pageRankCentralityMetricService,
-      @Qualifier("persistent-mapdb") DB mapDB) {
+      PageRankCentralityMetricService pageRankCentralityMetricService, DB mapDB) {
     this.allResourcesService = allResourcesService;
     this.lowestCommonAncestorService = lowestCommonAncestorService;
     this.pageRankCentralityMetricService = pageRankCentralityMetricService;

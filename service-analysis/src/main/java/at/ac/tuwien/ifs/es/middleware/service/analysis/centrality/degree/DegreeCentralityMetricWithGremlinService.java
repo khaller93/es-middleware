@@ -51,8 +51,7 @@ public class DegreeCentralityMetricWithGremlinService implements DegreeCentralit
 
   @Autowired
   public DegreeCentralityMetricWithGremlinService(GremlinService gremlinService,
-      AllResourcesService allResourcesService,
-      @Qualifier("persistent-mapdb") DB mapDB) {
+      AllResourcesService allResourcesService, DB mapDB) {
     this.gremlinService = gremlinService;
     this.schema = gremlinService.getPropertyGraphSchema();
     this.allResourcesService = allResourcesService;

@@ -52,8 +52,7 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
   public ResnikSimilarityMetricServiceImpl(
       ClassEntropyService classEntropyService,
       LowestCommonAncestorService leastCommonSubSumersService,
-      AllResourcesService allResourcesService,
-      @Qualifier("persistent-mapdb") DB mapDB) {
+      AllResourcesService allResourcesService, DB mapDB) {
     this.classEntropyService = classEntropyService;
     this.leastCommonSubSumersService = leastCommonSubSumersService;
     this.allResourcesService = allResourcesService;

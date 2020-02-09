@@ -54,8 +54,7 @@ public class PeerPressureClusteringMetricWithGremlinService implements
   @Autowired
   public PeerPressureClusteringMetricWithGremlinService(
       GremlinService gremlinService,
-      AllResourcesService allResourcesService,
-      @Qualifier("persistent-mapdb") DB mapDB) {
+      AllResourcesService allResourcesService, DB mapDB) {
     this.gremlinService = gremlinService;
     this.allResourcesService = allResourcesService;
     this.schema = gremlinService.getPropertyGraphSchema();

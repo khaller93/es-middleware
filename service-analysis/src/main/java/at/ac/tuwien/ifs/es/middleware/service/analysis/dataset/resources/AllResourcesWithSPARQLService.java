@@ -5,7 +5,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.serializer.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SPARQLService;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.MapDB;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.FileMapDB;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import java.util.Collections;
@@ -28,7 +28,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * This class provide a concrete implmentation {@link AllResourcesService} that uses {@link
- * SPARQLService} for fetching all the resources and {@link MapDB}
+ * SPARQLService} for fetching all the resources and {@link FileMapDB}
  * to store all the resources for fast access.
  *
  * @author Kevin Haller
@@ -64,8 +64,7 @@ public class AllResourcesWithSPARQLService implements AllResourcesService {
 
   @Autowired
   public AllResourcesWithSPARQLService(
-      SPARQLService sparqlService,
-      @Qualifier("persistent-mapdb") DB mapDB) {
+      SPARQLService sparqlService, DB mapDB) {
     this.sparqlService = sparqlService;
     this.mapDB = mapDB;
     this.resourceKeyMap = mapDB

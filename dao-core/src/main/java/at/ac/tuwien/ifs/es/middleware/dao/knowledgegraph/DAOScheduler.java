@@ -60,11 +60,10 @@ public class DAOScheduler {
 
   @EventListener
   public void onApplicationEvent(ApplicationReadyEvent event) {
-    pushTasks(syncOnStart ? Instant.now().toEpochMilli() : -1, delayDAOInMs); //
+    pushTasks(syncOnStart ? Instant.now().toEpochMilli() : -1, delayDAOInMs);
   }
 
   private void pushTasks(long daoTimestamp, long delay) {
-    System.out.println(">>>" + daoTimestamp + " UPDATE");
     threadpool.execute(() -> {
       if (delay > 0) {
         try {

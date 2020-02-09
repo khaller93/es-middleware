@@ -63,8 +63,7 @@ public class ClassEntropyWithSPARQLService implements ClassEntropyService {
 
   @Autowired
   public ClassEntropyWithSPARQLService(SPARQLService sparqlService,
-      AllClassesService allClassesService,
-      @Qualifier("persistent-mapdb") DB mapDB) {
+      AllClassesService allClassesService, DB mapDB) {
     this.sparqlService = sparqlService;
     this.allClassesService = allClassesService;
     this.mapDB = mapDB;
@@ -109,7 +108,8 @@ public class ClassEntropyWithSPARQLService implements ClassEntropyService {
           if (n == LOAD_SIZE) {
             processSPARQLResult(classList, sparqlService.<SelectQueryResult>query(
                 String.format(CLASS_DISTRIBUTION_QUERY,
-                    classList.stream().map(c -> RDFTermJsonUtil.stringForSPARQLResourceOf(c.value())).collect(
+                    classList.stream()
+                        .map(c -> RDFTermJsonUtil.stringForSPARQLResourceOf(c.value())).collect(
                         Collectors.joining("\n"))),
                 true).value(), total);
             n = 0;
@@ -119,8 +119,9 @@ public class ClassEntropyWithSPARQLService implements ClassEntropyService {
         if (n > 0) {
           processSPARQLResult(classList,
               sparqlService.<SelectQueryResult>query(String.format(CLASS_DISTRIBUTION_QUERY,
-                  classList.stream().map(c -> RDFTermJsonUtil.stringForSPARQLResourceOf(c.value())).collect(
-                      Collectors.joining("\n"))), true).value(), total);
+                  classList.stream().map(c -> RDFTermJsonUtil.stringForSPARQLResourceOf(c.value()))
+                      .collect(
+                          Collectors.joining("\n"))), true).value(), total);
         }
         mapDB.commit();
       }

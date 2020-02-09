@@ -66,7 +66,7 @@ public class ResourceClassWithSPARQLService implements ResourceClassService {
   @Autowired
   public ResourceClassWithSPARQLService(
       SPARQLService sparqlService,
-      AllResourcesService allResourcesService, @Qualifier("persistent-mapdb") DB mapDB) {
+      AllResourcesService allResourcesService, DB mapDB) {
     this.sparqlService = sparqlService;
     this.allResourcesService = allResourcesService;
     this.mapDB = mapDB;

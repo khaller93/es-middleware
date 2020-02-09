@@ -47,8 +47,7 @@ public class AllClassesWithSPARQLService implements AllClassesService {
   private final KeySet<String> classList;
 
   @Autowired
-  public AllClassesWithSPARQLService(SPARQLService sparqlService,
-      @Qualifier("persistent-mapdb") DB mapDb) {
+  public AllClassesWithSPARQLService(SPARQLService sparqlService, DB mapDb) {
     this.sparqlService = sparqlService;
     this.mapDb = mapDb;
     this.classList = mapDb

@@ -49,7 +49,7 @@ public class LCSWithClassHierarchyService implements LowestCommonAncestorService
   public LCSWithClassHierarchyService(
       AllResourcesService allResourcesService,
       ResourceClassService resourceClassService,
-      ClassHierarchyService classHierarchyService, @Qualifier("persistent-mapdb") DB mapDB) {
+      ClassHierarchyService classHierarchyService, DB mapDB) {
     this.allResourcesService = allResourcesService;
     this.resourceClassService = resourceClassService;
     this.classHierarchyService = classHierarchyService;
