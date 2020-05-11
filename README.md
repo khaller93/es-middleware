@@ -35,13 +35,15 @@ docker build . -t yyyy/esm:latest
 
 ## Run
 
-The execution
+The execution is as simple as the following line. However, in order to use the service a correct
+configuration has to be passed, which is described in the subsequent section.
 
 ```
 java -jar esm.jar
 ```
 
-
+You can see the Swagger documentation of the REST API by visiting the endpoint with a browser, 
+per default `http://localhost:8080`.
 
 ### Configuration
 

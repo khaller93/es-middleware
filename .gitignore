@@ -1,3 +1,6 @@
+# Ignore POM Version backup
+pom.xml.versionsBackup
+
 # IntelliJ
 .idea/
 *.iml
@@ -36,3 +39,6 @@ testflows/
 
 # JanusGraph
 dao-janusgraph/janusgraph
+
+issues.txt
+
