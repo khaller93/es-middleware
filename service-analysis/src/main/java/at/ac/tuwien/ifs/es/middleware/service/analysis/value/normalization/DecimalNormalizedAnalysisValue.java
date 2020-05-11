@@ -1,5 +1,16 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue.Serializer;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.io.IOException;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -14,58 +25,66 @@ import java.util.Optional;
  * @version 1.0
  * @since 1.0
  */
-public class DoubleNormalizedAnalysisValue implements NormalizedAnalysisValue<Double> {
+@JsonSerialize(using = Serializer.class)
+public class DecimalNormalizedAnalysisValue implements NormalizedAnalysisValue<BigDecimal>,
+    Serializable {
 
-  private Double originalValue;
-  private Map<String, BigDecimal> normValues = new HashMap<>();
+  private Map<String, BigDecimal> valueMap = new HashMap<>();
 
-  DoubleNormalizedAnalysisValue() {
-
+  public DecimalNormalizedAnalysisValue(BigDecimal value) {
+    this(value, null, null);
   }
 
-  DoubleNormalizedAnalysisValue(Double originalValue, Map<String, BigDecimal> normValues) {
-    this.originalValue = originalValue;
-    this.normValues = normValues;
-  }
-
-  public DoubleNormalizedAnalysisValue(Double originalValue) {
-    this(originalValue, null, null);
-  }
-
-  public DoubleNormalizedAnalysisValue(Double originalValue, BigDecimal minMaxValue,
+  public DecimalNormalizedAnalysisValue(BigDecimal originalValue, BigDecimal minMaxValue,
       BigDecimal zScoreValue) {
-    this.originalValue = originalValue;
+    checkArgument(originalValue != null, "The original value must not be null.");
+    valueMap.put("value", originalValue);
     if (minMaxValue != null) {
-      normValues.put(NormalizationStrategy.MinMax.name(), minMaxValue);
+      valueMap.put(NormalizationStrategy.MinMax.name().toLowerCase(), minMaxValue);
     }
     if (zScoreValue != null) {
-      normValues.put(NormalizationStrategy.ZScore.name(), zScoreValue);
+      valueMap.put(NormalizationStrategy.ZScore.name().toLowerCase(), zScoreValue);
     }
   }
 
+  @JsonIgnore
   @Override
   public List<NormalizationStrategy> strategies() {
     List<NormalizationStrategy> values = new LinkedList<>();
-    if (normValues.containsKey(NormalizationStrategy.MinMax.name())) {
+    if (valueMap.containsKey(NormalizationStrategy.MinMax.name().toLowerCase())) {
       values.add(NormalizationStrategy.MinMax);
     }
-    if (normValues.containsKey(NormalizationStrategy.ZScore.name())) {
+    if (valueMap.containsKey(NormalizationStrategy.ZScore.name().toLowerCase())) {
       values.add(NormalizationStrategy.ZScore);
     }
     return values;
   }
 
+  @JsonIgnore
   @Override
-  public Double getValue() {
-    return originalValue;
+  public BigDecimal getValue() {
+    return valueMap.get("value");
   }
 
   @Override
   public Optional<BigDecimal> getValueOfStrategy(NormalizationStrategy strategy) {
     if (strategies().contains(strategy)) {
-      return Optional.of(normValues.get(strategy.name()));
+      return Optional.of(valueMap.get(strategy.name().toLowerCase()));
     }
     return Optional.empty();
+  }
+
+  static class Serializer extends JsonSerializer<DecimalNormalizedAnalysisValue> {
+
+    @Override
+    public void serialize(DecimalNormalizedAnalysisValue value, JsonGenerator gen,
+        SerializerProvider serializers) throws IOException {
+      gen.writeStartObject();
+      for (Map.Entry<String, BigDecimal> entry : value.valueMap.entrySet()) {
+        gen.writeNumberField(entry.getKey(), entry.getValue());
+      }
+      gen.writeEndObject();
+    }
   }
 
 }

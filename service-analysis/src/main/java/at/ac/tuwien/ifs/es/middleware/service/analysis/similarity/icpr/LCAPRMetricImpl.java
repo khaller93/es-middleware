@@ -8,6 +8,10 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProc
 import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.pagerank.PageRankCentralityMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.hierarchy.classes.lca.LowestCommonAncestorService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.utils.Normalizer;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -18,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
@@ -28,21 +33,22 @@ import org.springframework.stereotype.Service;
  * @version 1.0
  * @since 1.0
  */
+@Primary
 @Service
-@RegisterForAnalyticalProcessing(name = "esm.service.analytics.similarity.icpr", prerequisites = {
-    LowestCommonAncestorService.class, PageRankCentralityMetricService.class}, disabled = true)
+@RegisterForAnalyticalProcessing(name = LCAPRMetricImpl.UID, prerequisites = {
+    LowestCommonAncestorService.class, PageRankCentralityMetricService.class}, disabled=true)
 public class LCAPRMetricImpl implements LCAPRMetricService {
 
   private static final Logger logger = LoggerFactory.getLogger(LCAPRMetricImpl.class);
 
-  public static final String UID = "esm.service.analysis.sim.lcapr";
+  static final String UID = "esm.service.analysis.sim.lcapr";
 
   private final AllResourcesService allResourcesService;
   private final LowestCommonAncestorService lowestCommonAncestorService;
   private final PageRankCentralityMetricService pageRankCentralityMetricService;
 
   private final DB mapDB;
-  private final HTreeMap<int[], Double> lcaprValueMap;
+  private final HTreeMap<int[], DecimalNormalizedAnalysisValue> lcaprValueMap;
 
   @Autowired
   public LCAPRMetricImpl(
@@ -53,27 +59,27 @@ public class LCAPRMetricImpl implements LCAPRMetricService {
     this.lowestCommonAncestorService = lowestCommonAncestorService;
     this.pageRankCentralityMetricService = pageRankCentralityMetricService;
     this.mapDB = mapDB;
-    this.lcaprValueMap = mapDB.hashMap(UID, Serializer.INT_ARRAY, Serializer.DOUBLE)
+    this.lcaprValueMap = mapDB.hashMap(UID, Serializer.INT_ARRAY, Serializer.JAVA)
         .createOrOpen();
   }
 
   @Override
-  public Double getValueFor(ResourcePair resourcePair) {
+  public DecimalNormalizedAnalysisValue getValueFor(ResourcePair resourcePair) {
     checkArgument(resourcePair != null, "The given resource pair must not be null.");
     Optional<Integer> resourceAKeyOpt = allResourcesService.getResourceKey(resourcePair.getFirst());
     if (resourceAKeyOpt.isPresent()) {
       Optional<Integer> resourceBKeyOpt = allResourcesService
           .getResourceKey(resourcePair.getSecond());
       if (resourceBKeyOpt.isPresent()) {
-        Double value = lcaprValueMap.get(new int[]{resourceAKeyOpt.get(), resourceBKeyOpt.get()});
-        return value != null ? value : 0.0;
+        return lcaprValueMap.get(new int[]{resourceAKeyOpt.get(), resourceBKeyOpt.get()});
       }
     }
-    return 0.0;
+    return new DecimalNormalizedAnalysisValue(BigDecimal.ZERO);
   }
 
   @Override
   public void compute() {
+    Normalizer<int[]> normalizer = new Normalizer<>();
     for (Resource resourceA : allResourcesService.getResourceList()) {
       Optional<Integer> resourceAKeyOpt = allResourcesService.getResourceKey(resourceA);
       if (resourceAKeyOpt.isPresent()) {
@@ -85,16 +91,26 @@ public class LCAPRMetricImpl implements LCAPRMetricService {
             Set<Resource> lcaClassResource = lowestCommonAncestorService
                 .getLowestCommonAncestor(ResourcePair.of(resourceA, resourceB));
             if (!lcaClassResource.isEmpty()) {
-              Double optionalSum = lcaClassResource.stream()
-                  .map(pageRankCentralityMetricService::getValueFor)
-                  .filter(Objects::nonNull).reduce(0.0, (a, b) -> a + b);
-              lcaprValueMap.put(new int[]{resourceAKey, resourceBKey},
-                  optionalSum / lcaClassResource.size());
+              BigDecimal totalSum = BigDecimal.valueOf(0);
+              for (Resource r : lcaClassResource) {
+                DecimalNormalizedAnalysisValue value = pageRankCentralityMetricService
+                    .getValueFor(r);
+                if (value != null) {
+                  BigDecimal decimalValue = value.getValue();
+                  if (decimalValue != null) {
+                    totalSum = totalSum.add(decimalValue);
+                  }
+                }
+              }
+              normalizer.register(new int[]{resourceAKey, resourceBKey},
+                  totalSum
+                      .divide(BigDecimal.valueOf(lcaClassResource.size()), MathContext.DECIMAL64));
             }
           }
         }
       }
     }
+    lcaprValueMap.putAll(normalizer.normalize());
     mapDB.commit();
   }
 

@@ -18,13 +18,13 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
-final class ValueBoxImplJsonTranscoder {
+public final class ValueBoxImplJsonTranscoder {
 
   static final TypeReference<Map<String, JsonNode>> typeRef
       = new TypeReference<Map<String, JsonNode>>() {
   };
 
-  static class Serializer extends JsonSerializer<ValueBoxImpl> {
+  public static class Serializer extends JsonSerializer<ValueBoxImpl> {
 
     @Override
     public void serialize(ValueBoxImpl value, JsonGenerator gen, SerializerProvider serializers)
@@ -42,7 +42,7 @@ final class ValueBoxImplJsonTranscoder {
     }
   }
 
-  static class Deserializer extends JsonDeserializer<ValueBoxImpl> {
+  public static class Deserializer extends JsonDeserializer<ValueBoxImpl> {
 
     @Override
     public ValueBoxImpl deserialize(JsonParser p, DeserializationContext ctxt)

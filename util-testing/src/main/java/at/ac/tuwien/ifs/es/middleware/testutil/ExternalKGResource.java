@@ -1,5 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.testutil;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.DAOScheduler;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
@@ -10,10 +13,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -43,10 +50,10 @@ public abstract class ExternalKGResource extends ExternalResource {
       throws IOException {
     this.sparqlDAO = sparqlDAO;
     this.pipeline = pipeline;
-    this.insertSPARQLQuery = getInsertSparqlQuery(testData);
+    this.insertSPARQLQuery = getInsertSPARQLQuery(testData);
   }
 
-  private String getInsertSparqlQuery(Model testData) throws IOException {
+  private String getInsertSPARQLQuery(Model testData) throws IOException {
     Iterator<Statement> statementIterator = testData.iterator();
     if (statementIterator.hasNext()) {
       try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
@@ -62,19 +69,25 @@ public abstract class ExternalKGResource extends ExternalResource {
   @Override
   protected void before() throws Throwable {
     before(Lists.newArrayList(KGSparqlDAO.class.getName(),
-        KGGremlinDAO.class.getName(), KGFullTextSearchDAO.class.getName()));
+        KGGremlinDAO.class.getName(), KGFullTextSearchDAO.class.getName()),
+        Collections.emptyList());
   }
 
-  public void before(List<String> taskIds) throws IOException {
+  public void before(List<String> daoIDs, List<String> analysisIDs) throws IOException {
+    checkArgument(daoIDs != null,
+        "The given list of DAO tasks can be empty, but must not be null.");
+    checkArgument(analysisIDs != null,
+        "The given list of analysis tasks can be empty, but must not be null.");
     /* clean */
-    UpdatedFuture updatedFuture = new UpdatedFuture(Lists.newArrayList(KGSparqlDAO.class.getName(),
-        KGGremlinDAO.class.getName(), KGFullTextSearchDAO.class.getName()),
-        Instant.now().toEpochMilli());
+    UpdatedFuture updatedFuture = new UpdatedFuture(daoIDs, Instant.now().toEpochMilli());
     sparqlDAO.update("DELETE {?s ?p ?o} WHERE {?s ?p ?o}");
     updatedFuture.get();
     /* insert data */
     if (insertSPARQLQuery != null) {
-      updatedFuture = new UpdatedFuture(taskIds, Instant.now().toEpochMilli());
+      List<String> taskIDs = new LinkedList<>();
+      taskIDs.addAll(daoIDs);
+      taskIDs.addAll(analysisIDs);
+      updatedFuture = new UpdatedFuture(taskIDs, Instant.now().toEpochMilli());
       sparqlDAO.update(insertSPARQLQuery);
       updatedFuture.get();
     }
@@ -95,6 +108,11 @@ public abstract class ExternalKGResource extends ExternalResource {
       this.canceled = false;
       this.waitingForIds.forEach(id -> {
         pipeline.registerChangeListener(id, (cid, status) -> {
+          System.out.println(
+              "(" + cid + ")" + " >" + timestamp + " Event Timestamp: " + status.getTimestamp()
+                  + " - " + status
+                  .getStatus());
+          System.out.println("[" + String.join(",", waitingForIds) + "]");
           if (status.getTimestamp() >= timestamp && VALUE.OK.equals(status.getStatus())) {
             lock.lock();
             try {

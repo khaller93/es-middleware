@@ -1,6 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.icpr;
 
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
 
 /**
  * Instances get this interface are {@link SimilarityMetricService} that computes the LCAPR metric.
@@ -16,7 +17,7 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetr
  * (2017)</a>
  * @since 1.0
  */
-public interface LCAPRMetricService extends SimilarityMetricService<Double> {
+public interface LCAPRMetricService extends SimilarityMetricService<DecimalNormalizedAnalysisValue> {
 
 
 }

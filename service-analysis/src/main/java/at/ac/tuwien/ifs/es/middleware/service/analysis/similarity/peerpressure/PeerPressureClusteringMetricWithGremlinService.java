@@ -2,12 +2,15 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.peerpressure;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.AnalysisNumberValue;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.GremlinService;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.gremlin.util.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Optional;
 import org.apache.tinkerpop.gremlin.process.computer.clustering.peerpressure.PeerPressureVertexProgram;
@@ -64,7 +67,7 @@ public class PeerPressureClusteringMetricWithGremlinService implements
   }
 
   @Override
-  public Boolean isSharingSameCluster(ResourcePair pair) {
+  public DecimalNormalizedAnalysisValue isSharingSameCluster(ResourcePair pair) {
     checkArgument(pair != null, "The given resource pair must not be null.");
     Object clusterA = null, clusterB = null;
     /*resource a */
@@ -80,7 +83,8 @@ public class PeerPressureClusteringMetricWithGremlinService implements
     if (clusterA == null || clusterB == null) {
       return null;
     }
-    return clusterA.equals(clusterB);
+    BigDecimal val = clusterA.equals(clusterB) ? BigDecimal.ONE : BigDecimal.ZERO;
+    return new DecimalNormalizedAnalysisValue(val, val, val);
   }
 
   @Override

@@ -7,6 +7,7 @@ import org.mapdb.DBMaker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -19,22 +20,17 @@ import org.springframework.stereotype.Service;
  * @version 1.0
  * @since 1.0
  */
+@Lazy
 @Component
 public class FileMapDB {
 
-  private final DB db;
+  private final String dataDir;
+
+  private DB db;
 
   @Autowired
   public FileMapDB(@Value("${esm.db.data.dir}") String dataDir) {
-    File dataDirFile = new File(dataDir, "mapdb");
-    if (!dataDirFile.exists()) {
-      dataDirFile.mkdirs();
-    } else if (!dataDirFile.isDirectory()) {
-      throw new IllegalArgumentException(
-          "The path for storing the analysis results must not refer to a non-directory.");
-    }
-    db = DBMaker.fileDB(new File(dataDirFile, "map.db")).closeOnJvmShutdown().transactionEnable()
-        .make();
+    this.dataDir = dataDir;
   }
 
   /**
@@ -42,8 +38,19 @@ public class FileMapDB {
    *
    * @return {@link DB} that can be used to create a persistent key-value store.
    */
-  @Bean(name = "esm.db.map.file")
+  @Bean(name = "mapdb-file")
   public DB db() {
+    if (db == null) {
+      File dataDirFile = new File(dataDir, "mapdb");
+      if (!dataDirFile.exists()) {
+        dataDirFile.mkdirs();
+      } else if (!dataDirFile.isDirectory()) {
+        throw new IllegalArgumentException(
+            "The path for storing the analysis results must not refer to a non-directory.");
+      }
+      db = DBMaker.fileDB(new File(dataDirFile, "map.db")).closeOnJvmShutdown().transactionEnable()
+          .make();
+    }
     return db;
   }
 

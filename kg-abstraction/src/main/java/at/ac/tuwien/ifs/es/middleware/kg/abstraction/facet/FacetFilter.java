@@ -1,5 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.kg.abstraction.facet;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
@@ -11,7 +12,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
  * @version 1.0
  * @since 1.0
  */
-@JsonTypeInfo(use = Id.NAME, property = "@type")
+@JsonTypeInfo(use = Id.NAME, property = "type")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = ExcludeInstancesOfFacetFilter.class),
+    @JsonSubTypes.Type(value = OneOfValuesFacetFilter.class)})
 public interface FacetFilter {
 
 }

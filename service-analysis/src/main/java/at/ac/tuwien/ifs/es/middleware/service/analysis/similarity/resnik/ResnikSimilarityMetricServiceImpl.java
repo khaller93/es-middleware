@@ -8,6 +8,9 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProc
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.ClassEntropyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.hierarchy.classes.lca.LowestCommonAncestorService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.utils.Normalizer;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -20,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
@@ -33,20 +37,20 @@ import org.springframework.stereotype.Service;
 @Service
 @RegisterForAnalyticalProcessing(name = ResnikSimilarityMetricServiceImpl.UID,
     prerequisites = {ClassEntropyService.class, LowestCommonAncestorService.class,
-        AllResourcesService.class}, disabled = true)
+        AllResourcesService.class}, disabled=true)
 public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetricService {
 
   private static final Logger logger = LoggerFactory
       .getLogger(ResnikSimilarityMetricServiceImpl.class);
 
-  public static final String UID = "esm.service.analysis.sim.resnik";
+  static final String UID = "esm.service.analysis.sim.resnik";
 
   private final ClassEntropyService classEntropyService;
   private final LowestCommonAncestorService leastCommonSubSumersService;
   private final AllResourcesService allResourcesService;
   private final DB mapDB;
 
-  private final HTreeMap<int[], Double> resnikValueMap;
+  private final HTreeMap<int[], DecimalNormalizedAnalysisValue> resnikValueMap;
 
   @Autowired
   public ResnikSimilarityMetricServiceImpl(
@@ -57,12 +61,12 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
     this.leastCommonSubSumersService = leastCommonSubSumersService;
     this.allResourcesService = allResourcesService;
     this.mapDB = mapDB;
-    this.resnikValueMap = mapDB.hashMap(UID, Serializer.INT_ARRAY, Serializer.DOUBLE)
+    this.resnikValueMap = mapDB.hashMap(UID, Serializer.INT_ARRAY, Serializer.JAVA)
         .createOrOpen();
   }
 
   @Override
-  public Double getValueFor(ResourcePair resourcePair) {
+  public DecimalNormalizedAnalysisValue getValueFor(ResourcePair resourcePair) {
     checkArgument(resourcePair != null, "The given resource pair must not be null.");
     Optional<Integer> optionalResourceAKey = allResourcesService
         .getResourceKey(resourcePair.getFirst());
@@ -70,28 +74,28 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
       Optional<Integer> optionalResourceBKey = allResourcesService
           .getResourceKey(resourcePair.getSecond());
       if (optionalResourceBKey.isPresent()) {
-        Double value = resnikValueMap
+        DecimalNormalizedAnalysisValue value = resnikValueMap
             .get(new int[]{optionalResourceAKey.get(), optionalResourceBKey.get()});
         if (value != null) {
           return value;
         }
       }
     }
-    return computeIC(resourcePair);
+    return new DecimalNormalizedAnalysisValue(BigDecimal.ZERO);
   }
 
   private Double computeIC(ResourcePair pair) {
     Set<Resource> classes = leastCommonSubSumersService.getLowestCommonAncestor(pair);
     return classes.stream().map(classEntropyService::getEntropyForClass)
-        .reduce(0.0, BinaryOperator.maxBy(Double::compareTo));
+        .map(DecimalNormalizedAnalysisValue::getValue)
+        .reduce(BigDecimal.ZERO, BinaryOperator.maxBy(BigDecimal::compareTo)).doubleValue();
   }
 
   @Override
   public void compute() {
     logger.info("Started to compute the Resnik similarity metric.");
     /* compute Resnik metric for resource pairs */
-    long bulkSize = 500000L;
-    Map<int[], Double> metricResultsBulk = new HashMap<>();
+    Normalizer<int[]> normalizer = new Normalizer<>();
     for (Resource resourceA : allResourcesService.getResourceList()) {
       Optional<Integer> optionalResourceAKey = allResourcesService.getResourceKey(resourceA);
       if (optionalResourceAKey.isPresent()) {
@@ -101,12 +105,7 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
           if (optionalResourceBKey.isPresent()) {
             int resourceBKey = optionalResourceBKey.get();
             ResourcePair pair = ResourcePair.of(resourceA, resourceB);
-            metricResultsBulk.put(new int[]{resourceAKey, resourceBKey}, computeIC(pair));
-            if (metricResultsBulk.size() == bulkSize) {
-              logger.debug("Bulk loaded {} Resnik metric results.", bulkSize);
-              resnikValueMap.putAll(metricResultsBulk);
-              metricResultsBulk = new HashMap<>();
-            }
+            normalizer.register(new int[]{resourceAKey, resourceBKey}, computeIC(pair));
           } else {
             logger.warn("No mapped key can be found for {}.", resourceA);
           }
@@ -115,10 +114,7 @@ public class ResnikSimilarityMetricServiceImpl implements ResnikSimilarityMetric
         logger.warn("No mapped key can be found for {}.", resourceA);
       }
     }
-    if (!metricResultsBulk.isEmpty()) {
-      logger.debug("Bulk loaded {} Resnik results.", metricResultsBulk.size());
-      resnikValueMap.putAll(metricResultsBulk);
-    }
+    resnikValueMap.putAll(normalizer.normalize());
     mapDB.commit();
     logger.info("Resnik similarity measurement has successfully been computed.");
   }

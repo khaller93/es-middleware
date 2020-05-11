@@ -7,13 +7,9 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertTrue;
 
 import at.ac.tuwien.ifs.es.middleware.ExploratorySearchApplication;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
-import at.ac.tuwien.ifs.es.middleware.testutil.ExternalKGResource.UpdatedFuture;
 import at.ac.tuwien.ifs.es.middleware.testutil.WineOntologyDatasetResource;
 import java.io.ByteArrayInputStream;
-import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -62,6 +58,7 @@ import org.springframework.util.MultiValueMap;
     "esm.db.gremlin.choice=ClonedInMemoryGremlin",
     "esm.analysis.computeOnStart=false",
     "esm.db.gremlin.syncOnStart=false",
+    "esm.db.map=memory",
 })
 public class SPARQLControllerTest {
 
@@ -70,6 +67,12 @@ public class SPARQLControllerTest {
   @Rule
   @Autowired
   public WineOntologyDatasetResource wineOntologyDatasetResource;
+
+  @Before
+  public void before() throws Exception {
+    wineOntologyDatasetResource
+        .before(Lists.newArrayList(KGSparqlDAO.class.getName()), Collections.emptyList());
+  }
 
   @Test
   public void test_countWinesQuery_ok_mustReturnValue() throws Exception {

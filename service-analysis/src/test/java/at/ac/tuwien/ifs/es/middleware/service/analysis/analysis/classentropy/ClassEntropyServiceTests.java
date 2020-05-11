@@ -8,6 +8,7 @@ import static org.junit.Assert.assertNull;
 
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.ClassEntropyService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
 import at.ac.tuwien.ifs.es.middleware.testutil.WineOntologyDatasetResource;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,22 +35,23 @@ public abstract class ClassEntropyServiceTests {
 
   @Test
   public void getEntropyForWine_mustReturnNonZeroValue() {
-    Double wineEntropy = classEntropyService
+    DecimalNormalizedAnalysisValue wineEntropy = classEntropyService
         .getEntropyForClass(
             new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Wine"));
     assertNotNull(wineEntropy);
-    assertThat(wineEntropy, greaterThan(0.0));
-    Double italianWineEntropy = classEntropyService
+    assertThat(wineEntropy.getValue().doubleValue(), greaterThan(0.0));
+    DecimalNormalizedAnalysisValue italianWineEntropy = classEntropyService
         .getEntropyForClass(
             new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#ItalianWine"));
     assertNotNull(italianWineEntropy);
-    assertThat(italianWineEntropy, greaterThan(0.0));
-    assertThat(wineEntropy, lessThan(italianWineEntropy));
+    assertThat(italianWineEntropy.getValue().doubleValue(), greaterThan(0.0));
+    assertThat(wineEntropy.getValue().doubleValue(),
+        lessThan(italianWineEntropy.getValue().doubleValue()));
   }
 
   @Test
   public void getEntropyForNonClass_mustBeNull() {
-    Double categoryEntropy = classEntropyService
+    DecimalNormalizedAnalysisValue categoryEntropy = classEntropyService
         .getEntropyForClass(
             new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Bancroft"));
     assertNull(categoryEntropy);
@@ -57,7 +59,7 @@ public abstract class ClassEntropyServiceTests {
 
   @Test
   public void getEntropyForUnknownResource_mustBeNull() {
-    Double unknownResourceEntropy = classEntropyService
+    DecimalNormalizedAnalysisValue unknownResourceEntropy = classEntropyService
         .getEntropyForClass(new Resource("test:a"));
     assertNull(unknownResourceEntropy);
   }

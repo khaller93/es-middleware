@@ -1,6 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.hierarchy.classes;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.serializer.RDFTermJsonUtil;
@@ -9,7 +10,10 @@ import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.AllClassesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.SameAsResourceService;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import java.io.Serializable;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,6 +22,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.mapdb.DB;
@@ -26,7 +31,9 @@ import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.Cache;
+import org.springframework.cache.Cache.ValueWrapper;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 
 /**
@@ -64,6 +71,7 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
   private final SPARQLService sparqlService;
   private final AllClassesService allClassesService;
   private final SameAsResourceService sameAsResourceService;
+  private final Cache cache;
   private final DB mapDB;
 
   private final HTreeMap<String, Integer> classNodeMap;
@@ -75,10 +83,12 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
   public ClassHierarchyWithSPARQLService(
       SPARQLService sparqlService,
       AllClassesService allClassesService,
+      CacheManager cacheManager,
       SameAsResourceService sameAsResourceService, DB mapDB) {
     this.sparqlService = sparqlService;
     this.allClassesService = allClassesService;
     this.sameAsResourceService = sameAsResourceService;
+    this.cache = cacheManager.getCache("class-hierarchy-cache");
     this.mapDB = mapDB;
     this.classNodeMap = mapDB
         .hashMap(UID + ".class.to.node.map", Serializer.STRING, Serializer.INTEGER).createOrOpen();
@@ -94,9 +104,17 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
   @Override
   public Set<Resource> getMostSpecificClasses(Set<Resource> classes) {
     checkArgument(classes != null, "The given list of classes must not be null.");
+    CKey<RLK> msKey = new CKey<>("lca-ms", new RLK(classes));
+    ValueWrapper value = cache.get(msKey);
+    if (value != null) {
+      return (Set<Resource>) value.get();
+    }
     Set<Resource> parents = classes.stream().flatMap(c -> getSuperClasses(c).stream())
         .collect(Collectors.toSet());
-    return classes.stream().filter(c -> !parents.contains(c)).collect(Collectors.toSet());
+    Set<Resource> mostSpecificClasses = classes.stream().filter(c -> !parents.contains(c))
+        .collect(Collectors.toSet());
+    cache.put(msKey, mostSpecificClasses);
+    return mostSpecificClasses;
   }
 
   @Override
@@ -163,19 +181,29 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
   public Set<Resource> getLowestCommonAncestor(Resource classA, Resource classB) {
     checkArgument(classA != null && classB != null,
         "The given (classA, classB) pair must not be null.");
-    Set<Resource> aParentClasses = getSuperClasses(classA);
-    if (aParentClasses.isEmpty()) {
-      return Sets.newHashSet();
+    CKey<Pair<Resource, Resource>> lcaKeyAB = new CKey<>("lca-single", Pair.of(classA, classB));
+    CKey<Pair<Resource, Resource>> lcaKeyBA = new CKey<>("lca-single", Pair.of(classB, classA));
+    ValueWrapper value = cache.get(lcaKeyAB);
+    if (value != null) {
+      return (Set<Resource>) value.get();
     }
+    value = cache.get(lcaKeyBA);
+    if (value != null) {
+      return (Set<Resource>) value.get();
+    }
+    Set<Resource> aParentClasses = ImmutableSet.<Resource>builder()
+        .addAll(getSuperClasses(classA)).add(classA).build();
     Set<Resource> bParentClasses = Sets.newHashSet(classB);
     do {
       Set<Resource> intersectionClasses = Sets.intersection(aParentClasses, bParentClasses)
           .immutableCopy();
       if (!intersectionClasses.isEmpty()) {
+        cache.put(lcaKeyAB, intersectionClasses);
         return intersectionClasses;
       }
       bParentClasses = getNextLevelParent(new HashSet<>(bParentClasses));
     } while (!bParentClasses.isEmpty());
+    cache.put(lcaKeyAB, Sets.newHashSet());
     return Sets.newHashSet();
   }
 
@@ -186,11 +214,28 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
     if (classASet.isEmpty() || classBSet.isEmpty()) {
       return Sets.newHashSet();
     }
+    // check the cache
+    RLK rlkA = new RLK(classASet);
+    RLK rlkB = new RLK(classBSet);
+    CKey<Pair<RLK, RLK>> cKeyAB = new CKey<>("lca-sets", Pair.of(rlkA, rlkB));
+    CKey<Pair<RLK, RLK>> cKeyBA = new CKey<>("lca-sets", Pair.of(rlkB, rlkA));
+    ValueWrapper value = cache.get(cKeyAB);
+    if (value != null) {
+      return (Set<Resource>) value.get();
+    }
+    value = cache.get(cKeyBA);
+    if (value != null) {
+      return (Set<Resource>) value.get();
+    }
+    // perform the function
     Set<Resource> mostSpecificClassesA = getMostSpecificClasses(classASet);
     Set<Resource> mostSpecificClassesB = getMostSpecificClasses(classBSet);
     if (mostSpecificClassesA.size() == 1 && mostSpecificClassesB.size() == 1) {
-      return getLowestCommonAncestor(mostSpecificClassesA.iterator().next(),
+      Set<Resource> lowestCommonAncestor = getLowestCommonAncestor(
+          mostSpecificClassesA.iterator().next(),
           mostSpecificClassesB.iterator().next());
+      cache.put(cKeyAB, lowestCommonAncestor);
+      return lowestCommonAncestor;
     } else {
       Set<Resource> lcaCandidates = new HashSet<>();
       for (Resource mscA : mostSpecificClassesA) {
@@ -198,7 +243,9 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
           lcaCandidates.addAll(getLowestCommonAncestor(mscA, mscB));
         }
       }
-      return getMostSpecificClasses(lcaCandidates);
+      Set<Resource> lowestCommonAncestor = getMostSpecificClasses(lcaCandidates);
+      cache.put(cKeyAB, lowestCommonAncestor);
+      return lowestCommonAncestor;
     }
   }
 
@@ -301,4 +348,86 @@ public class ClassHierarchyWithSPARQLService implements ClassHierarchyService {
     return Optional.empty();
   }
 
+  static class CKey<T extends Serializable> implements Serializable {
+
+    private String name;
+    private T secondKey;
+
+    public CKey(String name, T secondKey) {
+      checkNotNull(name);
+      checkNotNull(secondKey);
+      this.name = name;
+      this.secondKey = secondKey;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public T getSecondKey() {
+      return secondKey;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      CKey<?> cKey = (CKey<?>) o;
+      return name.equals(cKey.name) &&
+          secondKey.equals(cKey.secondKey);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(name, secondKey);
+    }
+  }
+
+  static class RLK implements Serializable {
+
+    private final List<Resource> resourceList;
+
+    RLK(Set<Resource> resourceList) {
+      checkNotNull(resourceList);
+      this.resourceList = resourceList.stream().sorted(
+          Comparator.comparing(Resource::getId)).collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      RLK that = (RLK) o;
+      if (!(resourceList.size() == that.resourceList.size())) {
+        return false;
+      }
+      for (int i = 0; i < resourceList.size(); i++) {
+        if (!resourceList.get(i).equals(that.resourceList.get(i))) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects
+          .hash(resourceList.stream().map(Resource::getId).collect(Collectors.joining(",")));
+    }
+
+    @Override
+    public String toString() {
+      return "RLK[" + resourceList.stream().map(Resource::getId)
+          .collect(Collectors.toList()) + ']';
+    }
+
+  }
 }

@@ -11,16 +11,21 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOExceptio
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.facet.FacetFilter;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.serializer.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.FacetedSearchQueryBuilder;
+import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.facet.FacetedSearchQueryBuilder;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
-import org.apache.commons.text.StringSubstitutor;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.sparqlbuilder.core.Prefix;
+import org.eclipse.rdf4j.sparqlbuilder.core.SparqlBuilder;
+import org.eclipse.rdf4j.sparqlbuilder.core.Variable;
+import org.eclipse.rdf4j.sparqlbuilder.core.query.InsertDataQuery;
+import org.eclipse.rdf4j.sparqlbuilder.core.query.Queries;
+import org.eclipse.rdf4j.sparqlbuilder.core.query.SelectQuery;
+import org.eclipse.rdf4j.sparqlbuilder.rdf.Rdf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,14 +51,8 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
 
   private static final Logger logger = LoggerFactory.getLogger(GraphDbLucene.class);
 
-  private static final String FTS_QUERY = "PREFIX luc: <http://www.ontotext.com/owlim/lucene#>\n"
-      + "SELECT ?resource ?score {\n"
-      + "  ?resource <${name}> \"${keyword}\" ; \n"
-      + "     luc:score ?score .\n"
-      + "  ${body}\n"
-      + "} ORDER BY DESC (?score)\n"
-      + "${offset}\n"
-      + "${limit}\n";
+  private static final Prefix LUC = SparqlBuilder.prefix("luc",
+      Rdf.iri("http://www.ontotext.com/owlim/lucene#"));
 
   private static final String INSERT_INDEX_DATA_QUERY =
       "PREFIX luc: <http://www.ontotext.com/owlim/lucene#>\n"
@@ -61,10 +60,6 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
           + "%s\n"
           + "<%s> luc:createIndex \"true\".\n"
           + "}";
-
-  private static final String BATCH_UPDATE_QUERY =
-      "PREFIX luc: <http://www.ontotext.com/owlim/lucene#>\n"
-          + "INSERT DATA { <%s> luc:updateIndex _:b1 . }";
 
   private final TaskExecutor taskExecutor;
 
@@ -120,45 +115,48 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
     logger
         .debug("FTS call for {} was triggered with parameters: offset={}, limit={}, and classes={}",
             keyword, offset, limit, classes);
-    Map<String, String> valueMap = new HashMap<>();
-    valueMap.put("name", graphDbLuceneConfig.getLuceneIndexIRI());
-    valueMap.put("keyword", keyword.replace("\"", "\\\""));
+    /*
+     *  PREFIX luc: <http://www.ontotext.com/owlim/lucene#>
+     *
+     *  SELECT ?resource ?score {
+     *    ?resource luc:${name} "${keyword}" ;
+     *              luc:score ?score .
+     *    ${FACETS}
+     *  } ORDER BY DESC (?score)
+     *  OFFSET ${offset}
+     *  LIMIT ${LIMIT}
+     */
+    /* variables */
+    Variable resource = SparqlBuilder.var("resource");
+    Variable score = SparqlBuilder.var("score");
+    /* construct main query */
+    SelectQuery query = Queries.SELECT(resource, score).prefix(LUC)
+        .where(resource.has(LUC.iri(graphDbLuceneConfig.getName()), Rdf.literalOf(keyword)),
+            resource.has(LUC.iri("score"), score));
     /* build facets */
-    FacetedSearchQueryBuilder queryBuilder = FacetedSearchQueryBuilder.forSubject("resource");
-    queryBuilder.includeInstancesOfClasses(classes);
-    if (facets != null) {
-      facets.forEach(queryBuilder::addPropertyFacet);
+    if ((classes != null && classes.size() > 0) || (facets != null && facets.size() > 0)) {
+      FacetedSearchQueryBuilder queryBuilder = FacetedSearchQueryBuilder.forSubject("resource");
+      if (classes != null && classes.size() > 0) {
+        queryBuilder.includeInstancesOfClasses(classes);
+      }
+      if (facets != null && facets.size() > 0) {
+        facets.forEach(queryBuilder::addPropertyFacet);
+      }
+      query = query.where(queryBuilder.build());
     }
-    valueMap.put("body", queryBuilder.getQueryBody());
-    /* windowing */
-    valueMap.put("offset", offset != null ? "OFFSET " + offset.toString() : "");
-    valueMap.put("limit", limit != null ? "LIMIT " + limit.toString() : "");
-    String filledFtsQuery = new StringSubstitutor(valueMap)
-        .replace(FTS_QUERY);
+    query = query.orderBy(score.desc());
+    /* adjust window */
+    if (offset != null) {
+      query = query.offset(offset);
+    }
+    if (limit != null) {
+      query = query.limit(limit);
+    }
+    String filledFtsQuery = query.getQueryString();
     logger.trace(
         "Query resulting from FTS call for {} with parameters (offset={}, limit={}, classes={}).",
         filledFtsQuery, offset, limit, classes);
     return sparqlDAO.<SelectQueryResult>query(filledFtsQuery, true).value();
-  }
-
-  /**
-   * Prepares a filter for the given list of class IRIs. This filter ensures that all returned
-   * resources of the full-text-search belong to at least one of the given classes.
-   *
-   * @param classes of which a returned resource must be a member (at least of one given class).
-   * @return a class filter for the full-text-search query.
-   */
-  private static String prepareFilter(List<BlankNodeOrIRI> classes) {
-    if (classes == null || classes.isEmpty()) {
-      return "";
-    } else if (classes.size() == 1) {
-      return String.format("?resource a/rdfs:subClassOf* %s .",
-          RDFTermJsonUtil.stringForSPARQLResourceOf(classes.get(0)));
-    } else {
-      return classes.stream().map(clazz -> String.format("{?resource a/rdfs:subClassOf* %s}",
-          RDFTermJsonUtil.stringForSPARQLResourceOf(clazz)))
-          .collect(Collectors.joining("\nUNION\n"));
-    }
   }
 
   /**
@@ -169,7 +167,16 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
     logger.debug("Batch updating the lucene index for '{}'.", graphDbLuceneConfig.getName());
     try (RepositoryConnection con = ((RDF4JSparqlDAO) sparqlDAO).getRepository()
         .getConnection()) {
-      con.prepareUpdate(String.format(BATCH_UPDATE_QUERY, graphDbLuceneConfig.getLuceneIndexIRI()));
+      /*
+       *  PREFIX luc: <http://www.ontotext.com/owlim/lucene#>
+       *
+       *  INSERT DATA { <%s> luc:updateIndex _:b1 . }
+       */
+      InsertDataQuery query = Queries.INSERT_DATA(
+          LUC.iri(graphDbLuceneConfig.getName()).has(LUC.iri("updateIndex"),
+              Rdf.bNode("b1"))).prefix(LUC);
+      logger.trace("Batch Update Query: {}", query.getQueryString());
+      con.prepareUpdate(query.getQueryString());
     } catch (Exception e) {
       logger.error("Error while updating the Lucene update. {}", e.getMessage());
       throw e;

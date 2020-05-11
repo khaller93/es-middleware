@@ -8,9 +8,15 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProc
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.hierarchy.classes.ClassHierarchyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.ResourceClassService;
 import com.google.common.collect.Sets;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.Cache.ValueWrapper;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +34,7 @@ import org.springframework.stereotype.Service;
     ClassHierarchyService.class, ResourceClassService.class})
 public class LCAOnTheFlyService implements LowestCommonAncestorService {
 
-  public static final String LCA_UID = "esm.service.analytics.dataset.lca.online";
+  public static final String LCA_UID = "esm.service.analytics.dataset.classes.online";
 
   private final ResourceClassService resourceClassService;
   private final ClassHierarchyService classHierarchyService;

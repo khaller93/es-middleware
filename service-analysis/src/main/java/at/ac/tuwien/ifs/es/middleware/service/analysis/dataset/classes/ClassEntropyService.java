@@ -2,6 +2,8 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes;
 
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.NormalizedAnalysisValue;
 
 /**
  * Instances get this interface can compute the entropy get all classes in a given knowledge graph.
@@ -20,6 +22,6 @@ public interface ClassEntropyService extends AnalysisService {
    * @return the entropy get the given class resource, or {@code null}, if the resource is no class
    * or unknown.
    */
-  Double getEntropyForClass(Resource classResource);
+  DecimalNormalizedAnalysisValue getEntropyForClass(Resource classResource);
 
 }

@@ -5,7 +5,7 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOException;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.facet.FacetFilter;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.SelectQueryResult;
-import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.FacetedSearchQueryBuilder;
+import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.facet.FacetedSearchQueryBuilder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

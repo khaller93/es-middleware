@@ -2,8 +2,10 @@ package at.ac.tuwien.ifs.es.middleware.tests.integration;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
@@ -12,10 +14,17 @@ import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 import at.ac.tuwien.ifs.es.middleware.ExploratorySearchApplication;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGGremlinDAO;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisServiceEntry;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisServiceRegistry;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.context.resources.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.testutil.MusicPintaInstrumentsResource;
 import com.fasterxml.jackson.core.JsonPointer;
@@ -34,8 +43,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.rdf.api.IRI;
+import org.assertj.core.util.Lists;
+import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,27 +70,31 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(classes = ExploratorySearchApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
     "esm.db.choice=RDF4J",
+    "esm.analysis.computeOnStart=false",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",
     "esm.db.fts.choice=RDF4JLucene",
-    "esm.db.gremlin.choice=ClonedInMemoryGremlin"
+    "esm.db.gremlin.choice=ClonedInMemoryGremlin",
+    "esm.db.map=memory",
 })
-@Ignore
 public class DynamicExploratoryMusicPintaFlowTest {
 
-  @Rule
   @Autowired
   public MusicPintaInstrumentsResource musicPintaResource;
   @Autowired
   private TestRestTemplate restTemplate;
   @Autowired
   private ObjectMapper parameterMapper;
+  @Autowired
+  private AnalysisServiceRegistry analysisServiceRegistry;
+  @Autowired
+  private AllResourcesService allResourcesService;
 
   private final static Map<String, String> jsonTestMap = new HashMap<>();
 
   @BeforeClass
   public static void setUpClass() throws Exception {
     for (Entry<String, String> e : ImmutableMap.<String, String>builder()
-        .put("simpleAllSource", "/dynamicflow/simpleAllSource.json")
+        .put("simpleAllSource", "/dynamicflow/simpleAllInstrumentsSource.json")
         .put("simpleExcludingAllSource", "/dynamicflow/simpleExcludingAllSource.json")
         .put("naiveLimit", "/dynamicflow/naiveLimit.json")
         .put("simpleDescribe", "/dynamicflow/simpleDescribe.json")
@@ -97,17 +111,26 @@ public class DynamicExploratoryMusicPintaFlowTest {
     }
   }
 
+  @Before
+  public void before() throws Exception {
+    musicPintaResource.before(Lists.newArrayList(KGSparqlDAO.class.getName(),
+        KGGremlinDAO.class.getName(), KGFullTextSearchDAO.class.getName()),
+        analysisServiceRegistry.getRegisteredAnalysisServices().stream()
+            .map(AnalysisServiceEntry::getName).collect(Collectors.toList()));
+  }
+
   @Test
   public void test_excludingAllFlow_mustReturnNoInstruments() throws Exception {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.valueOf("application/json"));
     HttpEntity<String> entity = new HttpEntity<>(jsonTestMap.get("simpleExcludingAllSource"),
         headers);
-    ResponseEntity<String> limit5Response = restTemplate
+    ResponseEntity<String> noInstruments = restTemplate
         .exchange("/explore/with/custom/flow", HttpMethod.POST, entity, String.class);
-    assertTrue(limit5Response.getStatusCode().is2xxSuccessful());
+    assertTrue(noInstruments.getStatusCode().is2xxSuccessful());
+    assertNotNull(noInstruments.getBody());
     ResourceList resources = parameterMapper
-        .readValue(limit5Response.getBody(), ResourceList.class);
+        .readValue(noInstruments.getBody(), ResourceList.class);
     List<String> resourceIRIs = resources.streamOfResults()
         .map(c -> ((IRI) c.value()).getIRIString())
         .collect(Collectors.toList());
@@ -122,14 +145,18 @@ public class DynamicExploratoryMusicPintaFlowTest {
 
   @Test
   public void test_allFlow_mustReturnOnlyAllInstruments() throws Exception {
+    // sanity check
+    assertThat(allResourcesService.getResourceList(), not(empty()));
+    //test
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.valueOf("application/json"));
     HttpEntity<String> entity = new HttpEntity<>(jsonTestMap.get("simpleAllSource"), headers);
-    ResponseEntity<String> limit5Response = restTemplate
+    ResponseEntity<String> allInstrumentsResponse = restTemplate
         .exchange("/explore/with/custom/flow", HttpMethod.POST, entity, String.class);
-    assertTrue(limit5Response.getStatusCode().is2xxSuccessful());
+    assertTrue(allInstrumentsResponse.getStatusCode().is2xxSuccessful());
+    assertNotNull(allInstrumentsResponse.getBody());
     ResourceList resources = parameterMapper
-        .readValue(limit5Response.getBody(), ResourceList.class);
+        .readValue(allInstrumentsResponse.getBody(), ResourceList.class);
     List<String> resourceIRIs = resources.streamOfResults()
         .map(c -> ((IRI) c.value()).getIRIString())
         .collect(Collectors.toList());
@@ -148,12 +175,23 @@ public class DynamicExploratoryMusicPintaFlowTest {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.valueOf("application/json"));
     HttpEntity<String> entity = new HttpEntity<>(jsonTestMap.get("naiveLimit"), headers);
-    ResponseEntity<String> limit5Response = restTemplate
+    //
+    ResponseEntity<String> allResponse = restTemplate
         .exchange("/explore/with/custom/flow", HttpMethod.POST, entity, String.class);
-    assertThat(limit5Response.getStatusCode().value(), is(equalTo(200)));
-    ResourceList resources = parameterMapper
-        .readValue(limit5Response.getBody(), ResourceList.class);
-    assertThat(resources.streamOfResults().collect(Collectors.toList()), hasSize(100));
+    assertNotNull(allResponse);
+    assertThat(allResponse.getStatusCode().value(), is(equalTo(200)));
+    ResourceList allResources = parameterMapper
+        .readValue(allResponse.getBody(), ResourceList.class);
+    assertThat(allResources.asResourceList(), hasSize(greaterThan(0)));
+    // all instruments
+    ResponseEntity<String> limit100InstrumentsResponse = restTemplate
+        .exchange("/explore/with/custom/flow", HttpMethod.POST, entity, String.class);
+    assertNotNull(limit100InstrumentsResponse);
+    assertThat(limit100InstrumentsResponse.getStatusCode().value(), is(equalTo(200)));
+    ResourceList instrumentTop100Resources = parameterMapper
+        .readValue(limit100InstrumentsResponse.getBody(), ResourceList.class);
+    assertThat(instrumentTop100Resources.streamOfResults().collect(Collectors.toList()),
+        hasSize(100));
   }
 
   @Test
@@ -163,6 +201,7 @@ public class DynamicExploratoryMusicPintaFlowTest {
     HttpEntity<String> entity = new HttpEntity<>(jsonTestMap.get("simpleDescribe"), headers);
     ResponseEntity<String> descriptionResponse = restTemplate
         .exchange("/explore/with/custom/flow", HttpMethod.POST, entity, String.class);
+    assertNotNull(descriptionResponse);
     assertTrue(descriptionResponse.getStatusCode().is2xxSuccessful());
     ResourceList resources = parameterMapper
         .readValue(descriptionResponse.getBody(), ResourceList.class);
@@ -176,7 +215,7 @@ public class DynamicExploratoryMusicPintaFlowTest {
         .get().get(0).asText(), is("Santur"));
     assertThat(resources
             .values().get("http://dbpedia.org/resource/Tembor",
-                JsonPointer.compile("/describe/description/values/en")).get().get(0)
+            JsonPointer.compile("/describe/description/values/en")).get().get(0)
             .asText(),
         is("The Tembor is a stringed musical instrument from the Uyghur region, Western China. It has 5 strings in 3 courses and is tuned A A, D, G G. The strings are made of Steel."));
     assertFalse("The 'Tambura' resource has no description.",
@@ -190,11 +229,11 @@ public class DynamicExploratoryMusicPintaFlowTest {
     headers.setContentType(MediaType.valueOf("application/json"));
     HttpEntity<String> entity = new HttpEntity<>(jsonTestMap.get("simpleGuitarFTS"),
         headers);
-    ResponseEntity<String> limit5Response = restTemplate
+    ResponseEntity<String> guitarResponse = restTemplate
         .exchange("/explore/with/custom/flow", HttpMethod.POST, entity, String.class);
-    assertTrue(limit5Response.getStatusCode().is2xxSuccessful());
+    assertTrue(guitarResponse.getStatusCode().is2xxSuccessful());
     ResourceList resources = parameterMapper
-        .readValue(limit5Response.getBody(), ResourceList.class);
+        .readValue(guitarResponse.getBody(), ResourceList.class);
     List<String> resourceIRIs = resources.streamOfResults()
         .map(c -> ((IRI) c.value()).getIRIString())
         .collect(Collectors.toList());
@@ -210,12 +249,12 @@ public class DynamicExploratoryMusicPintaFlowTest {
     headers.setContentType(MediaType.valueOf("application/json"));
     HttpEntity<String> entity = new HttpEntity<>(jsonTestMap.get("guitarFTSWithNiceDescription"),
         headers);
-    ResponseEntity<String> limit5Response = restTemplate
+    ResponseEntity<String> allGuitarResponse = restTemplate
         .exchange("/explore/with/custom/flow", HttpMethod.POST, entity, String.class);
-    assertTrue(limit5Response.getStatusCode().is2xxSuccessful());
+    assertTrue(allGuitarResponse.getStatusCode().is2xxSuccessful());
 
     ResourceList resources = parameterMapper
-        .readValue(limit5Response.getBody(), ResourceList.class);
+        .readValue(allGuitarResponse.getBody(), ResourceList.class);
     List<String> resourceIRIs = resources.streamOfResults().map(Resource::getId)
         .collect(Collectors.toList());
     assertThat(resourceIRIs, hasItems("http://dbpedia.org/resource/Classical_guitar",
@@ -285,7 +324,6 @@ public class DynamicExploratoryMusicPintaFlowTest {
     ResponseEntity<String> bigFlowResponse = restTemplate
         .exchange("/explore/with/custom/flow", HttpMethod.POST, entity, String.class);
     assertThat(bigFlowResponse.getStatusCode().value(), is(equalTo(200)));
-
     ResourceList resourcesContext = parameterMapper
         .readValue(bigFlowResponse.getBody(), ResourceList.class);
     List<Resource> resourceList = resourcesContext.streamOfResults().collect(Collectors.toList());
@@ -318,7 +356,7 @@ public class DynamicExploratoryMusicPintaFlowTest {
         return Stream.<String>empty();
       }
     }).collect(Collectors.toList());
-    assertThat(labels, hasItems("Acoustic guitar", "Electric guitar"));
+    assertThat(labels, hasItems("Acoustic guitar", "Steel guitar"));
   }
 
   @Test
@@ -327,12 +365,12 @@ public class DynamicExploratoryMusicPintaFlowTest {
     headers.setContentType(MediaType.valueOf("application/json"));
     HttpEntity<String> entity = new HttpEntity<>(jsonTestMap.get("minmaxFTSScore"),
         headers);
-    ResponseEntity<String> bigFlowResponse = restTemplate
+    ResponseEntity<String> minMaxFTSResponse = restTemplate
         .exchange("/explore/with/custom/flow", HttpMethod.POST, entity, String.class);
-    assertThat(bigFlowResponse.getStatusCode().value(), is(equalTo(200)));
+    assertThat(minMaxFTSResponse.getStatusCode().value(), is(equalTo(200)));
 
     ResourceList resourcesContext = parameterMapper
-        .readValue(bigFlowResponse.getBody(), ResourceList.class);
+        .readValue(minMaxFTSResponse.getBody(), ResourceList.class);
     List<Double> scoreNumbers = resourcesContext.streamOfResults()
         .map(r -> {
           Optional<JsonNode> optionalScore = resourcesContext
@@ -350,6 +388,6 @@ public class DynamicExploratoryMusicPintaFlowTest {
         .values().get("http://dbtune.org/musicbrainz/resource/instrument/475",
             JsonPointer.compile("/fts/score"));
     assertTrue(furthestDownResourceScore.isPresent());
-    assertThat(furthestDownResourceScore.get().asDouble(), is(equalTo(0.0)));
+    assertThat(furthestDownResourceScore.get().asDouble(), is(lessThanOrEqualTo(0.1)));
   }
 }

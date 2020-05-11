@@ -7,6 +7,8 @@ import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.ClassEntropyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.hierarchy.classes.lca.LowestCommonAncestorService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
+import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +26,7 @@ import org.springframework.stereotype.Service;
 @Primary
 @Service
 @RegisterForAnalyticalProcessing(name = ResnikSimilarityOnTheFlyService.UID,
-    prerequisites = {ClassEntropyService.class, LowestCommonAncestorService.class})
+    prerequisites = {ClassEntropyService.class, LowestCommonAncestorService.class}, disabled = true)
 public class ResnikSimilarityOnTheFlyService implements ResnikSimilarityMetricService {
 
   private final LowestCommonAncestorService lowestCommonAncestorService;
@@ -41,17 +43,20 @@ public class ResnikSimilarityOnTheFlyService implements ResnikSimilarityMetricSe
   }
 
   @Override
-  public Double getValueFor(ResourcePair resourcePair) {
+  public DecimalNormalizedAnalysisValue getValueFor(ResourcePair resourcePair) {
     checkArgument(resourcePair != null, "The given resource pair must not be null.");
     Set<Resource> lowestCommonAncestors = lowestCommonAncestorService
         .getLowestCommonAncestor(resourcePair);
     if (lowestCommonAncestors != null) {
       if (!lowestCommonAncestors.isEmpty()) {
-        return lowestCommonAncestors.stream()
+        BigDecimal value = lowestCommonAncestors.stream()
             .map(classEntropyService::getEntropyForClass)
-            .filter(Objects::nonNull).max(Double::compareTo).orElse(0.0);
+            .filter(Objects::nonNull).map(DecimalNormalizedAnalysisValue::getValue)
+            .max(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
+        return new DecimalNormalizedAnalysisValue(value, value, null);
       } else {
-        return 0.0;
+        return new DecimalNormalizedAnalysisValue(BigDecimal.ZERO, BigDecimal.ZERO,
+            BigDecimal.ZERO);
       }
     }
     return null;

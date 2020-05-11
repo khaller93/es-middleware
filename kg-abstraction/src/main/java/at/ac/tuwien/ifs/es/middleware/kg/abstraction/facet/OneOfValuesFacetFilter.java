@@ -2,6 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.kg.abstraction.facet;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import java.util.List;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDFTerm;
@@ -13,6 +14,7 @@ import org.apache.commons.rdf.api.RDFTerm;
  * @version 1.0
  * @since 1.0
  */
+@JsonTypeName("or")
 public class OneOfValuesFacetFilter implements PropertyFacetFilter {
 
   private IRI property;

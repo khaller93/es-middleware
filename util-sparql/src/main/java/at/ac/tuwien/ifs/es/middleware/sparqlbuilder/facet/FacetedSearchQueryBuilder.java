@@ -2,11 +2,16 @@ package at.ac.tuwien.ifs.es.middleware.sparqlbuilder.facet;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.facet.ExcludeInstancesOfFacetFilter;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.facet.FacetFilter;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.facet.OneOfValuesFacetFilter;
+import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
 import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.QT;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.IRI;
 import org.apache.commons.rdf.api.RDFTerm;
@@ -104,6 +109,10 @@ public final class FacetedSearchQueryBuilder {
     if (facetFilter instanceof OneOfValuesFacetFilter) {
       existsPatterns.add(or(((OneOfValuesFacetFilter) facetFilter).getProperty(),
           new LinkedList<>(((OneOfValuesFacetFilter) facetFilter).getValues())));
+    } else if (facetFilter instanceof ExcludeInstancesOfFacetFilter) {
+      excludeInstancesOfClassResources(
+          ((ExcludeInstancesOfFacetFilter) facetFilter).getClasses().stream().map(Resource::value)
+              .collect(Collectors.toList()));
     } else {
       throw new IllegalArgumentException(
           String.format("The given facet type '%s' is unknown.", facetFilter));

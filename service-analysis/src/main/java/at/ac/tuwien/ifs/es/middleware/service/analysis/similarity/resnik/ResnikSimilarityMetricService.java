@@ -2,6 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.resnik;
 
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.hierarchy.classes.lca.LowestCommonAncestorService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
 
 /**
  * This service finds the least common subsumers get two resources (see {@link
@@ -17,6 +18,6 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetr
  * Information Content to Evaluate Semantic Similarity in a Taxonomy" (1995)</a>
  * @since 1.0
  */
-public interface ResnikSimilarityMetricService extends SimilarityMetricService<Double> {
+public interface ResnikSimilarityMetricService extends SimilarityMetricService<DecimalNormalizedAnalysisValue> {
 
 }

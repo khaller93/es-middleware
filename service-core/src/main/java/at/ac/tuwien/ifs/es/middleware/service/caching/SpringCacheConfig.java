@@ -19,7 +19,8 @@ public class SpringCacheConfig {
         new ConcurrentMapCache("sparql"),
         new ConcurrentMapCache("fts"),
         new ConcurrentMapCache("gremlin"),
-        new ConcurrentMapCache("esm.service.analytics.dataset.class.hierarchy")));
+        new ConcurrentMapCache("classes-cache"),
+        new ConcurrentMapCache("class-hierarchy-cache")));
     return cacheManager;
   }
 

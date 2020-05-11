@@ -1,5 +1,7 @@
-package at.ac.tuwien.ifs.es.middleware.service.analysis.normalization;
+package at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization;
 
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.AnalysisNumberValue;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,6 +33,6 @@ public interface NormalizedAnalysisValue<N extends Number> extends AnalysisNumbe
    * not been performed.
    * @throws IllegalArgumentException if the given strategy is null.
    */
-  Optional<N> getValueOfStrategy(NormalizationStrategy strategy);
+  Optional<BigDecimal> getValueOfStrategy(NormalizationStrategy strategy);
 
 }

@@ -56,9 +56,12 @@ public class ClonedCassandraJanusGraph extends AbstractClonedGremlinDAO {
   private Graph initGraphInstance(CassandraConfig cassandraConfig) {
     logger.info("Started to initialize the Janusgraph.");
     graph = JanusGraphFactory.build()
-        .set("storage.backend", "cassandra")
+        .set("storage.backend", "cql")
         .set("storage.cassandra.keyspace", cassandraConfig.getKeySpace())
         .set("storage.hostname", cassandraConfig.getHostname())
+        .set("graph.unique-instance-id-suffix",
+            cassandraConfig.getIdSuffix() != null ? cassandraConfig.getIdSuffix() :
+                String.valueOf((short) (cassandraConfig.getKeySpace().hashCode())))
         .set("storage.transactions", true)
         .open();
     IndexUtils.index(graph);

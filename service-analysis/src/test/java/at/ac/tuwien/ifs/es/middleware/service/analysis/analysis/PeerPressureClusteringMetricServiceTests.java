@@ -25,11 +25,14 @@ import at.ac.tuwien.ifs.es.middleware.testutil.MapDBDummy;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleGremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleSPARQLService;
 import at.ac.tuwien.ifs.es.middleware.testutil.WineOntologyDatasetResource;
+import java.math.BigDecimal;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -55,6 +58,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     "esm.db.fts.choice=RDF4JLucene",
     "esm.db.gremlin.choice=ClonedInMemoryGremlin"
 })
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class PeerPressureClusteringMetricServiceTests {
 
   @Rule
@@ -75,7 +79,8 @@ public class PeerPressureClusteringMetricServiceTests {
   public void computeThePeerPressureAndGetItForSameResourcesPair_mustReturnTrue() {
     ResourcePair resourcePair = ResourcePair.of(new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"),
         new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"));
-    Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair);
+    Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair).getValue().compareTo(
+        BigDecimal.ONE) == 0;
     assertNotNull(result);
     assertTrue(result);
   }
@@ -84,7 +89,8 @@ public class PeerPressureClusteringMetricServiceTests {
   public void computeThePeerPressureAndGetItForTwoResourcesInDifferentCLuster_mustReturnFalse() {
     ResourcePair resourcePair = ResourcePair.of(new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"),
         new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#ChateauMargauxWinery"));
-    Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair);
+    Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair).getValue().compareTo(
+        BigDecimal.ONE) == 0;
     assertNotNull(result);
     assertFalse(result);
   }
@@ -93,7 +99,8 @@ public class PeerPressureClusteringMetricServiceTests {
   public void computeThePeerPressureAndGetItForUnknownPair_mustReturnNull() {
     ResourcePair resourcePair = ResourcePair.of(new Resource("test:a"),
         new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"));
-    Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair);
+    Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair).getValue().compareTo(
+        BigDecimal.ONE) == 0;
     assertNull(result);
   }
 
@@ -101,7 +108,8 @@ public class PeerPressureClusteringMetricServiceTests {
   public void computeThePeerPressureAndGetItForUnknownPair2_mustReturnNull() {
     ResourcePair resourcePair = ResourcePair.of(new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"),
         new Resource("test:a"));
-    Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair);
+    Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair).getValue().compareTo(
+        BigDecimal.ONE) == 0;
     assertNull(result);
   }
 
@@ -109,7 +117,8 @@ public class PeerPressureClusteringMetricServiceTests {
   public void computeThePeerPressureAndGetItForUnknownPair3_mustReturnNull() {
     ResourcePair resourcePair = ResourcePair.of(new Resource("test:b"),
         new Resource("test:a"));
-    Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair);
+    Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair).getValue().compareTo(
+        BigDecimal.ONE) == 0;
     assertNull(result);
   }
 

@@ -17,6 +17,7 @@ import at.ac.tuwien.ifs.es.middleware.scheduler.SchedulerPipeline;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.degree.DegreeCentralityMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.degree.DegreeCentralityMetricWithGremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesWithSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
 import at.ac.tuwien.ifs.es.middleware.testutil.MapDBDummy;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleGremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleSPARQLService;
@@ -26,6 +27,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.annotation.DirtiesContext.MethodMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -51,6 +55,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     "esm.db.fts.choice=RDF4JLucene",
     "esm.db.gremlin.choice=ClonedInMemoryGremlin"
 })
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class DegreeCentralityMetricServiceTests {
 
   @Rule
@@ -70,17 +75,19 @@ public class DegreeCentralityMetricServiceTests {
   @Test
   public void computeDegreeMetrics_mustReturnDegree() {
     assertThat(degreeCentralityMetricService.getValueFor(
-        new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#SweetRiesling")),
+        new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#SweetRiesling"))
+            .getValue().longValue(),
         is(2L));
     assertThat(degreeCentralityMetricService.getValueFor(
         new Resource(
-            "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#SchlossRothermel")),
+            "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#SchlossRothermel")).getValue()
+            .longValue(),
         is(1L));
   }
 
   @Test
   public void computeDegreeMetricsAndGetForUnknownResource_mustReturnNull() {
-    Long distanceForUnknownResource = degreeCentralityMetricService
+    DecimalNormalizedAnalysisValue distanceForUnknownResource = degreeCentralityMetricService
         .getValueFor(new Resource("test:a"));
     assertNull(distanceForUnknownResource);
   }

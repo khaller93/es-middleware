@@ -5,10 +5,13 @@ import static com.google.common.base.Preconditions.checkArgument;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.serializer.RDFTermJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.utils.Normalizer;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SPARQLService;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,7 +36,6 @@ import org.springframework.stereotype.Service;
  * @version 1.0
  * @since 1.0
  */
-@Primary
 @Service
 @RegisterForAnalyticalProcessing(name = LDSDWithSPARQLMetricService.UNWEIGHTED_LDSD_SIMILARITY_UID, requiresSPARQL = true,
     prerequisites = {AllResourcesService.class})
@@ -80,7 +82,7 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
   private final AllResourcesService allResourcesService;
   private final DB mapDB;
 
-  private final HTreeMap<int[], Double> ldsdValueMap;
+  private final HTreeMap<int[], DecimalNormalizedAnalysisValue> ldsdValueMap;
 
   @Autowired
   public LDSDWithSPARQLMetricService(
@@ -91,11 +93,11 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
     this.mapDB = mapDB;
     this.ldsdValueMap = mapDB.hashMap(UNWEIGHTED_LDSD_SIMILARITY_UID)
         .keySerializer(Serializer.INT_ARRAY)
-        .valueSerializer(Serializer.DOUBLE).createOrOpen();
+        .valueSerializer(Serializer.JAVA).createOrOpen();
   }
 
   @Override
-  public Double getValueFor(ResourcePair resourcePair) {
+  public DecimalNormalizedAnalysisValue getValueFor(ResourcePair resourcePair) {
     checkArgument(resourcePair != null, "The given resource pair must not be null.");
     Optional<Integer> optionalResourceAKey = allResourcesService
         .getResourceKey(resourcePair.getFirst());
@@ -110,14 +112,15 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
     return null;
   }
 
-  private void processSPARQLResult(List<Map<String, RDFTerm>> results) {
+  private void processSPARQLResult(Normalizer<int[]> normalizer,
+      List<Map<String, RDFTerm>> results) {
     for (Map<String, RDFTerm> row : results) {
       Optional<Integer> optResAKey = allResourcesService
           .getResourceKey(new Resource((BlankNodeOrIRI) row.get("a")));
       Optional<Integer> optResBKey = allResourcesService
           .getResourceKey(new Resource((BlankNodeOrIRI) row.get("b")));
       if (optResAKey.isPresent() && optResBKey.isPresent()) {
-        ldsdValueMap.put(new int[]{optResAKey.get(), optResBKey.get()},
+        normalizer.register(new int[]{optResAKey.get(), optResBKey.get()},
             Double.parseDouble(((Literal) row.get("ldsd")).getLexicalForm()));
       }
     }
@@ -125,8 +128,8 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
 
   @Override
   public void compute() {
-    int n = 0;
-    int total = 0;
+    int n = 0, total = 0;
+    Normalizer<int[]> normalizer = new Normalizer<>();
     StringBuilder valueList = new StringBuilder();
     for (Resource resourceA : allResourcesService.getResourceList()) {
       for (Resource resourceB : allResourcesService.getResourceList()) {
@@ -137,7 +140,7 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
           Optional<Integer> optResBKey = allResourcesService
               .getResourceKey(resourceB);
           if (optResAKey.isPresent() && optResBKey.isPresent()) {
-            ldsdValueMap.put(new int[]{optResAKey.get(), optResBKey.get()}, 0.0);
+            normalizer.register(new int[]{optResAKey.get(), optResBKey.get()}, 0.0);
           }
         } else { // store the result of pairs.
           valueList.append(String
@@ -145,7 +148,7 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
                   RDFTermJsonUtil.stringForSPARQLResourceOf(resourceB)));
           n++;
           if (n == LOAD_SIZE) {
-            processSPARQLResult(sparqlService.<SelectQueryResult>query(
+            processSPARQLResult(normalizer, sparqlService.<SelectQueryResult>query(
                 String.format(ALL_LDSD_QUERY, valueList.toString()), true).value());
             total += n;
             n = 0;
@@ -156,9 +159,10 @@ public class LDSDWithSPARQLMetricService implements LinkedDataSemanticDistanceMe
       }
     }
     if (n > 0) {
-      processSPARQLResult(sparqlService.<SelectQueryResult>query(
+      processSPARQLResult(normalizer, sparqlService.<SelectQueryResult>query(
           String.format(ALL_LDSD_QUERY, valueList.toString()), true).value());
     }
+    ldsdValueMap.putAll(normalizer.normalize());
     mapDB.commit();
   }
 

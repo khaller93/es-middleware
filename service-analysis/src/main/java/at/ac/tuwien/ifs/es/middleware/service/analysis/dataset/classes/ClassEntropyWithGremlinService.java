@@ -1,5 +1,8 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes;
 
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.NormalizedAnalysisValue;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.utils.Normalizer;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.GremlinService;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
@@ -47,7 +50,7 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
   private final PGS schema;
   private final DB mapDB;
 
-  private final HTreeMap<String, Double> classEntropyMap;
+  private final HTreeMap<String, DecimalNormalizedAnalysisValue> classEntropyMap;
 
   @Autowired
   public ClassEntropyWithGremlinService(GremlinService gremlinService,
@@ -57,13 +60,13 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
     this.allClassesService = allClassesService;
     this.classHierarchyService = classHierarchyService;
     this.mapDB = mapDB;
-    this.classEntropyMap = mapDB.hashMap(UID, Serializer.STRING, Serializer.DOUBLE)
+    this.classEntropyMap = mapDB.hashMap(UID, Serializer.STRING, Serializer.JAVA)
         .createOrOpen();
     this.schema = gremlinService.getPropertyGraphSchema();
   }
 
   @Override
-  public Double getEntropyForClass(Resource resource) {
+  public DecimalNormalizedAnalysisValue getEntropyForClass(Resource resource) {
     return classEntropyMap.get(resource.getId());
   }
 
@@ -75,7 +78,7 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
     try {
       Set<Resource> allClasses = allClassesService.getAllClasses();
       if (!allClasses.isEmpty()) {
-        Map<String, Double> classEntropyIntermediateMap = new HashMap<>();
+        Normalizer<String> normalizer = new Normalizer<>();
         Optional<Long> totalOpt = gremlinService.traversal().V().dedup().count().tryNext();
         if (totalOpt.isPresent()) {
           long total = totalOpt.get();
@@ -88,13 +91,18 @@ public class ClassEntropyWithGremlinService implements ClassEntropyService {
                 .in("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").dedup().count();
             if (g.hasNext()) {
               Long classInstancesNumber = g.next();
-              classEntropyIntermediateMap
-                  .put(classResource.getId(), -Math.log(((double) classInstancesNumber) / total));
+              if (classInstancesNumber != null && classInstancesNumber > 0) {
+                normalizer.register(classResource.getId(),
+                    -Math.log(((double) classInstancesNumber / total)));
+              } else {
+                normalizer.register(classResource.getId(), -Math.log(0.1 / total));
+              }
             } else {
-              classEntropyIntermediateMap.put(classResource.getId(), -Math.log(1.0 / total));
+              normalizer.register(classResource.getId(), -Math.log(0.1 / total));
             }
           }
-          classEntropyMap.putAll(classEntropyIntermediateMap);
+
+          classEntropyMap.putAll(normalizer.normalize());
           mapDB.commit();
         }
       }

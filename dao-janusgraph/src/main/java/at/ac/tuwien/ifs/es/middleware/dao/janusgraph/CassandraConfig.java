@@ -5,11 +5,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 
 /**
- *
- *
  * @author Kevin Haller
- * @since 1.0
  * @version 1.0
+ * @since 1.0
  */
 @Lazy
 @Configuration
@@ -21,6 +19,8 @@ public class CassandraConfig {
   @Value("${cassandra.hostname}")
   private String hostname;
 
+  @Value("${cassandra.id-suffix:#{null}}")
+  private String idSuffix;
 
   public String getKeySpace() {
     return keySpace;
@@ -28,5 +28,9 @@ public class CassandraConfig {
 
   public String getHostname() {
     return hostname;
+  }
+
+  public String getIdSuffix() {
+    return idSuffix;
   }
 }

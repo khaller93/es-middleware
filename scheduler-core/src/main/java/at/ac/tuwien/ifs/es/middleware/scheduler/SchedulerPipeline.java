@@ -54,7 +54,7 @@ public class SchedulerPipeline {
   /*  */
   private ConcurrentMap<String, TaskChangeListener> changeListenerMap = new ConcurrentHashMap<>();
 
-  public SchedulerPipeline(@Qualifier("persistent-mapdb") DB db, TaskExecutor threadPool) {
+  public SchedulerPipeline(DB db, TaskExecutor threadPool) {
     this.db = db;
     this.threadPool = threadPool;
     this.taskMap = db.hashMap("scheduler.pipeline").keySerializer(Serializer.STRING)
@@ -260,6 +260,7 @@ public class SchedulerPipeline {
             } catch (Exception e) {
               logger.error("Task '{}' failed with exception {}.", scheduleTask.getTaskId(),
                   e.getMessage());
+              e.printStackTrace();
               persistTaskStatus(scheduleTask, TaskStatus.VALUE.FAILED);
               nextTryOf(scheduleTask);
             } finally {

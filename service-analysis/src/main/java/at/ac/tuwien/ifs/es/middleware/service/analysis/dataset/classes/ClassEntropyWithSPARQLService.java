@@ -2,6 +2,8 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes;
 
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.serializer.RDFTermJsonUtil;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.utils.Normalizer;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.GremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SPARQLService;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.SelectQueryResult;
@@ -59,7 +61,7 @@ public class ClassEntropyWithSPARQLService implements ClassEntropyService {
   private AllClassesService allClassesService;
   private DB mapDB;
 
-  private final HTreeMap<String, Double> classEntropyMap;
+  private final HTreeMap<String, DecimalNormalizedAnalysisValue> classEntropyMap;
 
   @Autowired
   public ClassEntropyWithSPARQLService(SPARQLService sparqlService,
@@ -67,16 +69,16 @@ public class ClassEntropyWithSPARQLService implements ClassEntropyService {
     this.sparqlService = sparqlService;
     this.allClassesService = allClassesService;
     this.mapDB = mapDB;
-    this.classEntropyMap = mapDB.hashMap(UID, Serializer.STRING, Serializer.DOUBLE)
+    this.classEntropyMap = mapDB.hashMap(UID, Serializer.STRING, Serializer.JAVA)
         .createOrOpen();
   }
 
   @Override
-  public Double getEntropyForClass(Resource resource) {
+  public DecimalNormalizedAnalysisValue getEntropyForClass(Resource resource) {
     return classEntropyMap.get(resource.getId());
   }
 
-  private void processSPARQLResult(List<Resource> classList, List<Map<String, RDFTerm>> result,
+  private void processSPARQLResult(Normalizer<String> normalizer, List<Resource> classList, List<Map<String, RDFTerm>> result,
       long total) {
     Map<Resource, Double> classMap = new HashMap<>();
     for (Resource clazz : classList) {
@@ -88,7 +90,7 @@ public class ClassEntropyWithSPARQLService implements ClassEntropyService {
       classMap.put(classResource, -Math.log(((double) classCount) / total));
     }
     for (Entry<Resource, Double> classEntry : classMap.entrySet()) {
-      classEntropyMap.put(classEntry.getKey().getId(), classEntry.getValue());
+      normalizer.register(classEntry.getKey().getId(), classEntry.getValue());
     }
   }
 
@@ -99,6 +101,7 @@ public class ClassEntropyWithSPARQLService implements ClassEntropyService {
     if (!totalResult.isEmpty()) {
       long total = Long.parseLong(((Literal) totalResult.get(0).get("cnt")).getLexicalForm());
       if (total > 0) {
+        Normalizer<String> normalizer = new Normalizer<>();
         int n = 0;
         List<Resource> classList = new LinkedList<>();
         Set<Resource> allClasses = allClassesService.getAllClasses();
@@ -106,7 +109,7 @@ public class ClassEntropyWithSPARQLService implements ClassEntropyService {
           classList.add(classResource);
           n++;
           if (n == LOAD_SIZE) {
-            processSPARQLResult(classList, sparqlService.<SelectQueryResult>query(
+            processSPARQLResult(normalizer, classList, sparqlService.<SelectQueryResult>query(
                 String.format(CLASS_DISTRIBUTION_QUERY,
                     classList.stream()
                         .map(c -> RDFTermJsonUtil.stringForSPARQLResourceOf(c.value())).collect(
@@ -117,12 +120,13 @@ public class ClassEntropyWithSPARQLService implements ClassEntropyService {
           }
         }
         if (n > 0) {
-          processSPARQLResult(classList,
+          processSPARQLResult(normalizer, classList,
               sparqlService.<SelectQueryResult>query(String.format(CLASS_DISTRIBUTION_QUERY,
                   classList.stream().map(c -> RDFTermJsonUtil.stringForSPARQLResourceOf(c.value()))
                       .collect(
                           Collectors.joining("\n"))), true).value(), total);
         }
+        classEntropyMap.putAll(normalizer.normalize());
         mapDB.commit();
       }
     }

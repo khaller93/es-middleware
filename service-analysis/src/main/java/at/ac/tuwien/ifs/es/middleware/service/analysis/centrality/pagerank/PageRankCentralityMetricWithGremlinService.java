@@ -2,15 +2,14 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.pagerank;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.utils.Normalizer;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.GremlinService;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
 import at.ac.tuwien.ifs.es.middleware.gremlin.util.schema.PGS;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.tinkerpop.gremlin.process.computer.ranking.pagerank.PageRankVertexProgram;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.mapdb.DB;
@@ -19,7 +18,6 @@ import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -34,23 +32,21 @@ import org.springframework.stereotype.Service;
  */
 @Primary
 @Service
-@RegisterForAnalyticalProcessing(name = "esm.service.analytics.centrality.pagerank",
+@RegisterForAnalyticalProcessing(name = PageRankCentralityMetricWithGremlinService.PAGE_RANK_PROP_NAME,
     requiresGremlin = true, prerequisites = {AllResourcesService.class})
 public class PageRankCentralityMetricWithGremlinService implements PageRankCentralityMetricService {
 
   private static final Logger logger = LoggerFactory
       .getLogger(PageRankCentralityMetricWithGremlinService.class);
 
-  private final String PAGE_RANK_PROP_NAME = "esm.service.analytics.centrality.pagerank";
-
-  private static final int LOAD_LIMIT = 1000;
+  final static String PAGE_RANK_PROP_NAME = "esm.service.analytics.centrality.pagerank";
 
   private final GremlinService gremlinService;
   private final AllResourcesService allResourcesService;
   private final DB mapDB;
   private final PGS schema;
 
-  private HTreeMap<Integer, Double> pageRankMap;
+  private HTreeMap<Integer, DecimalNormalizedAnalysisValue> pageRankMap;
 
   @Autowired
   public PageRankCentralityMetricWithGremlinService(GremlinService gremlinService,
@@ -59,20 +55,15 @@ public class PageRankCentralityMetricWithGremlinService implements PageRankCentr
     this.allResourcesService = allResourcesService;
     this.mapDB = mapDB;
     this.schema = gremlinService.getPropertyGraphSchema();
-    this.pageRankMap = mapDB.hashMap(PAGE_RANK_PROP_NAME, Serializer.INTEGER, Serializer.DOUBLE)
+    this.pageRankMap = mapDB.hashMap(PAGE_RANK_PROP_NAME, Serializer.INTEGER, Serializer.JAVA)
         .createOrOpen();
-
   }
 
   @Override
-  public Double getValueFor(Resource resource) {
+  public DecimalNormalizedAnalysisValue getValueFor(Resource resource) {
     checkArgument(resource != null, "The given resource must not for null.");
     Optional<Integer> optionalResourceKey = allResourcesService.getResourceKey(resource);
-    if (optionalResourceKey.isPresent()) {
-      return pageRankMap.get(optionalResourceKey.get());
-    } else {
-      return null;
-    }
+    return optionalResourceKey.map(integer -> pageRankMap.get(integer)).orElse(null);
   }
 
   @Override
@@ -80,36 +71,14 @@ public class PageRankCentralityMetricWithGremlinService implements PageRankCentr
     logger.info("Starting to compute page rank metric.");
     gremlinService.lock();
     try {
-      final AtomicInteger n = new AtomicInteger();
-      final AtomicInteger total = new AtomicInteger();
-      final Map<Integer, Double> pageRankIntermediateMap = new HashMap<>();
+      Normalizer<Integer> normalizer = new Normalizer<>();
       gremlinService.traversal().withComputer().V().pageRank().sideEffect(vertexTraverser -> {
         Vertex vertex = vertexTraverser.get();
-        Optional<Integer> resourceKeyOptional = allResourcesService
-            .getResourceKey(new Resource(schema.iri().<String>apply(vertex)));
-        if (resourceKeyOptional.isPresent()) {
-          pageRankIntermediateMap.put(resourceKeyOptional.get(),
-              (Double) vertex.values(PageRankVertexProgram.PAGE_RANK).next());
-          n.addAndGet(1);
-          total.addAndGet(1);
-        }
-        boolean load = n.compareAndSet(LOAD_LIMIT, 0);
-        if (load) {
-          pageRankMap.putAll(pageRankIntermediateMap);
-          pageRankIntermediateMap.clear();
-          logger
-              .debug(
-                  "Computed page rank for {} resources. Page Rank computed for {} resources in total.",
-                  LOAD_LIMIT, total.get());
-        }
+        allResourcesService.getResourceKey(new Resource(schema.iri().<String>apply(vertex)))
+            .ifPresent(integer -> normalizer.register(integer,
+                (Double) vertex.values(PageRankVertexProgram.PAGE_RANK).next()));
       }).iterate();
-      if (!pageRankIntermediateMap.isEmpty()) {
-        pageRankMap.putAll(pageRankIntermediateMap);
-        logger
-            .debug(
-                "Computed page rank for {} resources. Page Rank computed for {} resources in total.",
-                pageRankIntermediateMap.size(), total.get());
-      }
+      pageRankMap.putAll(normalizer.normalize());
       mapDB.commit();
       gremlinService.commit();
     } catch (Exception e) {

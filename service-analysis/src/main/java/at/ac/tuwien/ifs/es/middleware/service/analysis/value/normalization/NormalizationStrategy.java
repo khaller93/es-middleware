@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.service.analysis.normalization;
+package at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization;
 
 /**
  * Strategies for normalizing a set of values.

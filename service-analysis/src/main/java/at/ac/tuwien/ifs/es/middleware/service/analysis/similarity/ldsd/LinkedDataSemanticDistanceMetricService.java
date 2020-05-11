@@ -1,6 +1,7 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.ldsd;
 
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetricService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
 
 /**
  * Instances get this interface represent a {@link SimilarityMetricService} that can compute the
@@ -13,7 +14,7 @@ import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.SimilarityMetr
  * Recommendations."(2010)</a>
  * @since 1.0
  */
-public interface LinkedDataSemanticDistanceMetricService extends SimilarityMetricService<Double> {
+public interface LinkedDataSemanticDistanceMetricService extends SimilarityMetricService<DecimalNormalizedAnalysisValue> {
 
 
 }

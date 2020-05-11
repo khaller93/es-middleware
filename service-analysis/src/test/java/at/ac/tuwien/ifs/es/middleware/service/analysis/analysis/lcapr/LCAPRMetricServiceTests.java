@@ -8,6 +8,7 @@ import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.pagerank.PageRankCentralityMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.icpr.LCAPRMetricService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
 import at.ac.tuwien.ifs.es.middleware.testutil.WineOntologyDatasetResource;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,18 +43,21 @@ public abstract class LCAPRMetricServiceTests {
 
   @Test
   public void computeLCAPRforSpecificWineResourcePair_mustReturnPROfWine() {
-    Double lcaprValue = lcaprMetricService.getValueFor(ResourcePair.of(new Resource(
-        "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#ChateauDYchemSauterne"), new Resource(
-        "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#WhitehallLanePrimavera")));
+    DecimalNormalizedAnalysisValue lcaprValue = lcaprMetricService
+        .getValueFor(ResourcePair.of(new Resource(
+                "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#ChateauDYchemSauterne"),
+            new Resource(
+                "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#WhitehallLanePrimavera")));
     assertNotNull(lcaprValue);
-    assertThat(lcaprValue, is(pageRankCentralityMetricService
-        .getValueFor(new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Wine"))));
+    assertThat(lcaprValue.getValue().doubleValue(), is(pageRankCentralityMetricService
+        .getValueFor(new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Wine"))
+        .getValue().doubleValue()));
   }
 
   @Test
   public void computeLCAPRForUnknownPair_mustReturnZeroValue() {
-    Double lcaprValue = lcaprMetricService
+    DecimalNormalizedAnalysisValue lcaprValue = lcaprMetricService
         .getValueFor(ResourcePair.of(new Resource("test://a"), new Resource("test://b")));
-    assertThat(lcaprValue, is(0.0));
+    assertThat(lcaprValue.getValue().doubleValue(), is(0.0));
   }
 }

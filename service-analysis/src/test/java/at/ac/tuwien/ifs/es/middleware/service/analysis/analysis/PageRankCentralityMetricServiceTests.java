@@ -15,10 +15,12 @@ import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JLuceneFullTextSearchD
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.store.RDF4JMemoryStoreWithLuceneSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
 import at.ac.tuwien.ifs.es.middleware.scheduler.SchedulerPipeline;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.CentralityMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.pagerank.PageRankCentralityMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.pagerank.PageRankCentralityMetricWithGremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesWithSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
 import at.ac.tuwien.ifs.es.middleware.testutil.MapDBDummy;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleGremlinService;
 import at.ac.tuwien.ifs.es.middleware.service.knowledgegraph.SimpleSPARQLService;
@@ -28,6 +30,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -52,6 +56,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     "esm.db.fts.choice=RDF4JLucene",
     "esm.db.gremlin.choice=ClonedInMemoryGremlin"
 })
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class PageRankCentralityMetricServiceTests {
 
   @Rule
@@ -70,13 +75,16 @@ public class PageRankCentralityMetricServiceTests {
 
   @Test
   public void computePageRankForSpecificResources_mustReturnCorrespondingPageRank() {
-    Double specialWinePR = pageRankCentralityMetricService.getValueFor(new Resource(
-        "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#WhitehallLanePrimavera"));
+    DecimalNormalizedAnalysisValue specialWinePR = pageRankCentralityMetricService
+        .getValueFor(new Resource(
+            "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#WhitehallLanePrimavera"));
     assertNotNull(specialWinePR);
-    Double winePR = pageRankCentralityMetricService.getValueFor(new Resource(
-        "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Wine"));
+    DecimalNormalizedAnalysisValue winePR = pageRankCentralityMetricService
+        .getValueFor(new Resource(
+            "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Wine"));
     assertNotNull(winePR);
-    assertThat(winePR, greaterThan(specialWinePR));
+    assertThat(winePR.getValue().doubleValue(),
+        greaterThan(specialWinePR.getValue().doubleValue()));
   }
 
   @Test

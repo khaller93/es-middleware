@@ -5,6 +5,7 @@ import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
  * @see <a href="http://www.mapdb.org">MapDB Homepage</a>
  * @since 1.0
  */
+@Lazy
 @Component
 public class MapDBDummy {
 
@@ -31,7 +33,7 @@ public class MapDBDummy {
    *
    * @return {@link DB} that can be used to create a persistent key-value store.
    */
-  @Bean(name = "esm.db.map.memory")
+  @Bean(name = "mapdb-memory")
   public DB db() {
     return db;
   }

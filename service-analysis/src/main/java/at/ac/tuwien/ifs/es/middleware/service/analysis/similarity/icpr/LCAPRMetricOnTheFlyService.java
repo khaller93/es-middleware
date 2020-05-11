@@ -5,8 +5,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.RegisterForAnalyticalProcessing;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.CentralityMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.centrality.pagerank.PageRankCentralityMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.hierarchy.classes.lca.LowestCommonAncestorService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.Objects;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +25,10 @@ import org.springframework.stereotype.Service;
  * @version 1.0
  * @since 1.0
  */
-@Primary
 @Service
 @RegisterForAnalyticalProcessing(name = "esm.service.analytics.similarity.icpr.onthefly",
-    prerequisites = {LowestCommonAncestorService.class, PageRankCentralityMetricService.class})
+    prerequisites = {LowestCommonAncestorService.class,
+        PageRankCentralityMetricService.class}, disabled = true)
 public class LCAPRMetricOnTheFlyService implements LCAPRMetricService {
 
   private final LowestCommonAncestorService lowestCommonAncestorService;
@@ -39,17 +43,27 @@ public class LCAPRMetricOnTheFlyService implements LCAPRMetricService {
   }
 
   @Override
-  public Double getValueFor(ResourcePair resourcePair) {
+  public DecimalNormalizedAnalysisValue getValueFor(ResourcePair resourcePair) {
     checkArgument(resourcePair != null, "The given resource pair must not nbe null.");
     Set<Resource> lowestCommonAncestor = lowestCommonAncestorService
         .getLowestCommonAncestor(resourcePair);
     if (lowestCommonAncestor != null && !lowestCommonAncestor.isEmpty()) {
-      Double value = lowestCommonAncestor.stream()
-          .map(pageRankCentralityMetricService::getValueFor)
-          .filter(Objects::nonNull).reduce(0.0, (a, b) -> a + b);
-      return value / lowestCommonAncestor.size();
+      BigDecimal totalSum = BigDecimal.valueOf(0);
+      for (Resource r : lowestCommonAncestor) {
+        DecimalNormalizedAnalysisValue value = pageRankCentralityMetricService
+            .getValueFor(r);
+        if (value != null) {
+          BigDecimal decimalValue = value.getValue();
+          if (decimalValue != null) {
+            totalSum = totalSum.add(decimalValue);
+          }
+        }
+      }
+      return new DecimalNormalizedAnalysisValue(
+          totalSum.divide(BigDecimal.valueOf(lowestCommonAncestor.size()), MathContext.DECIMAL64),
+          null, null);
     }
-    return 0.0;
+    return new DecimalNormalizedAnalysisValue(BigDecimal.ZERO);
   }
 
   @Override

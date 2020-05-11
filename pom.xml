@@ -11,7 +11,7 @@
 
   <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
   <artifactId>middleware</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.1.0</version>
   <packaging>pom</packaging>
 
   <name>Exploratory Search Microservice (multi-module)</name>
@@ -34,7 +34,7 @@
   </developers>
 
   <properties>
-    <java.version>1.8</java.version>
+    <java.version>1.9</java.version>
     <rdf4j.version>3.1.0-M2</rdf4j.version>
     <tinkerpop.version>3.4.4</tinkerpop.version>
     <apache.commons.rdf.version>0.5.0</apache.commons.rdf.version>
@@ -66,7 +66,6 @@
     <module>util-sparql</module>
     <module>util-gremlin</module>
     <module>util-testing</module>
-    <module>util-docker</module>
   </modules>
 
   <dependencies>

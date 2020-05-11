@@ -9,6 +9,7 @@ import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.classes.ClassEntropyService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.resnik.ResnikSimilarityMetricService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
 import at.ac.tuwien.ifs.es.middleware.testutil.WineOntologyDatasetResource;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,18 +48,18 @@ public abstract class ResnikSimilarityMetricServiceTests {
         "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#ChateauDYchemSauterne");
     Resource spanishAcousticGuitarResource = new Resource(
         "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#WhitehallLanePrimavera");
-    Double resnikValue = resnikSimilarityMetricService
+    DecimalNormalizedAnalysisValue resnikValue = resnikSimilarityMetricService
         .getValueFor(ResourcePair.of(guitarResource, spanishAcousticGuitarResource));
     assertNotNull(resnikValue);
-    assertThat(resnikValue, greaterThan(0.0));
-    assertThat(resnikValue, is(classEntropyService.getEntropyForClass(
+    assertThat(resnikValue.getValue().doubleValue(), greaterThan(0.0));
+    assertThat(resnikValue.getValue().doubleValue(), is(classEntropyService.getEntropyForClass(
         new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Wine"))));
   }
 
   @Test
   public void computeResnikSimForUnknownPair_mustBeZeroValue() {
-    Double resnikValue = resnikSimilarityMetricService
+    DecimalNormalizedAnalysisValue resnikValue = resnikSimilarityMetricService
         .getValueFor(ResourcePair.of(new Resource("test://a"), new Resource("test://b")));
-    assertThat(resnikValue, is(0.0));
+    assertThat(resnikValue.getValue().doubleValue(), is(0.0));
   }
 }

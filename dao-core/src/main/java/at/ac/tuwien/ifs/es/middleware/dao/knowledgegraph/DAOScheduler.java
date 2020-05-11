@@ -60,17 +60,18 @@ public class DAOScheduler {
 
   @EventListener
   public void onApplicationEvent(ApplicationReadyEvent event) {
-    pushTasks(syncOnStart ? Instant.now().toEpochMilli() : -1, delayDAOInMs);
+    pushTasks(syncOnStart ? Instant.now().toEpochMilli() : -1);
   }
 
-  private void pushTasks(long daoTimestamp, long delay) {
-    threadpool.execute(() -> {
-      if (delay > 0) {
-        try {
-          Thread.sleep(delay);
-        } catch (InterruptedException e) {
-        }
+  private void pushTasks(long daoTimestamp) {
+    if (daoTimestamp == -1 && delayDAOInMs > 0) {
+      try {
+        Thread.sleep(delayDAOInMs);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
       }
+    }
+    threadpool.execute(() -> {
       schedulerPipeline.pushTasks(Lists.newArrayList(
           new ScheduleTask(KGSparqlDAO.class.getName(), daoTimestamp, sparqlDAO::setup,
               daoDependencyGraphService.getSPARQLRequirements(),
@@ -87,7 +88,7 @@ public class DAOScheduler {
 
   @EventListener
   public void onKnowledgeGraphUpdated(KGUpdatedEvent updatedEvent) {
-    pushTasks(updatedEvent.getTimestamp(), 0);
+    pushTasks(updatedEvent.getTimestamp());
   }
 
 }

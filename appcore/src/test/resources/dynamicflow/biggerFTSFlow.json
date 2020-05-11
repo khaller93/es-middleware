@@ -7,7 +7,7 @@
       }
     },
     {
-      "name": "esm.exploit.cardinality"
+      "name": "esm.exploit.centrality.degree"
     },
     {
       "name": "esm.aggregate.normalisation.minmax",
@@ -17,10 +17,7 @@
             "path": "/fts/score"
           },
           {
-            "path": "/cardinality/ingoing"
-          },
-          {
-            "path": "/cardinality/outgoing"
+            "path": "/centrality/esm.exploit.centrality.degree"
           }
         ]
       }
@@ -31,8 +28,7 @@
         "path": "/sum",
         "candidates": {
           "/fts/score": 1.0,
-          "/cardinality/ingoing": 2.0,
-          "/cardinality/outgoing": 0.5
+          "/centrality/esm.exploit.centrality.degree": 1.0
         }
       }
     },

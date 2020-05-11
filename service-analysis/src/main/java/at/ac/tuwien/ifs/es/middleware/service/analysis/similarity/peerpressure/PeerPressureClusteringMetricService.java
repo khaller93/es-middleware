@@ -2,6 +2,7 @@ package at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.peerpressure;
 
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.AnalysisService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
 
 /**
  * This is a {@link AnalysisService} for computing a peer pressure algorithm on the knowledge graph.
@@ -24,6 +25,6 @@ public interface PeerPressureClusteringMetricService extends AnalysisService {
    * otherwise {@code false}. The returned value is {@code null}, if the given pair is unknown.
    * @throws IllegalArgumentException if the given resource pair was null.
    */
-  Boolean isSharingSameCluster(ResourcePair pair);
+  DecimalNormalizedAnalysisValue isSharingSameCluster(ResourcePair pair);
 
 }

@@ -8,8 +8,11 @@ import at.ac.tuwien.ifs.es.middleware.service.exploration.context.ResultCollecti
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.context.util.box.ValueBox;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.context.util.box.ValueBoxFactory;
+import at.ac.tuwien.ifs.es.middleware.service.exploration.context.util.box.ValueBoxImplJsonTranscoder;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -36,7 +39,12 @@ public class ResourceList implements ResourceCollection {
   @JsonProperty("list")
   private List<Resource> list;
 
+  //TODO: register globally.
+  @JsonSerialize(using = ValueBoxImplJsonTranscoder.Serializer.class)
+  @JsonDeserialize(using = ValueBoxImplJsonTranscoder.Deserializer.class)
   private ValueBox values;
+  @JsonSerialize(using = ValueBoxImplJsonTranscoder.Serializer.class)
+  @JsonDeserialize(using = ValueBoxImplJsonTranscoder.Deserializer.class)
   private ValueBox metadata;
 
   /**
@@ -86,7 +94,6 @@ public class ResourceList implements ResourceCollection {
     }
     return new ResourceList(list);
   }*/
-
   @Override
   @Nonnull
   public Iterator<Resource> iterator() {
