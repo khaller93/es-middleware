@@ -30,9 +30,10 @@ public class ResourceHierarchyServiceImpl implements ResourceHierarchyService {
       + "select DISTINCT ?class ?superClass where {\n"
       + "    %s\n"
       + "    OPTIONAL {\n"
-      + "        ?class (%s)+ ?superClass.\n"
+      + "        ?class (%s)/(rdfs:subClassOf+)+ ?superClass.\n"
       + "        FILTER (?class != ?superClass).\n"
       + "    }\n"
+      + "    FILTER(isIRI(?class) && isIRI(?superClass)) .\n"
       + "}";
 
   private final String TOP_DOWN_QUERY = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
@@ -41,9 +42,10 @@ public class ResourceHierarchyServiceImpl implements ResourceHierarchyService {
       + "select DISTINCT ?class ?subClass where {\n"
       + "    %s\n"
       + "    OPTIONAL {\n"
-      + "        ?class (%s)+ ?subClass.\n"
+      + "        ?class (%s)/(rdfs:subClassOf+) ?subClass.\n"
       + "        FILTER (?class != ?subClass).\n"
       + "    }\n"
+      + "    FILTER(isIRI(?class) && isIRI(?superClass)) .\n"
       + "}";
 
   private final SPARQLService sparqlService;
@@ -120,60 +122,72 @@ public class ResourceHierarchyServiceImpl implements ResourceHierarchyService {
   @Override
   public List<ResourceNode> getHierarchy(Set<Resource> includeClasses, Set<Resource> excludeClasses,
       Set<Resource> topDownProperties, Set<Resource> bottomUpProperties) {
+    try {
+      Map<Resource, ResourceNode> hierarchyMap = new HashMap<>();
 
-    Map<Resource, ResourceNode> hierarchyMap = new HashMap<>();
-
-    Optional<String> bottomUpQuery = getBottomUpSPARQLQuery(includeClasses, excludeClasses,
-        bottomUpProperties);
-    if (bottomUpQuery.isPresent()) {
-      List<Map<String, RDFTerm>> bottomUpValues = sparqlService.<SelectQueryResult>query(
-          bottomUpQuery.get(), true).value();
-      for (Map<String, RDFTerm> row : bottomUpValues) {
-        Resource clazzResource = new Resource((BlankNodeOrIRI) row.get("class"));
-        if (!hierarchyMap.containsKey(clazzResource)) {
-          hierarchyMap.put(clazzResource, new ResourceNode(clazzResource));
-        }
-        RDFTerm superClassTerm = row.get("superClass");
-        if (superClassTerm != null) {
-          Resource superClazzResource = new Resource((BlankNodeOrIRI) superClassTerm);
-          if (!hierarchyMap.containsKey(superClazzResource)) {
-            hierarchyMap.put(superClazzResource, new ResourceNode(superClazzResource));
+      Optional<String> bottomUpQuery = getBottomUpSPARQLQuery(includeClasses, excludeClasses,
+          bottomUpProperties);
+      if (bottomUpQuery.isPresent()) {
+        logger.info("Sparql: {}", bottomUpQuery.get());
+        List<Map<String, RDFTerm>> bottomUpValues = sparqlService.<SelectQueryResult>query(
+            bottomUpQuery.get(), true).value();
+        for (Map<String, RDFTerm> row : bottomUpValues) {
+          BlankNodeOrIRI c = (BlankNodeOrIRI) row.get("class");
+          logger.info("Row: {}", row);
+          if (c != null) {
+            Resource clazzResource = new Resource(c);
+            if (!hierarchyMap.containsKey(clazzResource)) {
+              hierarchyMap.put(clazzResource, new ResourceNode(clazzResource));
+            }
+            RDFTerm superClassTerm = row.get("superClass");
+            if (superClassTerm != null) {
+              Resource superClazzResource = new Resource((BlankNodeOrIRI) superClassTerm);
+              if (!hierarchyMap.containsKey(superClazzResource)) {
+                hierarchyMap.put(superClazzResource, new ResourceNode(superClazzResource));
+              }
+              ResourceNode currentNode = hierarchyMap.get(clazzResource);
+              ResourceNode parentNode = hierarchyMap.get(superClazzResource);
+              currentNode.addParentResourceNode(parentNode);
+              parentNode.addChildResourceNode(currentNode);
+            }
           }
-          ResourceNode currentNode = hierarchyMap.get(clazzResource);
-          ResourceNode parentNode = hierarchyMap.get(superClazzResource);
-          currentNode.addParentResourceNode(parentNode);
-          parentNode.addChildResourceNode(currentNode);
         }
       }
-    }
 
-    Optional<String> topDownQuery = getTopDownSPARQLQuery(includeClasses, excludeClasses,
-        topDownProperties);
-    if (topDownQuery.isPresent()) {
-      List<Map<String, RDFTerm>> bottomUpValues = sparqlService.<SelectQueryResult>query(
-          topDownQuery.get(), true).value();
-      for (Map<String, RDFTerm> row : bottomUpValues) {
-        Resource clazzResource = new Resource((BlankNodeOrIRI) row.get("class"));
-        if (!hierarchyMap.containsKey(clazzResource)) {
-          hierarchyMap.put(clazzResource, new ResourceNode(clazzResource));
-        }
-        RDFTerm superClassTerm = row.get("subClass");
-        if (superClassTerm != null) {
-          Resource superClazzResource = new Resource((BlankNodeOrIRI) superClassTerm);
-          if (!hierarchyMap.containsKey(superClazzResource)) {
-            hierarchyMap.put(superClazzResource, new ResourceNode(superClazzResource));
+      Optional<String> topDownQuery = getTopDownSPARQLQuery(includeClasses, excludeClasses,
+          topDownProperties);
+      if (topDownQuery.isPresent()) {
+        List<Map<String, RDFTerm>> bottomUpValues = sparqlService.<SelectQueryResult>query(
+            topDownQuery.get(), true).value();
+        for (Map<String, RDFTerm> row : bottomUpValues) {
+          BlankNodeOrIRI c = (BlankNodeOrIRI) row.get("class");
+          if (c != null) {
+            Resource clazzResource = new Resource(c);
+            if (!hierarchyMap.containsKey(clazzResource)) {
+              hierarchyMap.put(clazzResource, new ResourceNode(clazzResource));
+            }
+            RDFTerm superClassTerm = row.get("subClass");
+            if (superClassTerm != null) {
+              Resource superClazzResource = new Resource((BlankNodeOrIRI) superClassTerm);
+              if (!hierarchyMap.containsKey(superClazzResource)) {
+                hierarchyMap.put(superClazzResource, new ResourceNode(superClazzResource));
+              }
+              ResourceNode currentNode = hierarchyMap.get(clazzResource);
+              ResourceNode childNode = hierarchyMap.get(superClazzResource);
+              currentNode.addChildResourceNode(childNode);
+              childNode.addParentResourceNode(currentNode);
+            }
           }
-          ResourceNode currentNode = hierarchyMap.get(clazzResource);
-          ResourceNode childNode = hierarchyMap.get(superClazzResource);
-          currentNode.addChildResourceNode(childNode);
-          childNode.addParentResourceNode(currentNode);
         }
       }
+
+      walk(hierarchyMap.values().stream().filter(rn -> rn.getParentResources().isEmpty())
+          .collect(Collectors.toList()), Collections.emptyList());
+
+      return new LinkedList<>(hierarchyMap.values());
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw e;
     }
-
-    walk(hierarchyMap.values().stream().filter(rn -> rn.getParentResources().isEmpty())
-        .collect(Collectors.toList()), Collections.emptyList());
-
-    return new LinkedList<>(hierarchyMap.values());
   }
 }

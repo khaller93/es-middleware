@@ -40,7 +40,7 @@ public class HierarchyChecking implements
 
   @Override
   public Class<ResultCollectionContext> getExplorationContextOutputClass() {
-    return null;
+    return ResultCollectionContext.class;
   }
 
   @Override
