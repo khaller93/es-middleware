@@ -33,10 +33,8 @@ public class MapDB {
   @Bean
   @Primary
   public DB getMapDB() {
-    System.out.println(String.format(">>> (%s) <<<", variant));
     switch (variant) {
       case "memory":
-        System.out.println(">>> (memory) <<<");
         return context.getBean("mapdb-memory", DB.class);
       default:
         return context.getBean("mapdb-file", DB.class);
