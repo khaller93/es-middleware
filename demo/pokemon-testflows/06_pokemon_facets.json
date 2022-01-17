@@ -1,0 +1,16 @@
+{
+	"steps": [
+		{
+			"name": "esm.source.all",
+            "param": {
+              "include": ["https://pokemonkg.org/ontology#Species"]
+             }
+        },
+		{
+			"name": "esm.exploit.facet.property",
+			"param": {
+				"properties": ["https://pokemonkg.org/ontology#hasType", "https://pokemonkg.org/ontology#isAbleToApply"]
+			}
+		}
+	]
+}

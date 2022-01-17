@@ -1,0 +1,18 @@
+{
+    "steps": [
+      {
+        "name": "esm.source.all",
+        "param": {
+          "include": [
+            "https://pokemonkg.org/ontology#Species"
+          ]
+        }
+      },
+      {
+        "name": "esm.aggregate.sample",
+        "param": {
+          "number": 12
+        }
+      }
+    ]
+  }

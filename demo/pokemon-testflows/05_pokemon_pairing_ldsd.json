@@ -1,0 +1,55 @@
+{
+    "steps": [
+      {
+        "name": "esm.source.single",
+        "param": {
+          "resource": "https://pokemonkg.org/instance/pokemon/snorlax"
+        }
+      },
+      {
+        "name": "esm.source.pairing",
+        "param": {
+          "selfReflectionAllowed": false,
+          "steps": [
+            {
+              "name": "esm.source.all",
+              "param": {
+                "include": [
+                  "https://pokemonkg.org/ontology#Species"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "esm.exploit.sim.ldsd"
+      },
+      {
+        "name": "esm.exploit.sim.resnik"
+      },  
+      {
+        "name": "esm.aggregate.weightedsum",
+        "param": {
+          "path": "/sum",
+          "candidates": {
+            "/similarity/esm.exploit.sim.ldsd/minmax": -2.0,
+            "/similarity/esm.exploit.sim.resnik/minmax": 1.0
+          }
+        }
+      },
+      {
+        "name": "esm.aggregate.orderby",
+        "param": {
+          "path": "/sum",
+          "strategy": "DESC"
+        }
+      },
+      {
+        "name": "esm.aggregate.limit",
+        "param": {
+          "number": 10
+        }
+      }
+    ]
+  }

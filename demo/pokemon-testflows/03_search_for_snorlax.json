@@ -1,0 +1,33 @@
+{
+    "steps": [
+      {
+        "name": "esm.source.fts",
+        "param": {
+          "keyword": "Snorlax"
+        }
+      },
+      {
+        "name": "esm.exploit.centrality.degree"
+      },
+      {
+        "name": "esm.exploit.centrality.pagerank"
+      },
+      {
+        "name": "esm.aggregate.weightedsum",
+        "param": {
+          "path": "/sum",
+          "candidates": {
+            "/fts/score": 1.0,
+            "/centrality/esm.exploit.centrality.pagerank/minmax": 2.0
+          }
+        }
+      },
+      {
+        "name": "esm.aggregate.orderby",
+        "param": {
+          "path": "/sum",
+          "strategy": "DESC"
+        }
+      }
+    ]
+  }

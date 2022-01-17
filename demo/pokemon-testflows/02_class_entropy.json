@@ -1,0 +1,15 @@
+{
+    "steps": [
+      {
+        "name": "esm.source.all",
+        "param": {
+          "include": [
+            "http://www.w3.org/2000/01/rdf-schema#Class"
+          ]
+        }
+      },
+      {
+        "name": "esm.resource.class.entropy"
+      }
+    ]
+  }
