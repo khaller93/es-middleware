@@ -13,7 +13,7 @@ VOLUME /tmp
 
 ARG ESM_VERSION
 
-LABEL maintainer="Kevin Haller <keivn.haller@tuwien.ac.at,kevin.haller@outofbits.com>"
+LABEL maintainer="Kevin Haller <keivn.haller@tuwien.ac.at>"
 LABEL version="${ESM_VERSION}"
 LABEL description="Image for the exploratory search microservice."
 
