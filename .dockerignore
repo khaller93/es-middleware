@@ -2,6 +2,7 @@
 .gitignore
 
 doc/
+demo/
 testflows
 data/
 issues.txt
