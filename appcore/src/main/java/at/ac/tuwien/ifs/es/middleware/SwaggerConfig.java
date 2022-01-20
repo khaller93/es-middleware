@@ -2,6 +2,8 @@ package at.ac.tuwien.ifs.es.middleware;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.service.ApiInfo;
@@ -15,16 +17,16 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 public class SwaggerConfig {
 
-  private static final Contact GENERIC_CONTACT = new Contact("IFS-TU",
-      "https://www.ifs.tuwien.ac.at/", "sek@ifs.tuwien.ac.at");
+  private static final Contact GENERIC_CONTACT = new Contact("SemSys",
+      "https://semsys.ifs.tuwien.ac.at/", "semsys@list.tuwien.ac.at");
 
   private final ApiInfo API_INFO;
-  private final String version = SystemInfo.MIDDLEWARE_VERSION;
 
-  public SwaggerConfig() {
-    API_INFO = new ApiInfo(SystemInfo.MIDDLEWARE_NAME,
+  @Autowired
+  public SwaggerConfig(VersionManager versionManager) {
+    API_INFO = new ApiInfo("Exploratory Search Service",
         "This application provides services for exploring a knowledge graph stored in a supported triplestore/graph database.",
-        version, "urn:tos", GENERIC_CONTACT, "MIT", "https://opensource.org/licenses/MIT",
+        versionManager.getVersion(), "urn:tos", GENERIC_CONTACT, null, null,
         new ArrayList<VendorExtension>());
   }
 

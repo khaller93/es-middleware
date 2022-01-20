@@ -1,5 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.analysis.resnik;
 
+import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
@@ -52,8 +53,10 @@ public abstract class ResnikSimilarityMetricServiceTests {
         .getValueFor(ResourcePair.of(guitarResource, spanishAcousticGuitarResource));
     assertNotNull(resnikValue);
     assertThat(resnikValue.getValue().doubleValue(), greaterThan(0.0));
-    assertThat(resnikValue.getValue().doubleValue(), is(classEntropyService.getEntropyForClass(
-        new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Wine"))));
+    assertThat(resnikValue.getValue().doubleValue(),
+        is(closeTo(classEntropyService.getEntropyForClass(
+                new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Wine"))
+            .getValue().doubleValue(), 0.5)));
   }
 
   @Test

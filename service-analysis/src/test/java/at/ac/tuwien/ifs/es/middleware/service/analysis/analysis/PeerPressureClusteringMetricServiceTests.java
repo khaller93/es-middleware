@@ -1,9 +1,9 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.analysis;
 
-import static org.junit.Assert.assertFalse;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThat;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.DAODependencyGraphService;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.DAOScheduler;
@@ -18,6 +18,7 @@ import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.ResourcePair;
 import at.ac.tuwien.ifs.es.middleware.scheduler.SchedulerPipeline;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.dataset.resources.AllResourcesWithSPARQLService;
+import at.ac.tuwien.ifs.es.middleware.service.analysis.value.normalization.DecimalNormalizedAnalysisValue;
 import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.peerpressure.PeerPressureClusteringMetricService;
 import at.ac.tuwien.ifs.es.middleware.service.analysis.similarity.peerpressure.PeerPressureClusteringMetricWithGremlinService;
@@ -47,7 +48,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {SimpleSPARQLService.class, SimpleGremlinService.class,
     RDF4JLuceneFullTextSearchDAO.class, RDF4JMemoryStoreWithLuceneSparqlDAO.class,
-    ClonedInMemoryGremlinDAO.class, ThreadPoolConfig.class, PrimaryKGDAOConfig.class, RDF4JDAOConfig.class,
+    ClonedInMemoryGremlinDAO.class, ThreadPoolConfig.class, PrimaryKGDAOConfig.class,
+    RDF4JDAOConfig.class,
     ThreadPoolConfig.class, SpringCacheConfig.class, MapDBDummy.class,
     WineOntologyDatasetResource.class, PeerPressureClusteringMetricWithGremlinService.class,
     DAOScheduler.class, SchedulerPipeline.class, MapDBDummy.class, DAODependencyGraphService.class,
@@ -77,49 +79,52 @@ public class PeerPressureClusteringMetricServiceTests {
 
   @Test
   public void computeThePeerPressureAndGetItForSameResourcesPair_mustReturnTrue() {
-    ResourcePair resourcePair = ResourcePair.of(new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"),
+    ResourcePair resourcePair = ResourcePair.of(
+        new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"),
         new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"));
-    Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair).getValue().compareTo(
-        BigDecimal.ONE) == 0;
-    assertNotNull(result);
-    assertTrue(result);
+    DecimalNormalizedAnalysisValue valueObj = peerPressureClusteringMetricService.isSharingSameCluster(
+        resourcePair);
+    assertNotNull(valueObj);
+    assertThat(valueObj.getValue().doubleValue(), is(1.0));
+
   }
 
   @Test
   public void computeThePeerPressureAndGetItForTwoResourcesInDifferentCLuster_mustReturnFalse() {
-    ResourcePair resourcePair = ResourcePair.of(new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"),
+    ResourcePair resourcePair = ResourcePair.of(
+        new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"),
         new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#ChateauMargauxWinery"));
-    Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair).getValue().compareTo(
-        BigDecimal.ONE) == 0;
-    assertNotNull(result);
-    assertFalse(result);
+    DecimalNormalizedAnalysisValue valueObj = peerPressureClusteringMetricService.isSharingSameCluster(
+        resourcePair);
+    assertThat(valueObj.getValue().doubleValue(), is(0.0));
   }
 
   @Test
   public void computeThePeerPressureAndGetItForUnknownPair_mustReturnNull() {
     ResourcePair resourcePair = ResourcePair.of(new Resource("test:a"),
         new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"));
-    Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair).getValue().compareTo(
-        BigDecimal.ONE) == 0;
-    assertNull(result);
+    DecimalNormalizedAnalysisValue valueObj = peerPressureClusteringMetricService.isSharingSameCluster(
+        resourcePair);
+    assertNull(valueObj);
   }
 
   @Test
   public void computeThePeerPressureAndGetItForUnknownPair2_mustReturnNull() {
-    ResourcePair resourcePair = ResourcePair.of(new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"),
+    ResourcePair resourcePair = ResourcePair.of(
+        new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Sauternes"),
         new Resource("test:a"));
-    Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair).getValue().compareTo(
-        BigDecimal.ONE) == 0;
-    assertNull(result);
+    DecimalNormalizedAnalysisValue valueObj = peerPressureClusteringMetricService.isSharingSameCluster(
+        resourcePair);
+    assertNull(valueObj);
   }
 
   @Test
   public void computeThePeerPressureAndGetItForUnknownPair3_mustReturnNull() {
     ResourcePair resourcePair = ResourcePair.of(new Resource("test:b"),
         new Resource("test:a"));
-    Boolean result = peerPressureClusteringMetricService.isSharingSameCluster(resourcePair).getValue().compareTo(
-        BigDecimal.ONE) == 0;
-    assertNull(result);
+    DecimalNormalizedAnalysisValue valueObj = peerPressureClusteringMetricService.isSharingSameCluster(
+        resourcePair);
+    assertNull(valueObj);
   }
 
   @Test(expected = IllegalArgumentException.class)

@@ -1,6 +1,5 @@
 package at.ac.tuwien.ifs.es.middleware.testutil;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.DAOScheduler;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.config.KnowledgeGraphDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.scheduler.SchedulerPipeline;

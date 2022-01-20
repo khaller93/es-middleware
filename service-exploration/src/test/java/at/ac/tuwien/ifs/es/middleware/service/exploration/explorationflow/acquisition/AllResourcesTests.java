@@ -12,6 +12,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.DAODependencyGraphService;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.DAOScheduler;
 import at.ac.tuwien.ifs.es.middleware.scheduler.SchedulerPipeline;
+import at.ac.tuwien.ifs.es.middleware.service.caching.SpringCacheConfig;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.context.ExplorationContext;
 import at.ac.tuwien.ifs.es.middleware.service.exploration.context.resources.ResourceList;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.Resource;
@@ -65,8 +66,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
     MusicPintaInstrumentsResource.class, AllResourcesWithSPARQLService.class, MapDBDummy.class,
     ClassResourceWithGremlinService.class, ClassHierarchyWithSPARQLService.class,
     SameAsResourceWithSPARQLService.class, AllClassesWithSPARQLService.class,
-    DAOScheduler.class, SchedulerPipeline.class, MapDBDummy.class, DAODependencyGraphService.class,
-    SimpleGremlinService.class})
+    DAOScheduler.class, SchedulerPipeline.class, DAODependencyGraphService.class,
+    SimpleGremlinService.class, SpringCacheConfig.class})
 @TestPropertySource(properties = {
     "esm.db.choice=RDF4J",
     "esm.db.sparql.choice=RDF4JMemoryStoreWithLucene",

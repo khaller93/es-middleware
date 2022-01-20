@@ -1,12 +1,10 @@
 package at.ac.tuwien.ifs.es.middleware.testutil;
 
-import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.DAOScheduler;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.config.KnowledgeGraphDAOConfig;
 import at.ac.tuwien.ifs.es.middleware.scheduler.SchedulerPipeline;
 import java.io.IOException;
 import java.io.InputStream;
-import javax.annotation.PostConstruct;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;

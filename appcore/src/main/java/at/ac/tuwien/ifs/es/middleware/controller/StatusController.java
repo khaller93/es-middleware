@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.controller;
 
-import at.ac.tuwien.ifs.es.middleware.SystemInfo;
+import at.ac.tuwien.ifs.es.middleware.VersionManager;
 import at.ac.tuwien.ifs.es.middleware.controller.meta.Beat;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.status.KGDAOStatus;
 import at.ac.tuwien.ifs.es.middleware.service.systemstatus.BackendObserverService;
@@ -10,6 +10,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,11 +27,14 @@ import org.springframework.web.bind.annotation.RestController;
 @Api(value = "Heart beat", description = "Methods to check the status get this middleware")
 public class StatusController {
 
-  private BackendObserverService backendObserverService;
+  private final BackendObserverService backendObserverService;
+  private final String appVersion;
 
   @Autowired
-  public StatusController(BackendObserverService backendObserverService) {
+  public StatusController(BackendObserverService backendObserverService,
+      VersionManager versionManager) {
     this.backendObserverService = backendObserverService;
+    this.appVersion = versionManager.getVersion();
   }
 
   @GetMapping(value = "/heartbeat")
@@ -39,7 +43,7 @@ public class StatusController {
       @ApiResponse(code = 200, message = "A short response from this middleware including meta information.")
   })
   public Beat beat() {
-    return Beat.ok(SystemInfo.MIDDLEWARE_NAME, SystemInfo.MIDDLEWARE_VERSION);
+    return Beat.ok("Exploratory Search Service", appVersion);
   }
 
 

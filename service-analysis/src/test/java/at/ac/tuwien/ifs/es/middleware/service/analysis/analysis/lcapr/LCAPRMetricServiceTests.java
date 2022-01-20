@@ -1,5 +1,6 @@
 package at.ac.tuwien.ifs.es.middleware.service.analysis.analysis.lcapr;
 
+import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -49,9 +50,9 @@ public abstract class LCAPRMetricServiceTests {
             new Resource(
                 "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#WhitehallLanePrimavera")));
     assertNotNull(lcaprValue);
-    assertThat(lcaprValue.getValue().doubleValue(), is(pageRankCentralityMetricService
+    assertThat(lcaprValue.getValue().doubleValue(), is(closeTo(pageRankCentralityMetricService
         .getValueFor(new Resource("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#Wine"))
-        .getValue().doubleValue()));
+        .getValue().doubleValue(), 0.001)));
   }
 
   @Test
