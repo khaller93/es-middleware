@@ -1,5 +1,5 @@
 # Builder Image
-FROM maven:3-jdk-9 AS compiler
+FROM maven:3-jdk-11 AS compiler
 
 COPY . /esm
 WORKDIR esm
@@ -7,7 +7,7 @@ RUN mvn package -DskipTests=true
 RUN mkdir /binaries && mv appcore/target/esm.jar /binaries/
 
 # Main Image
-FROM openjdk:9-jdk
+FROM openjdk:11-jdk
 
 VOLUME /tmp
 
