@@ -55,7 +55,7 @@ public class DAODependencyGraphService {
   }
 
   public Set<String> getFTSRequirements() {
-    if (fullTextSearchDAO == null) {
+    if (ftsRequirements == null) {
       ftsRequirements = getRequirements(fullTextSearchDAO);
     }
     return ftsRequirements;
