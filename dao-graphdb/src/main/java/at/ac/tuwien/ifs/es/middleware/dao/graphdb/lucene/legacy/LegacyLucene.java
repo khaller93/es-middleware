@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
+package at.ac.tuwien.ifs.es.middleware.dao.graphdb.lucene.legacy;
 
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.DependsOn;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOConnectionException;
@@ -9,13 +9,11 @@ import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOException;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.facet.FacetFilter;
-import at.ac.tuwien.ifs.es.middleware.kg.abstraction.rdf.serializer.RDFTermJsonUtil;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.facet.FacetedSearchQueryBuilder;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
 import org.apache.commons.rdf.api.RDFTerm;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
@@ -30,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
@@ -40,16 +39,16 @@ import org.springframework.stereotype.Component;
  * This is an implementation of {@link KGFullTextSearchDAO} for GraphDB using the in-built lucene.
  *
  * @author Kevin Haller
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Lazy
-@Component("GraphDBLucene")
+@Component("GraphDBLegacyLucene")
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 @DependsOn(sparql = true)
-public class GraphDbLucene implements KGFullTextSearchDAO {
+public class LegacyLucene implements KGFullTextSearchDAO {
 
-  private static final Logger logger = LoggerFactory.getLogger(GraphDbLucene.class);
+  private static final Logger logger = LoggerFactory.getLogger(LegacyLucene.class);
 
   private static final Prefix LUC = SparqlBuilder.prefix("luc",
       Rdf.iri("http://www.ontotext.com/owlim/lucene#"));
@@ -64,19 +63,22 @@ public class GraphDbLucene implements KGFullTextSearchDAO {
   private final TaskExecutor taskExecutor;
 
   private final KGSparqlDAO sparqlDAO;
-  private final GraphDbLuceneConfig graphDbLuceneConfig;
+  private final boolean shouldBeInitialized;
+  private final LegacyLuceneConfig graphDbLuceneConfig;
 
   @Autowired
-  public GraphDbLucene(@Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO,
-      GraphDbLuceneConfig graphDbLuceneConfig, TaskExecutor taskExecutor) {
+  public LegacyLucene(@Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO,
+      @Value("${graphdb.lucene.initialize:#{false}}") boolean shouldBeInitialized,
+      LegacyLuceneConfig graphDbLuceneConfig, TaskExecutor taskExecutor) {
     this.sparqlDAO = sparqlDAO;
+    this.shouldBeInitialized = shouldBeInitialized;
     this.graphDbLuceneConfig = graphDbLuceneConfig;
     this.taskExecutor = taskExecutor;
   }
 
   @Override
   public void setup() throws KGDAOSetupException, KGDAOConnectionException {
-    if (graphDbLuceneConfig.shouldBeInitialized()) {
+    if (this.shouldBeInitialized) {
       logger.debug("The GraphDb Lucene index will be initialized.");
       try (RepositoryConnection con = ((RDF4JSparqlDAO) sparqlDAO).getRepository()
           .getConnection()) {

@@ -1,4 +1,4 @@
-package at.ac.tuwien.ifs.es.middleware.dao.graphdb;
+package at.ac.tuwien.ifs.es.middleware.dao.graphdb.lucene.legacy;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.Collections;
@@ -10,17 +10,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 
 /**
- * Instances of this class contain the conf for a {@link GraphDbLucene} full-text-search
+ * Instances of this class contain the conf for a {@link LegacyLucene} full-text-search
  * index.
  *
  * @author Kevin Haller
- * @version 1.0
+ * @version 1.2
  * @see <a href="http://graphdb.ontotext.com/free/full-text-search.html">Ontotext GraphDB FTS</a>
  * @since 1.0
  */
 @Lazy
 @Configuration
-public class GraphDbLuceneConfig {
+public class LegacyLuceneConfig {
 
   public static final String GRAPHDB_LUCENE_NS = "http://www.ontotext.com/owlim/lucene#";
 
@@ -40,10 +40,7 @@ public class GraphDbLuceneConfig {
   @Value("${graphdb.lucene.name:esm}")
   private String name;
 
-  @Value("${graphdb.lucene.initialize:true}")
-  private boolean initialize;
-
-  private List<String> indexing = Collections.singletonList("uris");
+  private final List<String> indexing = Collections.singletonList("uris");
 
   @Value("${graphdb.lucene.exclude:#{null}}")
   private String excludePattern;
@@ -79,10 +76,10 @@ public class GraphDbLuceneConfig {
   private String scorer;
 
   /**
-   * Gets the conf triples for {@link GraphDbLucene}. Those list of triple can be inserted
+   * Gets the conf triples for {@link LegacyLucene}. Those list of triple can be inserted
    * into a GraphDB instance to configure the Lucene index.
    *
-   * @return the conf triples for {@link GraphDbLucene}.
+   * @return the conf triples for {@link LegacyLucene}.
    */
   public String getConfigTriples() {
     return new StringSubstitutor(ImmutableMap.<String, String>builder()
@@ -126,7 +123,7 @@ public class GraphDbLuceneConfig {
 
   /**
    * Gets the name of the lucene index, which must form a valid IRI with the {@link
-   * GraphDbLuceneConfig#GRAPHDB_LUCENE_NS} as prefix.
+   * LegacyLuceneConfig#GRAPHDB_LUCENE_NS} as prefix.
    *
    * @return the name of the lucene index.
    */
@@ -141,16 +138,6 @@ public class GraphDbLuceneConfig {
    */
   public String getLuceneIndexIRI() {
     return GRAPHDB_LUCENE_NS + name;
-  }
-
-  /**
-   * Returns {@code true}, if the lucene index should be newly initialized, otherwise {@code
-   * false}.
-   *
-   * @return {@code true}, if the lucene index should be newly initialized, otherwise {@code false}.
-   */
-  public boolean shouldBeInitialized() {
-    return initialize;
   }
 
   /**
@@ -318,7 +305,6 @@ public class GraphDbLuceneConfig {
   public String toString() {
     return "GraphDbLuceneConfig{" +
         "name='" + name + '\'' +
-        ", initialize=" + initialize +
         ", indexing=" + indexing +
         ", excludePattern='" + excludePattern + '\'' +
         ", excludedEntities=" + excludedEntities +
