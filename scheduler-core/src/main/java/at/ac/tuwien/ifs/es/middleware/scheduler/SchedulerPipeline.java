@@ -40,19 +40,16 @@ public class SchedulerPipeline {
   private final HTreeMap<String, TaskStatus> taskMap;
   private final TaskExecutor threadPool;
 
-  /* Locks for  */
   private final Lock openLock = new ReentrantLock();
   private final Lock runningLock = new ReentrantLock();
   private final Lock mapLock = new ReentrantLock();
 
-  /*  */
   private List<ScheduleTask> openTasksList = new LinkedList<>();
-  private List<ScheduleTask> runningTasksList = new LinkedList<>();
+  private final List<ScheduleTask> runningTasksList = new LinkedList<>();
   private final ConcurrentLinkedQueue<ScheduleTask> finishedTasksList = new ConcurrentLinkedQueue<>();
   private final ConcurrentLinkedQueue<ScheduleTask> failedTasksList = new ConcurrentLinkedQueue<>();
 
-  /*  */
-  private ConcurrentMap<String, TaskChangeListener> changeListenerMap = new ConcurrentHashMap<>();
+  private final ConcurrentMap<String, TaskChangeListener> changeListenerMap = new ConcurrentHashMap<>();
 
   public SchedulerPipeline(DB db, TaskExecutor threadPool) {
     this.db = db;
@@ -157,9 +154,9 @@ public class SchedulerPipeline {
   }
 
   /**
-   * @param id for which the listener shall be registered. It must not be null.
+   * @param id            for which the listener shall be registered. It must not be null.
    * @param newTaskStatus new {@link TaskStatus} passed to the change listener. It must not be
-   * null.
+   *                      null.
    */
   private void informTaskChangeListener(String id, TaskStatus newTaskStatus) {
     if (changeListenerMap.containsKey(id)) {
@@ -172,7 +169,7 @@ public class SchedulerPipeline {
    * in the status.
    *
    * @param scheduleTask for which the new state shall be persisted.
-   * @param status the new {@link TaskStatus.VALUE} of the given {@link ScheduleTask}.
+   * @param status       the new {@link TaskStatus.VALUE} of the given {@link ScheduleTask}.
    */
   private void persistTaskStatus(ScheduleTask scheduleTask, TaskStatus.VALUE status) {
     mapLock.lock();
@@ -273,18 +270,27 @@ public class SchedulerPipeline {
         /* finally issue them */
         runnables.forEach(threadPool::execute);
       } finally {
-        logger.info("Open tasks: [{}]",
-            openTasksList.stream()
-                .map(t -> String.format("%s(%s)", t.getTaskId(), t.getNeededRequirements()))
-                .collect(Collectors.joining(",")));
-        logger.info("Running tasks: [{}]",
-            runningTasksList.stream().map(ScheduleTask::getTaskId)
-                .collect(Collectors.joining(",")));
-        logger.info("Finished tasks: [{}]",
-            finishedTasksList.stream().map(ScheduleTask::getTaskId)
-                .collect(Collectors.joining(",")));
-        logger.info("Failed tasks: [{}]",
-            failedTasksList.stream().map(ScheduleTask::getTaskId).collect(Collectors.joining(",")));
+        if (!openTasksList.isEmpty()) {
+          logger.info("Open tasks: [{}]",
+              openTasksList.stream()
+                  .map(t -> String.format("%s(%s)", t.getTaskId(), t.getNeededRequirements()))
+                  .collect(Collectors.joining(",")));
+        }
+        if (!runningTasksList.isEmpty()) {
+          logger.info("Running tasks: [{}]",
+              runningTasksList.stream().map(ScheduleTask::getTaskId)
+                  .collect(Collectors.joining(",")));
+        }
+        if (!finishedTasksList.isEmpty()) {
+          logger.info("Finished tasks: [{}]",
+              finishedTasksList.stream().map(ScheduleTask::getTaskId)
+                  .collect(Collectors.joining(",")));
+        }
+        if (!failedTasksList.isEmpty()) {
+          logger.info("Failed tasks: [{}]",
+              failedTasksList.stream().map(ScheduleTask::getTaskId)
+                  .collect(Collectors.joining(",")));
+        }
         mapLock.unlock();
       }
     } finally {
