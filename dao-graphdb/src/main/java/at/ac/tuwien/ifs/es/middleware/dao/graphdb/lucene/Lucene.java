@@ -1,27 +1,27 @@
 package at.ac.tuwien.ifs.es.middleware.dao.graphdb.lucene;
 
-import at.ac.tuwien.ifs.es.middleware.dao.graphdb.lucene.legacy.LegacyLuceneConfig;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.DependsOn;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGFullTextSearchDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.KGSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOConnectionException;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOException;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.KGDAOSetupException;
+import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLException;
 import at.ac.tuwien.ifs.es.middleware.dao.knowledgegraph.exception.sparql.KGSPARQLExecutionException;
-import at.ac.tuwien.ifs.es.middleware.dao.rdf4j.RDF4JSparqlDAO;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.facet.FacetFilter;
 import at.ac.tuwien.ifs.es.middleware.kg.abstraction.sparql.SelectQueryResult;
 import at.ac.tuwien.ifs.es.middleware.sparqlbuilder.facet.FacetedSearchQueryBuilder;
-import java.util.Collections;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.rdf.api.BlankNodeOrIRI;
+import org.apache.commons.rdf.api.Literal;
 import org.apache.commons.rdf.api.RDFTerm;
-import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.sparqlbuilder.core.Prefix;
 import org.eclipse.rdf4j.sparqlbuilder.core.SparqlBuilder;
 import org.eclipse.rdf4j.sparqlbuilder.core.Variable;
-import org.eclipse.rdf4j.sparqlbuilder.core.query.InsertDataQuery;
 import org.eclipse.rdf4j.sparqlbuilder.core.query.Queries;
 import org.eclipse.rdf4j.sparqlbuilder.core.query.SelectQuery;
 import org.eclipse.rdf4j.sparqlbuilder.rdf.Rdf;
@@ -29,11 +29,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -57,36 +55,108 @@ public class Lucene implements KGFullTextSearchDAO {
   private static final Prefix PREFIX_CON_INST = SparqlBuilder.prefix("con-inst",
       Rdf.iri("http://www.ontotext.com/connectors/lucene/instance#"));
 
-  private final TaskExecutor taskExecutor;
+  private enum CONNECTOR_STATE {MISSING, INITIALIZING, BUILT}
 
   private final KGSparqlDAO sparqlDAO;
-  private final boolean shouldBeInitialized;
-  private final LuceneConfig graphDbLuceneConfig;
+  private final ConnectorConfig connectorConfig;
+  private final ObjectMapper objectMapper;
 
   @Autowired
   public Lucene(@Qualifier("getSparqlDAO") KGSparqlDAO sparqlDAO,
-      @Value("${graphdb.lucene.initialize:#{false}}") boolean shouldBeInitialized,
-      LuceneConfig graphDbLuceneConfig, TaskExecutor taskExecutor) {
+      ConnectorConfig connectorConfig, ObjectMapper objectMapper) {
     this.sparqlDAO = sparqlDAO;
-    this.shouldBeInitialized = shouldBeInitialized;
-    this.graphDbLuceneConfig = graphDbLuceneConfig;
-    this.taskExecutor = taskExecutor;
+    this.connectorConfig = connectorConfig;
+    this.objectMapper = objectMapper;
   }
 
   @Override
   public void setup() throws KGDAOSetupException, KGDAOConnectionException {
-    if (this.shouldBeInitialized) {
-      logger.debug("The GraphDb Lucene index will be initialized.");
-      try (RepositoryConnection con = ((RDF4JSparqlDAO) sparqlDAO).getRepository()
-          .getConnection()) {
-        //TODO: create an index, if it hasn't already been done.
+    CONNECTOR_STATE status = getConnectorStatus();
+    logger.debug("Fetched state '{}' from the Lucene connector in GraphDB.", status);
+    if (status.equals(CONNECTOR_STATE.MISSING)) {
+      try {
+        this.createConnector(this.objectMapper.writeValueAsString(connectorConfig));
       } catch (KGSPARQLExecutionException e) {
         throw new KGDAOConnectionException(e);
       } catch (Exception e) {
         throw new KGDAOSetupException(e);
       }
+      status = getConnectorStatus();
     }
-    this.searchFullText("test", Collections.emptyList(), 0, 5);
+    try {
+      while (status.equals(CONNECTOR_STATE.INITIALIZING)) {
+        logger.info("The graphDB Lucene index gets initialized.");
+        Thread.sleep(1000);
+        status = getConnectorStatus();
+      }
+    } catch (InterruptedException e) {
+    }
+    if (status.equals(CONNECTOR_STATE.BUILT)) {
+      logger.info("The GraphDb Lucene index '{}' is ready.", connectorConfig.getName());
+    }
+  }
+
+  /**
+   * Gets the {@link CONNECTOR_STATE} of the Lucene connector. If the GraphDB instance returns an
+   * empty list to a status query, or, if the status object cannot be serialized in a proper Json
+   * object, then the state {@code MISSING} is returned.
+   *
+   * @return {@link CONNECTOR_STATE} of the Lucene connector.
+   */
+  protected CONNECTOR_STATE getConnectorStatus() {
+    Variable cntStatus = SparqlBuilder.var("cntStatus");
+    List<Map<String, RDFTerm>> results = this.sparqlDAO.<SelectQueryResult>query(
+        Queries.SELECT(cntStatus)
+            .where(PREFIX_CON_INST.iri(connectorConfig.getName())
+                .has(PREFIX_CON.iri("connectorStatus"), cntStatus))
+            .prefix(PREFIX_CON)
+            .prefix(PREFIX_CON_INST).getQueryString(), false).value();
+    if (results.isEmpty()) {
+      return CONNECTOR_STATE.MISSING;
+    }
+    Literal status = (Literal) results.get(0).get("cntStatus");
+    try {
+      JsonNode statusNode = objectMapper.readTree(status.getLexicalForm());
+      String statusCode = statusNode.get("status").asText();
+      switch (statusCode) {
+        case "BUILT":
+          return CONNECTOR_STATE.BUILT;
+        case "BUILDING":
+          return CONNECTOR_STATE.INITIALIZING;
+        default:
+          break;
+      }
+    } catch (JsonProcessingException e) {
+      logger.error("Couldn't fetch the status of the Lucene connector for GraphDB: {}",
+          e.getMessage());
+    }
+    return CONNECTOR_STATE.MISSING;
+  }
+
+  /**
+   * Issues a request to GraphDB to create a Lucene index with the give {@code configJson}. The
+   * name of the index will correspond to {@link ConnectorConfig#getName()}.
+   *
+   * @throws KGSPARQLException if the SPARQL request to create the connector fails.
+   */
+  protected void createConnector(String configJson) throws KGSPARQLException {
+    this.sparqlDAO.update(Queries.INSERT_DATA(PREFIX_CON_INST.iri(connectorConfig.getName())
+            .has(PREFIX_CON.iri("createConnector"), Rdf.literalOf(configJson)))
+        .prefix(PREFIX_CON)
+        .prefix(PREFIX_CON_INST).getQueryString());
+  }
+
+  /**
+   * Issues a request to GraphDB to drop the Lucene connector with the name specified by
+   * {@link ConnectorConfig#getName()}.
+   *
+   * @throws KGSPARQLException if the SPARQL request to drop the connector fails.
+   */
+  protected void dropConnector() throws KGSPARQLException {
+    this.sparqlDAO.update(Queries.INSERT_DATA(PREFIX_CON_INST.iri(connectorConfig.getName())
+            .has(PREFIX_CON.iri("dropConnector"), Rdf.bNode()))
+        .prefix(PREFIX_CON)
+        .prefix(PREFIX_CON_INST).getQueryString());
   }
 
   @Override
@@ -125,7 +195,7 @@ public class Lucene implements KGFullTextSearchDAO {
     /* construct main query */
     SelectQuery query = Queries.SELECT(resource, score).prefix(PREFIX_CON).prefix(PREFIX_CON_INST)
         .where(Rdf.bNode()
-                .isA(PREFIX_CON_INST.iri("esm"))
+                .isA(PREFIX_CON_INST.iri(connectorConfig.getName()))
                 .andHas(PREFIX_CON.iri("query"), Rdf.literalOf(keyword))
                 .andHas(PREFIX_CON.iri("entities"), resource),
             resource.has(PREFIX_CON.iri("score"), score));
