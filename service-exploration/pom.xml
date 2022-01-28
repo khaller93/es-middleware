@@ -30,6 +30,10 @@
       <artifactId>middleware.kg-abstraction</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+    </dependency>
+    <dependency>
       <groupId>at.ac.tuwien.ifs.exploratorysearch</groupId>
       <artifactId>middleware.util-tetsing</artifactId>
       <scope>test</scope>
