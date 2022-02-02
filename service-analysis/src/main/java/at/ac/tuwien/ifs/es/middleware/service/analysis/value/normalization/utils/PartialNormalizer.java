@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @param <ID> instances of a class that implements {@link Object#equals(Object)} and {@link
@@ -17,7 +16,7 @@ import java.util.Optional;
  */
 public class PartialNormalizer<ID> extends Normalizer<ID> {
 
-  private final List<BigDecimal> noneIDValues = new LinkedList<>();
+  private final List<V> noneIDValues = new LinkedList<>();
 
   /**
    * Registers the given {@code value} without any association to any ID.
@@ -26,7 +25,7 @@ public class PartialNormalizer<ID> extends Normalizer<ID> {
    */
   public void register(BigDecimal value) {
     checkArgument(value != null, "The value must not be null.");
-    this.noneIDValues.add(value);
+    this.noneIDValues.add(new V(value, 1));
   }
 
   /**
@@ -38,14 +37,12 @@ public class PartialNormalizer<ID> extends Normalizer<ID> {
    */
   public void register(BigDecimal value, long n) {
     checkArgument(value != null, "The value must not be null.");
-    for (int i = 0; i < n; i++) {
-      this.noneIDValues.add(value);
-    }
+    this.noneIDValues.add(new V(value, n));
   }
 
   @Override
-  protected Collection<BigDecimal> gatherRegisteredValues() {
-    List<BigDecimal> collection = new LinkedList<>(super.gatherRegisteredValues());
+  protected Collection<V> gatherRegisteredValues() {
+    List<V> collection = new LinkedList<>(super.gatherRegisteredValues());
     collection.addAll(noneIDValues);
     return collection;
   }

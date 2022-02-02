@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * A normalizer that applies min,max and z-score normalization to a set of registered values. This
@@ -86,8 +87,9 @@ public class Normalizer<ID> {
    *
    * @return all the registered {@link BigDecimal} values in a {@link Collection}.
    */
-  protected Collection<BigDecimal> gatherRegisteredValues() {
-    return this.registeredMap.values();
+  protected Collection<V> gatherRegisteredValues() {
+    return this.registeredMap.values().stream().map(v -> new V(v, 1))
+        .collect(Collectors.toList());
   }
 
   /**
@@ -99,13 +101,13 @@ public class Normalizer<ID> {
     if (minMaxPair != null) {
       return Optional.of(minMaxPair);
     } else {
-      Collection<BigDecimal> values = gatherRegisteredValues();
+      Collection<V> values = gatherRegisteredValues();
       if (values.isEmpty()) {
         return Optional.empty();
       }
-      Optional<BigDecimal> optionalMin = values.stream().min(Comparator.naturalOrder());
-      Optional<BigDecimal> optionalMax = values.stream().max(Comparator.naturalOrder());
-      MinMaxPair<BigDecimal> p = new MinMaxPair<>(optionalMin.get(), optionalMax.get());
+      BigDecimal minValue = values.stream().reduce(V::min).get().getRawValue();
+      BigDecimal maxValue = values.stream().reduce(V::max).get().getRawValue();
+      MinMaxPair<BigDecimal> p = new MinMaxPair<>(minValue, maxValue);
       this.minMaxPair = p;
       return Optional.of(p);
     }
@@ -120,14 +122,14 @@ public class Normalizer<ID> {
     if (statisticsPair != null) {
       return Optional.of(statisticsPair);
     } else {
-      Collection<BigDecimal> values = gatherRegisteredValues();
+      Collection<V> values = gatherRegisteredValues();
       if (values.isEmpty()) {
         return Optional.empty();
       }
-      BigDecimal mean = values.stream().reduce(BigDecimal::add).get()
+      BigDecimal mean = values.stream().reduce(V::add).get().getRawValue()
           .divide(BigDecimal.valueOf(values.size()), MathContext.DECIMAL128);
-      BigDecimal sd = values.stream().map(val -> val.subtract(mean).pow(2))
-          .reduce(BigDecimal::add).get()
+      BigDecimal sd = values.stream().map(val -> val.subtract(new V(mean, 1)).pow(2))
+          .reduce(V::add).get().getRawValue()
           .divide(BigDecimal.valueOf(values.size()), MathContext.DECIMAL128)
           .sqrt(MathContext.DECIMAL128);
       StatisticsPair<BigDecimal> statisticsPair = new StatisticsPair<>(mean, sd);
