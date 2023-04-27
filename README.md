@@ -1,4 +1,4 @@
-# Exploratory Search Microservice
+# Exploratory Search Middleware (Inactive)
 
 The platform for enabling exploratory search can be roughly divided into three 
 parts as depicted in the figure below. The ES system covers the two right-most
@@ -10,9 +10,9 @@ interfaces.
 
 ![Concept View of ESM](./doc/graphics/exploratory-search-concept-high-level.png)
 
-The exploratory search microservice is sitting on top of a knowledge graph and
+The exploratory search middleware is sitting on top of a knowledge graph and
 provides services to the web application enabling exploratory search on
-mentioned knowledge graph. This microservice expects three interfaces to the
+mentioned knowledge graph. This middleware expects three interfaces to the
 knowledge graph, namely SPARQL, Gremlin and a full-text search index. Itself
 offers a REST interface to the web application, allowing clients to execute
 exploration flows.
@@ -206,4 +206,4 @@ free community edition of its triplestore ([here](http://vos.openlinksw.com/owik
 
 # Contact
 
-* Kevin Haller - [contact@kevinhaller.dev](mailto:contact@kevinhaller.dev) or [kevin.haller@tuwien.ac.at](mailto:kevin.haller@tuwien.ac.at)
+* Kevin Haller - [contact@kevinhaller.dev](mailto:contact@kevinhaller.dev)
